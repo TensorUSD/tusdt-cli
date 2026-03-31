@@ -1,0 +1,418 @@
+"""Vault CLI commands."""
+
+import click
+
+from tusdt_cli.client import TUSDTClient
+from tusdt_cli.config import load_config, NETWORKS
+from tusdt_cli.utils import (
+    ContractError,
+    format_balance,
+    parse_balance,
+    print_dict,
+    print_error,
+    print_info,
+    print_success,
+    print_table,
+    print_tx_result,
+)
+from tusdt_cli.wallet import get_reader_keypair, get_signer_keypair, resolve_ss58
+
+_network_option = click.option(
+    "--network",
+    type=click.Choice(list(NETWORKS.keys()), case_sensitive=False),
+    default=None,
+    help="Network preset (overrides rpc & contract addresses)",
+)
+
+_wallet_option = click.option(
+    "--wallet-name", default=None,
+    help="Bittensor wallet name for signing (prompts for coldkey password)",
+)
+
+
+@click.group("vault")
+def vault_group() -> None:
+    """Manage collateral vaults."""
+
+
+# ------------------------------------------------------------------
+# create
+# ------------------------------------------------------------------
+
+@vault_group.command("create")
+@click.option("--amount", required=True, help="Collateral amount in human-readable units (e.g. 1.5)")
+@_wallet_option
+@_network_option
+@click.pass_context
+def create_vault(ctx: click.Context, amount: str, wallet_name: str | None, network: str | None) -> None:
+    """Create a new vault with native-token collateral."""
+    config = load_config(network=network or ctx.obj.get("network_override"))
+    if wallet_name:
+        config["wallet_name"] = wallet_name
+    decimals = config.get("decimals", 12)
+    raw_amount = parse_balance(amount, decimals)
+
+    try:
+        keypair = get_signer_keypair(config)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_info(f"Signer: {keypair.ss58_address}")
+    print_info(f"Depositing {amount} (raw {raw_amount}) as collateral...")
+
+    try:
+        client = TUSDTClient(config)
+        result = client.create_vault(keypair, raw_amount)
+        print_success("Vault created successfully!")
+        print_tx_result(result, config.get("network", "finney"))
+    except Exception as exc:
+        print_error(str(exc))
+
+
+# ------------------------------------------------------------------
+# add-collateral
+# ------------------------------------------------------------------
+
+@vault_group.command("add-collateral")
+@click.argument("vault_id", type=int)
+@click.option("--amount", required=True, help="Collateral amount to add")
+@_wallet_option
+@_network_option
+@click.pass_context
+def add_collateral(ctx: click.Context, vault_id: int, amount: str, wallet_name: str | None, network: str | None) -> None:
+    """Add collateral to an existing vault."""
+    config = load_config(network=network or ctx.obj.get("network_override"))
+    if wallet_name:
+        config["wallet_name"] = wallet_name
+    decimals = config.get("decimals", 12)
+    raw_amount = parse_balance(amount, decimals)
+
+    try:
+        keypair = get_signer_keypair(config)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_info(f"Signer: {keypair.ss58_address}")
+    print_info(f"Adding {amount} collateral to vault {vault_id}...")
+
+    try:
+        client = TUSDTClient(config)
+        result = client.add_collateral(keypair, vault_id, raw_amount)
+        print_success("Collateral added!")
+        print_tx_result(result, config.get("network", "finney"))
+    except Exception as exc:
+        print_error(str(exc))
+
+
+# ------------------------------------------------------------------
+# borrow
+# ------------------------------------------------------------------
+
+@vault_group.command("borrow")
+@click.argument("vault_id", type=int)
+@click.argument("amount", type=str)
+@_wallet_option
+@_network_option
+@click.pass_context
+def borrow(ctx: click.Context, vault_id: int, amount: str, wallet_name: str | None, network: str | None) -> None:
+    """Borrow TUSDT tokens against a vault's collateral."""
+    config = load_config(network=network or ctx.obj.get("network_override"))
+    if wallet_name:
+        config["wallet_name"] = wallet_name
+    decimals = config.get("decimals", 12)
+    raw_amount = parse_balance(amount, decimals)
+
+    try:
+        keypair = get_signer_keypair(config)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_info(f"Signer: {keypair.ss58_address}")
+    print_info(f"Borrowing {amount} from vault {vault_id}...")
+
+    try:
+        client = TUSDTClient(config)
+        result = client.borrow(keypair, vault_id, raw_amount)
+        print_success("Tokens borrowed!")
+        print_tx_result(result, config.get("network", "finney"))
+    except Exception as exc:
+        print_error(str(exc))
+
+
+# ------------------------------------------------------------------
+# repay
+# ------------------------------------------------------------------
+
+@vault_group.command("repay")
+@click.argument("vault_id", type=int)
+@click.argument("amount", type=str)
+@_wallet_option
+@_network_option
+@click.pass_context
+def repay(ctx: click.Context, vault_id: int, amount: str, wallet_name: str | None, network: str | None) -> None:
+    """Repay borrowed TUSDT tokens to a vault."""
+    config = load_config(network=network or ctx.obj.get("network_override"))
+    if wallet_name:
+        config["wallet_name"] = wallet_name
+    decimals = config.get("decimals", 12)
+    raw_amount = parse_balance(amount, decimals)
+
+    try:
+        keypair = get_signer_keypair(config)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_info(f"Signer: {keypair.ss58_address}")
+    print_info(f"Repaying {amount} to vault {vault_id}...")
+
+    try:
+        client = TUSDTClient(config)
+        result = client.repay(keypair, vault_id, raw_amount)
+        print_success("Tokens repaid!")
+        print_tx_result(result, config.get("network", "finney"))
+    except Exception as exc:
+        print_error(str(exc))
+
+
+# ------------------------------------------------------------------
+# release-collateral
+# ------------------------------------------------------------------
+
+@vault_group.command("release-collateral")
+@click.argument("vault_id", type=int)
+@click.argument("amount", type=str)
+@_wallet_option
+@_network_option
+@click.pass_context
+def release_collateral(ctx: click.Context, vault_id: int, amount: str, wallet_name: str | None, network: str | None) -> None:
+    """Release collateral from a vault."""
+    config = load_config(network=network or ctx.obj.get("network_override"))
+    if wallet_name:
+        config["wallet_name"] = wallet_name
+    decimals = config.get("decimals", 12)
+    raw_amount = parse_balance(amount, decimals)
+
+    try:
+        keypair = get_signer_keypair(config)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_info(f"Signer: {keypair.ss58_address}")
+    print_info(f"Releasing {amount} collateral from vault {vault_id}...")
+
+    try:
+        client = TUSDTClient(config)
+        result = client.release_collateral(keypair, vault_id, raw_amount)
+        print_success("Collateral released!")
+        print_tx_result(result, config.get("network", "finney"))
+    except Exception as exc:
+        print_error(str(exc))
+
+
+# ------------------------------------------------------------------
+# info
+# ------------------------------------------------------------------
+
+@vault_group.command("info")
+@click.argument("owner", required=False, default=None)
+@click.argument("vault_id", type=int)
+@_wallet_option
+@_network_option
+@click.pass_context
+def vault_info(ctx: click.Context, owner: str | None, vault_id: int, wallet_name: str | None, network: str | None) -> None:
+    """Display detailed information for a single vault.
+
+    OWNER can be an SS58 address or a bittensor wallet name.
+    If omitted, --wallet-name is used to resolve the address.
+    """
+    config = load_config(network=network or ctx.obj.get("network_override"))
+    decimals = config.get("decimals", 12)
+
+    try:
+        if owner:
+            owner = resolve_ss58(owner, config.get("wallet_path"))
+        elif wallet_name:
+            owner = resolve_ss58(wallet_name, config.get("wallet_path"))
+        else:
+            print_error("Provide OWNER (address or wallet name) or --wallet-name")
+            return
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        vault_data = client.get_vault(keypair, owner, vault_id)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    if vault_data is None:
+        print_error(f"Vault {vault_id} not found for owner {owner}")
+        return
+
+    print_dict(f"Vault #{vault_id}", {
+        "ID": vault_data.get("id", vault_id),
+        "Owner": vault_data.get("owner", owner),
+        "Collateral": format_balance(vault_data.get("collateral_balance", 0), decimals),
+        "Borrowed": format_balance(vault_data.get("borrowed_token_balance", 0), decimals),
+        "Created at": vault_data.get("created_at", "?"),
+        "Interest accrued at": vault_data.get("last_interest_accrued_at", "?"),
+    })
+
+
+# ------------------------------------------------------------------
+# list
+# ------------------------------------------------------------------
+
+@vault_group.command("list")
+@click.argument("owner", required=False, default=None)
+@click.option("--page", default=0, show_default=True, help="Page number (10 per page)")
+@_wallet_option
+@_network_option
+@click.pass_context
+def list_vaults(ctx: click.Context, owner: str | None, page: int, wallet_name: str | None, network: str | None) -> None:
+    """List vaults for an owner (paginated).
+
+    OWNER can be an SS58 address or a bittensor wallet name.
+    If omitted, --wallet-name is used to resolve the address.
+    """
+    config = load_config(network=network or ctx.obj.get("network_override"))
+    decimals = config.get("decimals", 12)
+
+    try:
+        if owner:
+            owner = resolve_ss58(owner, config.get("wallet_path"))
+        elif wallet_name:
+            owner = resolve_ss58(wallet_name, config.get("wallet_path"))
+        else:
+            print_error("Provide OWNER (address or wallet name) or --wallet-name")
+            return
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        total = client.get_vaults_count(keypair, owner)
+        vaults = client.list_vaults(keypair, owner, page)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    if not vaults:
+        print_info(f"No vaults found for {owner} (page {page})")
+        return
+
+    rows = []
+    for v in vaults:
+        rows.append([
+            str(v.get("id", "?")),
+            format_balance(v.get("collateral_balance", 0), decimals),
+            format_balance(v.get("borrowed_token_balance", 0), decimals),
+            str(v.get("created_at", "?")),
+        ])
+
+    print_info(f"Total vaults: {total}  |  Page: {page}")
+    print_table(
+        f"Vaults for {owner[:12]}...{owner[-6:]}",
+        ["ID", "Collateral", "Borrowed", "Created"],
+        rows,
+    )
+
+
+# ------------------------------------------------------------------
+# max-borrow
+# ------------------------------------------------------------------
+
+@vault_group.command("max-borrow")
+@click.argument("owner", required=False, default=None)
+@click.argument("vault_id", type=int)
+@_wallet_option
+@_network_option
+@click.pass_context
+def max_borrow(ctx: click.Context, owner: str | None, vault_id: int, wallet_name: str | None, network: str | None) -> None:
+    """Show the maximum additional borrowing capacity for a vault.
+
+    OWNER can be an SS58 address or a bittensor wallet name.
+    If omitted, --wallet-name is used to resolve the address.
+    """
+    config = load_config(network=network or ctx.obj.get("network_override"))
+    decimals = config.get("decimals", 12)
+
+    try:
+        if owner:
+            owner = resolve_ss58(owner, config.get("wallet_path"))
+        elif wallet_name:
+            owner = resolve_ss58(wallet_name, config.get("wallet_path"))
+        else:
+            print_error("Provide OWNER (address or wallet name) or --wallet-name")
+            return
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        value = client.get_max_borrow(keypair, owner, vault_id)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_dict(f"Max Borrow – Vault #{vault_id}", {
+        "Owner": owner,
+        "Max additional borrow": format_balance(value, decimals),
+    })
+
+
+# ------------------------------------------------------------------
+# collateral-value
+# ------------------------------------------------------------------
+
+@vault_group.command("collateral-value")
+@click.argument("owner", required=False, default=None)
+@click.argument("vault_id", type=int)
+@_wallet_option
+@_network_option
+@click.pass_context
+def collateral_value(ctx: click.Context, owner: str | None, vault_id: int, wallet_name: str | None, network: str | None) -> None:
+    """Show the collateral value (in borrowed-token terms) for a vault.
+
+    OWNER can be an SS58 address or a bittensor wallet name.
+    If omitted, --wallet-name is used to resolve the address.
+    """
+    config = load_config(network=network or ctx.obj.get("network_override"))
+    decimals = config.get("decimals", 12)
+
+    try:
+        if owner:
+            owner = resolve_ss58(owner, config.get("wallet_path"))
+        elif wallet_name:
+            owner = resolve_ss58(wallet_name, config.get("wallet_path"))
+        else:
+            print_error("Provide OWNER (address or wallet name) or --wallet-name")
+            return
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        value = client.get_collateral_value(keypair, owner, vault_id)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_dict(f"Collateral Value – Vault #{vault_id}", {
+        "Owner": owner,
+        "Collateral value": format_balance(value, decimals),
+    })
