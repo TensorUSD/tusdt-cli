@@ -6,6 +6,7 @@ from tusdt_cli.client import TUSDTClient
 from tusdt_cli.config import load_config, NETWORKS
 from tusdt_cli.utils import (
     ContractError,
+    HelpfulGroup,
     format_balance,
     parse_balance,
     print_dict,
@@ -29,7 +30,7 @@ _wallet_option = click.option(
 )
 
 
-@click.group("token")
+@click.group("token", cls=HelpfulGroup)
 def token_group() -> None:
     """TUSDT token operations."""
 
@@ -39,26 +40,29 @@ def token_group() -> None:
 # ------------------------------------------------------------------
 
 @token_group.command("balance")
-@click.argument("account", required=False, default=None)
+@click.option("--owner", default=None, help="Account SS58 address or wallet name (defaults to --wallet-name)")
 @_wallet_option
 @_network_option
 @click.pass_context
-def balance(ctx: click.Context, account: str | None, wallet_name: str | None, network: str | None) -> None:
+def balance(ctx: click.Context, owner: str | None, wallet_name: str | None, network: str | None) -> None:
     """Show the TUSDT token balance for an account.
 
-    ACCOUNT can be an SS58 address or a bittensor wallet name.
-    If omitted, --wallet-name is used to resolve the address.
+    \b
+    Owner is resolved from --wallet-name, or pass --owner explicitly.
+    Examples:
+      tusdt token balance --wallet-name MyWallet
+      tusdt token balance --owner 5GrwvaEF... --network testnet
     """
     config = load_config(network=network or ctx.obj.get("network_override"))
     decimals = config.get("decimals", 12)
 
     try:
-        if account:
-            account = resolve_ss58(account, config.get("wallet_path"))
+        if owner:
+            account = resolve_ss58(owner, config.get("wallet_path"))
         elif wallet_name:
             account = resolve_ss58(wallet_name, config.get("wallet_path"))
         else:
-            print_error("Provide ACCOUNT (address or wallet name) or --wallet-name")
+            print_error("Provide --owner (address or wallet name) or --wallet-name")
             return
     except Exception as exc:
         print_error(str(exc))
@@ -92,7 +96,12 @@ def balance(ctx: click.Context, account: str | None, wallet_name: str | None, ne
 def approve(ctx: click.Context, spender: str, amount: str, wallet_name: str | None, network: str | None) -> None:
     """Approve a spender to use your TUSDT tokens.
 
-    SPENDER can be an SS58 address or a bittensor wallet name.
+    \b
+    SPENDER is the SS58 address or wallet name of the account to approve.
+    AMOUNT  is the human-readable token amount to approve (e.g. 1000).
+    Examples:
+      tusdt token approve 5GrwvaEF... 1000 --wallet-name MyWallet
+      tusdt token approve SpenderWallet 500.5 --wallet-name MyWallet --network testnet
     """
     config = load_config(network=network or ctx.obj.get("network_override"))
     if wallet_name:
@@ -129,20 +138,32 @@ def approve(ctx: click.Context, spender: str, amount: str, wallet_name: str | No
 # ------------------------------------------------------------------
 
 @token_group.command("allowance")
-@click.argument("owner", type=str)
 @click.argument("spender", type=str)
+@click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
+@_wallet_option
 @_network_option
 @click.pass_context
-def allowance(ctx: click.Context, owner: str, spender: str, network: str | None) -> None:
+def allowance(ctx: click.Context, spender: str, owner: str | None, wallet_name: str | None, network: str | None) -> None:
     """Show the allowance a spender has for an owner's tokens.
 
-    OWNER and SPENDER can be SS58 addresses or bittensor wallet names.
+    \b
+    SPENDER is the SS58 address or wallet name of the spender account.
+    Owner is resolved from --wallet-name, or pass --owner explicitly.
+    Examples:
+      tusdt token allowance 5GrwvaEF... --wallet-name MyWallet
+      tusdt token allowance SpenderWallet --owner 5Abc123... --network testnet
     """
     config = load_config(network=network or ctx.obj.get("network_override"))
     decimals = config.get("decimals", 12)
 
     try:
-        owner = resolve_ss58(owner, config.get("wallet_path"))
+        if owner:
+            owner = resolve_ss58(owner, config.get("wallet_path"))
+        elif wallet_name:
+            owner = resolve_ss58(wallet_name, config.get("wallet_path"))
+        else:
+            print_error("Provide --owner (address or wallet name) or --wallet-name")
+            return
         spender = resolve_ss58(spender, config.get("wallet_path"))
     except Exception as exc:
         print_error(str(exc))
@@ -177,7 +198,12 @@ def allowance(ctx: click.Context, owner: str, spender: str, network: str | None)
 def transfer(ctx: click.Context, to: str, amount: str, wallet_name: str | None, network: str | None) -> None:
     """Transfer TUSDT tokens to another account.
 
-    TO can be an SS58 address or a bittensor wallet name.
+    \b
+    TO     is the SS58 address or wallet name of the recipient.
+    AMOUNT is the human-readable token amount to send (e.g. 50).
+    Examples:
+      tusdt token transfer 5GrwvaEF... 50 --wallet-name MyWallet
+      tusdt token transfer RecipientWallet 100.5 --wallet-name MyWallet --network testnet
     """
     config = load_config(network=network or ctx.obj.get("network_override"))
     if wallet_name:

@@ -6,6 +6,7 @@ Provides balance conversion helpers and Rich-based console output.
 import sys
 from typing import Any
 
+import click
 from rich import box
 from rich.console import Console
 from rich.panel import Panel
@@ -13,6 +14,28 @@ from rich.table import Table
 from rich.text import Text
 
 console = Console()
+
+
+# ---------------------------------------------------------------------------
+# Custom Click classes – show full help on missing arguments
+# ---------------------------------------------------------------------------
+
+class HelpfulCommand(click.Command):
+    """Command that prints full help text when a required argument is missing."""
+
+    def parse_args(self, ctx: click.Context, args: list[str]) -> list[str]:
+        try:
+            return super().parse_args(ctx, args)
+        except click.MissingParameter as e:
+            click.echo(ctx.get_help())
+            click.echo(f"\nError: {e.format_message()}")
+            ctx.exit(2)
+
+
+class HelpfulGroup(click.Group):
+    """Group whose commands show full help on missing arguments."""
+
+    command_class = HelpfulCommand
 
 
 # ---------------------------------------------------------------------------

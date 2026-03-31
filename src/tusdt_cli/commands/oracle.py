@@ -6,6 +6,7 @@ from tusdt_cli.client import TUSDTClient
 from tusdt_cli.config import load_config, NETWORKS
 from tusdt_cli.utils import (
     ContractError,
+    HelpfulGroup,
     print_dict,
     print_error,
     print_info,
@@ -20,7 +21,7 @@ _network_option = click.option(
 )
 
 
-@click.group("oracle")
+@click.group("oracle", cls=HelpfulGroup)
 def oracle_group() -> None:
     """Oracle price-feed operations (read-only)."""
 
@@ -29,7 +30,12 @@ def oracle_group() -> None:
 @_network_option
 @click.pass_context
 def price(ctx: click.Context, network: str | None) -> None:
-    """Show the latest committed oracle price."""
+    """Show the latest committed oracle price.
+
+    \b
+    Examples:
+      tusdt oracle price --network testnet
+    """
     config = load_config(network=network or ctx.obj.get("network_override"))
 
     try:
@@ -44,10 +50,15 @@ def price(ctx: click.Context, network: str | None) -> None:
         print_info("No price data available yet.")
         return
 
+    raw_price = data.get("price", 0)
+    raw_median = data.get("median_price", 0)
+    price_val = int(raw_price) / 10**18 if raw_price else 0
+    median_val = int(raw_median) / 10**18 if raw_median else 0
+
     print_dict("Oracle Price", {
         "Round ID": data.get("round_id", "?"),
-        "Price": data.get("price", "?"),
-        "Median price": data.get("median_price", "?"),
+        "Price": price_val,
+        "Median price": median_val,
         "Reporter count": data.get("reporter_count", "?"),
         "Committed at": data.get("committed_at", "?"),
         "Was overridden": data.get("was_overridden", "?"),
@@ -58,7 +69,12 @@ def price(ctx: click.Context, network: str | None) -> None:
 @_network_option
 @click.pass_context
 def round_info(ctx: click.Context, network: str | None) -> None:
-    """Show the current oracle round ID."""
+    """Show the current oracle round ID.
+
+    \b
+    Examples:
+      tusdt oracle round --network testnet
+    """
     config = load_config(network=network or ctx.obj.get("network_override"))
 
     try:

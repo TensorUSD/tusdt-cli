@@ -12,7 +12,7 @@ from rich.tree import Tree
 
 from tusdt_cli import __version__
 from tusdt_cli.config import load_config, save_config, CONFIG_FILE, NETWORKS, apply_network_override
-from tusdt_cli.utils import console, print_dict, print_error, print_info, print_success
+from tusdt_cli.utils import console, print_dict, print_error, print_info, print_success, HelpfulGroup
 from tusdt_cli.wallet import get_default_wallet_path, list_wallets
 
 from tusdt_cli.commands.vault import vault_group
@@ -44,7 +44,7 @@ def cli(ctx: click.Context) -> None:
 # config commands
 # ======================================================================
 
-@cli.group("config")
+@cli.group("config", cls=HelpfulGroup)
 def config_group() -> None:
     """View and update CLI configuration."""
 
@@ -139,7 +139,7 @@ def config_set(
 # wallet commands
 # ======================================================================
 
-@cli.group("wallet")
+@cli.group("wallet", cls=HelpfulGroup)
 def wallet_group() -> None:
     """List and inspect bittensor wallets."""
 

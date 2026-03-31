@@ -6,6 +6,7 @@ from tusdt_cli.client import TUSDTClient
 from tusdt_cli.config import load_config, NETWORKS
 from tusdt_cli.utils import (
     ContractError,
+    HelpfulGroup,
     format_balance,
     parse_balance,
     print_dict,
@@ -30,7 +31,7 @@ _wallet_option = click.option(
 )
 
 
-@click.group("vault")
+@click.group("vault", cls=HelpfulGroup)
 def vault_group() -> None:
     """Manage collateral vaults."""
 
@@ -45,7 +46,13 @@ def vault_group() -> None:
 @_network_option
 @click.pass_context
 def create_vault(ctx: click.Context, amount: str, wallet_name: str | None, network: str | None) -> None:
-    """Create a new vault with native-token collateral."""
+    """Create a new vault with native-token collateral.
+
+    \b
+    Examples:
+      tusdt vault create --amount 1.5 --wallet-name MyWallet
+      tusdt vault create --amount 10 --wallet-name MyWallet --network testnet
+    """
     config = load_config(network=network or ctx.obj.get("network_override"))
     if wallet_name:
         config["wallet_name"] = wallet_name
@@ -81,7 +88,14 @@ def create_vault(ctx: click.Context, amount: str, wallet_name: str | None, netwo
 @_network_option
 @click.pass_context
 def add_collateral(ctx: click.Context, vault_id: int, amount: str, wallet_name: str | None, network: str | None) -> None:
-    """Add collateral to an existing vault."""
+    """Add collateral to an existing vault.
+
+    \b
+    VAULT_ID is the numeric ID of your vault.
+    Examples:
+      tusdt vault add-collateral 0 --amount 2.5 --wallet-name MyWallet
+      tusdt vault add-collateral 3 --amount 1.0 --wallet-name MyWallet --network testnet
+    """
     config = load_config(network=network or ctx.obj.get("network_override"))
     if wallet_name:
         config["wallet_name"] = wallet_name
@@ -117,7 +131,15 @@ def add_collateral(ctx: click.Context, vault_id: int, amount: str, wallet_name: 
 @_network_option
 @click.pass_context
 def borrow(ctx: click.Context, vault_id: int, amount: str, wallet_name: str | None, network: str | None) -> None:
-    """Borrow TUSDT tokens against a vault's collateral."""
+    """Borrow TUSDT tokens against a vault's collateral.
+
+    \b
+    VAULT_ID is the numeric ID of your vault.
+    AMOUNT  is the human-readable token amount to borrow (e.g. 100.5).
+    Examples:
+      tusdt vault borrow 0 100 --wallet-name MyWallet
+      tusdt vault borrow 2 50.5 --wallet-name MyWallet --network testnet
+    """
     config = load_config(network=network or ctx.obj.get("network_override"))
     if wallet_name:
         config["wallet_name"] = wallet_name
@@ -153,7 +175,15 @@ def borrow(ctx: click.Context, vault_id: int, amount: str, wallet_name: str | No
 @_network_option
 @click.pass_context
 def repay(ctx: click.Context, vault_id: int, amount: str, wallet_name: str | None, network: str | None) -> None:
-    """Repay borrowed TUSDT tokens to a vault."""
+    """Repay borrowed TUSDT tokens to a vault.
+
+    \b
+    VAULT_ID is the numeric ID of your vault.
+    AMOUNT  is the human-readable token amount to repay (e.g. 50).
+    Examples:
+      tusdt vault repay 0 50 --wallet-name MyWallet
+      tusdt vault repay 2 25.5 --wallet-name MyWallet --network testnet
+    """
     config = load_config(network=network or ctx.obj.get("network_override"))
     if wallet_name:
         config["wallet_name"] = wallet_name
@@ -189,7 +219,15 @@ def repay(ctx: click.Context, vault_id: int, amount: str, wallet_name: str | Non
 @_network_option
 @click.pass_context
 def release_collateral(ctx: click.Context, vault_id: int, amount: str, wallet_name: str | None, network: str | None) -> None:
-    """Release collateral from a vault."""
+    """Release collateral from a vault.
+
+    \b
+    VAULT_ID is the numeric ID of your vault.
+    AMOUNT  is the human-readable collateral amount to release (e.g. 1.0).
+    Examples:
+      tusdt vault release-collateral 0 1.0 --wallet-name MyWallet
+      tusdt vault release-collateral 2 0.5 --wallet-name MyWallet --network testnet
+    """
     config = load_config(network=network or ctx.obj.get("network_override"))
     if wallet_name:
         config["wallet_name"] = wallet_name
@@ -219,16 +257,20 @@ def release_collateral(ctx: click.Context, vault_id: int, amount: str, wallet_na
 # ------------------------------------------------------------------
 
 @vault_group.command("info")
-@click.argument("owner", required=False, default=None)
 @click.argument("vault_id", type=int)
+@click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
 @_wallet_option
 @_network_option
 @click.pass_context
-def vault_info(ctx: click.Context, owner: str | None, vault_id: int, wallet_name: str | None, network: str | None) -> None:
+def vault_info(ctx: click.Context, vault_id: int, owner: str | None, wallet_name: str | None, network: str | None) -> None:
     """Display detailed information for a single vault.
 
-    OWNER can be an SS58 address or a bittensor wallet name.
-    If omitted, --wallet-name is used to resolve the address.
+    \b
+    VAULT_ID is the numeric ID of the vault to query.
+    Owner is resolved from --wallet-name, or pass --owner explicitly.
+    Examples:
+      tusdt vault info 0 --wallet-name MyWallet
+      tusdt vault info 3 --owner 5GrwvaEF... --network testnet
     """
     config = load_config(network=network or ctx.obj.get("network_override"))
     decimals = config.get("decimals", 12)
@@ -239,7 +281,7 @@ def vault_info(ctx: click.Context, owner: str | None, vault_id: int, wallet_name
         elif wallet_name:
             owner = resolve_ss58(wallet_name, config.get("wallet_path"))
         else:
-            print_error("Provide OWNER (address or wallet name) or --wallet-name")
+            print_error("Provide --owner (address or wallet name) or --wallet-name")
             return
     except Exception as exc:
         print_error(str(exc))
@@ -272,7 +314,7 @@ def vault_info(ctx: click.Context, owner: str | None, vault_id: int, wallet_name
 # ------------------------------------------------------------------
 
 @vault_group.command("list")
-@click.argument("owner", required=False, default=None)
+@click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
 @click.option("--page", default=0, show_default=True, help="Page number (10 per page)")
 @_wallet_option
 @_network_option
@@ -280,8 +322,11 @@ def vault_info(ctx: click.Context, owner: str | None, vault_id: int, wallet_name
 def list_vaults(ctx: click.Context, owner: str | None, page: int, wallet_name: str | None, network: str | None) -> None:
     """List vaults for an owner (paginated).
 
-    OWNER can be an SS58 address or a bittensor wallet name.
-    If omitted, --wallet-name is used to resolve the address.
+    \b
+    Owner is resolved from --wallet-name, or pass --owner explicitly.
+    Examples:
+      tusdt vault list --wallet-name MyWallet
+      tusdt vault list --owner 5GrwvaEF... --page 2 --network testnet
     """
     config = load_config(network=network or ctx.obj.get("network_override"))
     decimals = config.get("decimals", 12)
@@ -292,7 +337,7 @@ def list_vaults(ctx: click.Context, owner: str | None, page: int, wallet_name: s
         elif wallet_name:
             owner = resolve_ss58(wallet_name, config.get("wallet_path"))
         else:
-            print_error("Provide OWNER (address or wallet name) or --wallet-name")
+            print_error("Provide --owner (address or wallet name) or --wallet-name")
             return
     except Exception as exc:
         print_error(str(exc))
@@ -333,16 +378,20 @@ def list_vaults(ctx: click.Context, owner: str | None, page: int, wallet_name: s
 # ------------------------------------------------------------------
 
 @vault_group.command("max-borrow")
-@click.argument("owner", required=False, default=None)
 @click.argument("vault_id", type=int)
+@click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
 @_wallet_option
 @_network_option
 @click.pass_context
-def max_borrow(ctx: click.Context, owner: str | None, vault_id: int, wallet_name: str | None, network: str | None) -> None:
+def max_borrow(ctx: click.Context, vault_id: int, owner: str | None, wallet_name: str | None, network: str | None) -> None:
     """Show the maximum additional borrowing capacity for a vault.
 
-    OWNER can be an SS58 address or a bittensor wallet name.
-    If omitted, --wallet-name is used to resolve the address.
+    \b
+    VAULT_ID is the numeric ID of the vault to query.
+    Owner is resolved from --wallet-name, or pass --owner explicitly.
+    Examples:
+      tusdt vault max-borrow 0 --wallet-name MyWallet
+      tusdt vault max-borrow 3 --owner 5GrwvaEF... --network testnet
     """
     config = load_config(network=network or ctx.obj.get("network_override"))
     decimals = config.get("decimals", 12)
@@ -353,7 +402,7 @@ def max_borrow(ctx: click.Context, owner: str | None, vault_id: int, wallet_name
         elif wallet_name:
             owner = resolve_ss58(wallet_name, config.get("wallet_path"))
         else:
-            print_error("Provide OWNER (address or wallet name) or --wallet-name")
+            print_error("Provide --owner (address or wallet name) or --wallet-name")
             return
     except Exception as exc:
         print_error(str(exc))
@@ -378,16 +427,20 @@ def max_borrow(ctx: click.Context, owner: str | None, vault_id: int, wallet_name
 # ------------------------------------------------------------------
 
 @vault_group.command("collateral-value")
-@click.argument("owner", required=False, default=None)
 @click.argument("vault_id", type=int)
+@click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
 @_wallet_option
 @_network_option
 @click.pass_context
-def collateral_value(ctx: click.Context, owner: str | None, vault_id: int, wallet_name: str | None, network: str | None) -> None:
+def collateral_value(ctx: click.Context, vault_id: int, owner: str | None, wallet_name: str | None, network: str | None) -> None:
     """Show the collateral value (in borrowed-token terms) for a vault.
 
-    OWNER can be an SS58 address or a bittensor wallet name.
-    If omitted, --wallet-name is used to resolve the address.
+    \b
+    VAULT_ID is the numeric ID of the vault to query.
+    Owner is resolved from --wallet-name, or pass --owner explicitly.
+    Examples:
+      tusdt vault collateral-value 0 --wallet-name MyWallet
+      tusdt vault collateral-value 3 --owner 5GrwvaEF... --network testnet
     """
     config = load_config(network=network or ctx.obj.get("network_override"))
     decimals = config.get("decimals", 12)
@@ -398,7 +451,7 @@ def collateral_value(ctx: click.Context, owner: str | None, vault_id: int, walle
         elif wallet_name:
             owner = resolve_ss58(wallet_name, config.get("wallet_path"))
         else:
-            print_error("Provide OWNER (address or wallet name) or --wallet-name")
+            print_error("Provide --owner (address or wallet name) or --wallet-name")
             return
     except Exception as exc:
         print_error(str(exc))

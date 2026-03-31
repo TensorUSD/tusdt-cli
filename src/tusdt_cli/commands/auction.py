@@ -6,6 +6,7 @@ from tusdt_cli.client import TUSDTClient
 from tusdt_cli.config import load_config, NETWORKS
 from tusdt_cli.utils import (
     ContractError,
+    HelpfulGroup,
     format_balance,
     parse_balance,
     print_dict,
@@ -32,7 +33,7 @@ _wallet_option = click.option(
 )
 
 
-@click.group("auction")
+@click.group("auction", cls=HelpfulGroup)
 def auction_group() -> None:
     """Liquidation auction operations."""
 
@@ -46,7 +47,13 @@ def auction_group() -> None:
 @_network_option
 @click.pass_context
 def list_active(ctx: click.Context, page: int, network: str | None) -> None:
-    """List active liquidation auctions."""
+    """List active liquidation auctions.
+
+    \b
+    Examples:
+      tusdt auction list-active --network testnet
+      tusdt auction list-active --page 2 --network testnet
+    """
     config = load_config(network=network or ctx.obj.get("network_override"))
     decimals = config.get("decimals", 12)
 
@@ -92,7 +99,13 @@ def list_active(ctx: click.Context, page: int, network: str | None) -> None:
 @_network_option
 @click.pass_context
 def auction_info(ctx: click.Context, auction_id: int, network: str | None) -> None:
-    """Show details for a specific auction."""
+    """Show details for a specific auction.
+
+    \b
+    AUCTION_ID is the numeric ID of the auction to query.
+    Examples:
+      tusdt auction info 5 --network testnet
+    """
     config = load_config(network=network or ctx.obj.get("network_override"))
     decimals = config.get("decimals", 12)
 
@@ -145,8 +158,14 @@ def bid(
 ) -> None:
     """Place a bid on a liquidation auction.
 
+    \b
+    AUCTION_ID is the numeric ID of the auction.
+    AMOUNT     is the human-readable token amount to bid (e.g. 500).
     Automatically checks token allowance and prompts for approval if
     the auction contract does not have sufficient spending permission.
+    Examples:
+      tusdt auction bid 5 500 --wallet-name MyWallet --network testnet
+      tusdt auction bid 5 500 --wallet-name MyWallet --wallet-hotkey myhotkey
     """
     config = load_config(network=network or ctx.obj.get("network_override"))
     if wallet_name:
@@ -215,7 +234,13 @@ def bid(
 @_network_option
 @click.pass_context
 def finalize(ctx: click.Context, auction_id: int, wallet_name: str | None, network: str | None) -> None:
-    """Finalize a completed auction."""
+    """Finalize a completed auction.
+
+    \b
+    AUCTION_ID is the numeric ID of the auction to finalize.
+    Examples:
+      tusdt auction finalize 5 --wallet-name MyWallet --network testnet
+    """
     config = load_config(network=network or ctx.obj.get("network_override"))
     if wallet_name:
         config["wallet_name"] = wallet_name
@@ -249,7 +274,14 @@ def finalize(ctx: click.Context, auction_id: int, wallet_name: str | None, netwo
 @_network_option
 @click.pass_context
 def withdraw_refund(ctx: click.Context, auction_id: int, bid_id: int, wallet_name: str | None, network: str | None) -> None:
-    """Withdraw a refund for a non-winning bid after auction finalization."""
+    """Withdraw a refund for a non-winning bid after auction finalization.
+
+    \b
+    AUCTION_ID is the numeric ID of the auction.
+    BID_ID     is the numeric ID of your bid to withdraw.
+    Examples:
+      tusdt auction withdraw-refund 5 1 --wallet-name MyWallet --network testnet
+    """
     config = load_config(network=network or ctx.obj.get("network_override"))
     if wallet_name:
         config["wallet_name"] = wallet_name
@@ -282,7 +314,13 @@ def withdraw_refund(ctx: click.Context, auction_id: int, bid_id: int, wallet_nam
 @_network_option
 @click.pass_context
 def my_bid(ctx: click.Context, auction_id: int, wallet_name: str | None, network: str | None) -> None:
-    """Show your current bid in an auction."""
+    """Show your current bid in an auction.
+
+    \b
+    AUCTION_ID is the numeric ID of the auction.
+    Examples:
+      tusdt auction my-bid 5 --wallet-name MyWallet --network testnet
+    """
     config = load_config(network=network or ctx.obj.get("network_override"))
     if wallet_name:
         config["wallet_name"] = wallet_name

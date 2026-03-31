@@ -185,7 +185,7 @@ Finalized
 ┌─ Transaction ──────────────────────────────────────────────────┐
 │  Extrinsic: 0xabc123…                                          │
 │  Block: 0xdef456…                                              │
-│  Explorer: https://taostats.io/extrinsic/0xabc…?network=finney │
+│  Explorer: https://taostats.io/hash/0xabc…?network=finney │
 └────────────────────────────────────────────────────────────────┘
 ```
 
