@@ -192,6 +192,11 @@ Finalized
 The `network` parameter in the URL matches the `--network` flag (or the
 configured default).
 
+## Repositories
+
+- TUSDT smart contracts: https://github.com/TensorUSD/TUSDT-SmartContract.git
+- tusdt-cli repository: https://github.com/TensorUSD/tusdt-cli
+
 ## License
 
 MIT
