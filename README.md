@@ -6,10 +6,26 @@ system (Vault, Auction, ERC-20 Token, Oracle) on the Bittensor network.
 ## Installation
 
 ```bash
+pip install tusdt-cli
+```
+
+## Local Development Installation
+
+```bash
+git clone https://github.com/TensorUSD/tusdt-cli
 cd tusdt-cli
 python3 -m venv .venv
 source .venv/bin/activate
+pip install -r requirements.txt
 pip install -e .
+```
+
+Or using [uv](https://docs.astral.sh/uv/):
+
+```bash
+git clone https://github.com/TensorUSD/tusdt-cli
+cd tusdt-cli
+uv sync
 ```
 
 ## Quickstart
