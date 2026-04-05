@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tusdt-cli"
-version = "0.1.1"
+version = "0.1.2"
 description = "CLI for interacting with the TUSDT ink! smart contract system on subtensor(bittensor)"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
 authors = [
-    { name = "tensorusd", email = "admin@tensorusd.com" },
+    { name = "tensorlab", email = "admin@tensorusd.com" },
     { name = "benup", email = "benup211@gmail.com" }
 ]
 

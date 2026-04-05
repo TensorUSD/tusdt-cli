@@ -5,7 +5,6 @@ import click
 from tusdt_cli.client import TUSDTClient
 from tusdt_cli.config import load_config, NETWORKS
 from tusdt_cli.utils import (
-    ContractError,
     HelpfulGroup,
     format_balance,
     parse_balance,
@@ -16,7 +15,6 @@ from tusdt_cli.utils import (
     print_table,
     print_warning,
     print_tx_result,
-    console,
 )
 from tusdt_cli.wallet import get_reader_keypair, get_signer_keypair, load_hotkey, resolve_ss58
 
@@ -54,8 +52,8 @@ def list_active(ctx: click.Context, page: int, network: str | None) -> None:
       tusdt auction list-active --network testnet
       tusdt auction list-active --page 2 --network testnet
     """
-    config = load_config(network=network or ctx.obj.get("network_override"))
-    decimals = config.get("decimals", 12)
+    config = load_config(network=network)
+    decimals = config.get("decimals", 9)
 
     try:
         keypair = get_reader_keypair(config)
@@ -95,7 +93,7 @@ def list_active(ctx: click.Context, page: int, network: str | None) -> None:
 # ------------------------------------------------------------------
 
 @auction_group.command("info")
-@click.argument("auction_id", type=int)
+@click.argument("auction_id", type=int, metavar="<auction-id>")
 @_network_option
 @click.pass_context
 def auction_info(ctx: click.Context, auction_id: int, network: str | None) -> None:
@@ -106,8 +104,8 @@ def auction_info(ctx: click.Context, auction_id: int, network: str | None) -> No
     Examples:
       tusdt auction info 5 --network testnet
     """
-    config = load_config(network=network or ctx.obj.get("network_override"))
-    decimals = config.get("decimals", 12)
+    config = load_config(network=network)
+    decimals = config.get("decimals", 9)
 
     try:
         keypair = get_reader_keypair(config)
@@ -141,8 +139,8 @@ def auction_info(ctx: click.Context, auction_id: int, network: str | None) -> No
 # ------------------------------------------------------------------
 
 @auction_group.command("bid")
-@click.argument("auction_id", type=int)
-@click.argument("amount", type=str)
+@click.argument("auction_id", type=int, metavar="<auction-id>")
+@click.argument("amount", type=str, metavar="<amount>")
 @click.option("--wallet-hotkey", default=None,
               help="Hotkey name to resolve its SS58 address for bid metadata")
 @_wallet_option
@@ -167,17 +165,16 @@ def bid(
       tusdt auction bid 5 500 --wallet-name MyWallet --network testnet
       tusdt auction bid 5 500 --wallet-name MyWallet --wallet-hotkey myhotkey
     """
-    config = load_config(network=network or ctx.obj.get("network_override"))
+    config = load_config(network=network)
     if wallet_name:
         config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 12)
+    decimals = config.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
 
     try:
         keypair = get_signer_keypair(config)
     except Exception as exc:
         print_error(str(exc))
-        return
 
     # Resolve hotkey SS58 address for bid metadata
     hot_key_address: str | None = None
@@ -229,7 +226,7 @@ def bid(
 # ------------------------------------------------------------------
 
 @auction_group.command("finalize")
-@click.argument("auction_id", type=int)
+@click.argument("auction_id", type=int, metavar="<auction-id>")
 @_wallet_option
 @_network_option
 @click.pass_context
@@ -241,7 +238,7 @@ def finalize(ctx: click.Context, auction_id: int, wallet_name: str | None, netwo
     Examples:
       tusdt auction finalize 5 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network or ctx.obj.get("network_override"))
+    config = load_config(network=network)
     if wallet_name:
         config["wallet_name"] = wallet_name
 
@@ -249,7 +246,6 @@ def finalize(ctx: click.Context, auction_id: int, wallet_name: str | None, netwo
         keypair = get_signer_keypair(config)
     except Exception as exc:
         print_error(str(exc))
-        return
 
     print_info(f"Signer: {keypair.ss58_address}")
     print_info(f"Finalizing auction {auction_id}...")
@@ -268,8 +264,8 @@ def finalize(ctx: click.Context, auction_id: int, wallet_name: str | None, netwo
 # ------------------------------------------------------------------
 
 @auction_group.command("withdraw-refund")
-@click.argument("auction_id", type=int)
-@click.argument("bid_id", type=int)
+@click.argument("auction_id", type=int, metavar="<auction-id>")
+@click.argument("bid_id", type=int, metavar="<bid-id>")
 @_wallet_option
 @_network_option
 @click.pass_context
@@ -282,7 +278,7 @@ def withdraw_refund(ctx: click.Context, auction_id: int, bid_id: int, wallet_nam
     Examples:
       tusdt auction withdraw-refund 5 1 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network or ctx.obj.get("network_override"))
+    config = load_config(network=network)
     if wallet_name:
         config["wallet_name"] = wallet_name
 
@@ -290,7 +286,6 @@ def withdraw_refund(ctx: click.Context, auction_id: int, bid_id: int, wallet_nam
         keypair = get_signer_keypair(config)
     except Exception as exc:
         print_error(str(exc))
-        return
 
     print_info(f"Signer: {keypair.ss58_address}")
     print_info(f"Withdrawing refund for bid {bid_id} on auction {auction_id}...")
@@ -309,7 +304,7 @@ def withdraw_refund(ctx: click.Context, auction_id: int, bid_id: int, wallet_nam
 # ------------------------------------------------------------------
 
 @auction_group.command("my-bid")
-@click.argument("auction_id", type=int)
+@click.argument("auction_id", type=int, metavar="<auction-id>")
 @_wallet_option
 @_network_option
 @click.pass_context
@@ -321,10 +316,10 @@ def my_bid(ctx: click.Context, auction_id: int, wallet_name: str | None, network
     Examples:
       tusdt auction my-bid 5 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network or ctx.obj.get("network_override"))
+    config = load_config(network=network)
     if wallet_name:
         config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 12)
+    decimals = config.get("decimals", 9)
 
     # Determine bidder address from wallet name (no password needed – reads coldkeypub.txt)
     wname = wallet_name or config.get("wallet_name")

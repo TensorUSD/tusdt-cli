@@ -5,7 +5,6 @@ import click
 from tusdt_cli.client import TUSDTClient
 from tusdt_cli.config import load_config, NETWORKS
 from tusdt_cli.utils import (
-    ContractError,
     HelpfulGroup,
     format_balance,
     parse_balance,
@@ -53,17 +52,16 @@ def create_vault(ctx: click.Context, amount: str, wallet_name: str | None, netwo
       tusdt vault create --amount 1.5 --wallet-name MyWallet
       tusdt vault create --amount 10 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network or ctx.obj.get("network_override"))
+    config = load_config(network=network)
     if wallet_name:
         config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 12)
+    decimals = config.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
 
     try:
         keypair = get_signer_keypair(config)
     except Exception as exc:
         print_error(str(exc))
-        return
 
     print_info(f"Signer: {keypair.ss58_address}")
     print_info(f"Depositing {amount} (raw {raw_amount}) as collateral...")
@@ -82,8 +80,8 @@ def create_vault(ctx: click.Context, amount: str, wallet_name: str | None, netwo
 # ------------------------------------------------------------------
 
 @vault_group.command("add-collateral")
-@click.argument("vault_id", type=int)
-@click.option("--amount", required=True, help="Collateral amount to add")
+@click.argument("vault_id", type=int, metavar="<vault-id>")
+@click.option("--amount", required=True, help="Collateral amount to add (e.g. 2.5)")
 @_wallet_option
 @_network_option
 @click.pass_context
@@ -96,17 +94,16 @@ def add_collateral(ctx: click.Context, vault_id: int, amount: str, wallet_name: 
       tusdt vault add-collateral 0 --amount 2.5 --wallet-name MyWallet
       tusdt vault add-collateral 3 --amount 1.0 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network or ctx.obj.get("network_override"))
+    config = load_config(network=network)
     if wallet_name:
         config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 12)
+    decimals = config.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
 
     try:
         keypair = get_signer_keypair(config)
     except Exception as exc:
         print_error(str(exc))
-        return
 
     print_info(f"Signer: {keypair.ss58_address}")
     print_info(f"Adding {amount} collateral to vault {vault_id}...")
@@ -125,8 +122,8 @@ def add_collateral(ctx: click.Context, vault_id: int, amount: str, wallet_name: 
 # ------------------------------------------------------------------
 
 @vault_group.command("borrow")
-@click.argument("vault_id", type=int)
-@click.argument("amount", type=str)
+@click.argument("vault_id", type=int, metavar="<vault-id>")
+@click.argument("amount", type=str, metavar="<amount>")
 @_wallet_option
 @_network_option
 @click.pass_context
@@ -140,17 +137,16 @@ def borrow(ctx: click.Context, vault_id: int, amount: str, wallet_name: str | No
       tusdt vault borrow 0 100 --wallet-name MyWallet
       tusdt vault borrow 2 50.5 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network or ctx.obj.get("network_override"))
+    config = load_config(network=network)
     if wallet_name:
         config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 12)
+    decimals = config.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
 
     try:
         keypair = get_signer_keypair(config)
     except Exception as exc:
         print_error(str(exc))
-        return
 
     print_info(f"Signer: {keypair.ss58_address}")
     print_info(f"Borrowing {amount} from vault {vault_id}...")
@@ -169,8 +165,8 @@ def borrow(ctx: click.Context, vault_id: int, amount: str, wallet_name: str | No
 # ------------------------------------------------------------------
 
 @vault_group.command("repay")
-@click.argument("vault_id", type=int)
-@click.argument("amount", type=str)
+@click.argument("vault_id", type=int, metavar="<vault-id>")
+@click.argument("amount", type=str, metavar="<amount>")
 @_wallet_option
 @_network_option
 @click.pass_context
@@ -184,17 +180,16 @@ def repay(ctx: click.Context, vault_id: int, amount: str, wallet_name: str | Non
       tusdt vault repay 0 50 --wallet-name MyWallet
       tusdt vault repay 2 25.5 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network or ctx.obj.get("network_override"))
+    config = load_config(network=network)
     if wallet_name:
         config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 12)
+    decimals = config.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
 
     try:
         keypair = get_signer_keypair(config)
     except Exception as exc:
         print_error(str(exc))
-        return
 
     print_info(f"Signer: {keypair.ss58_address}")
     print_info(f"Repaying {amount} to vault {vault_id}...")
@@ -213,8 +208,8 @@ def repay(ctx: click.Context, vault_id: int, amount: str, wallet_name: str | Non
 # ------------------------------------------------------------------
 
 @vault_group.command("release-collateral")
-@click.argument("vault_id", type=int)
-@click.argument("amount", type=str)
+@click.argument("vault_id", type=int, metavar="<vault-id>")
+@click.argument("amount", type=str, metavar="<amount>")
 @_wallet_option
 @_network_option
 @click.pass_context
@@ -228,17 +223,16 @@ def release_collateral(ctx: click.Context, vault_id: int, amount: str, wallet_na
       tusdt vault release-collateral 0 1.0 --wallet-name MyWallet
       tusdt vault release-collateral 2 0.5 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network or ctx.obj.get("network_override"))
+    config = load_config(network=network)
     if wallet_name:
         config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 12)
+    decimals = config.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
 
     try:
         keypair = get_signer_keypair(config)
     except Exception as exc:
         print_error(str(exc))
-        return
 
     print_info(f"Signer: {keypair.ss58_address}")
     print_info(f"Releasing {amount} collateral from vault {vault_id}...")
@@ -257,7 +251,7 @@ def release_collateral(ctx: click.Context, vault_id: int, amount: str, wallet_na
 # ------------------------------------------------------------------
 
 @vault_group.command("info")
-@click.argument("vault_id", type=int)
+@click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
 @_wallet_option
 @_network_option
@@ -272,8 +266,8 @@ def vault_info(ctx: click.Context, vault_id: int, owner: str | None, wallet_name
       tusdt vault info 0 --wallet-name MyWallet
       tusdt vault info 3 --owner 5GrwvaEF... --network testnet
     """
-    config = load_config(network=network or ctx.obj.get("network_override"))
-    decimals = config.get("decimals", 12)
+    config = load_config(network=network)
+    decimals = config.get("decimals", 9)
 
     try:
         if owner:
@@ -328,8 +322,8 @@ def list_vaults(ctx: click.Context, owner: str | None, page: int, wallet_name: s
       tusdt vault list --wallet-name MyWallet
       tusdt vault list --owner 5GrwvaEF... --page 2 --network testnet
     """
-    config = load_config(network=network or ctx.obj.get("network_override"))
-    decimals = config.get("decimals", 12)
+    config = load_config(network=network)
+    decimals = config.get("decimals", 9)
 
     try:
         if owner:
@@ -378,7 +372,7 @@ def list_vaults(ctx: click.Context, owner: str | None, page: int, wallet_name: s
 # ------------------------------------------------------------------
 
 @vault_group.command("max-borrow")
-@click.argument("vault_id", type=int)
+@click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
 @_wallet_option
 @_network_option
@@ -393,8 +387,8 @@ def max_borrow(ctx: click.Context, vault_id: int, owner: str | None, wallet_name
       tusdt vault max-borrow 0 --wallet-name MyWallet
       tusdt vault max-borrow 3 --owner 5GrwvaEF... --network testnet
     """
-    config = load_config(network=network or ctx.obj.get("network_override"))
-    decimals = config.get("decimals", 12)
+    config = load_config(network=network)
+    decimals = config.get("decimals", 9)
 
     try:
         if owner:
@@ -427,7 +421,7 @@ def max_borrow(ctx: click.Context, vault_id: int, owner: str | None, wallet_name
 # ------------------------------------------------------------------
 
 @vault_group.command("collateral-value")
-@click.argument("vault_id", type=int)
+@click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
 @_wallet_option
 @_network_option
@@ -442,8 +436,8 @@ def collateral_value(ctx: click.Context, vault_id: int, owner: str | None, walle
       tusdt vault collateral-value 0 --wallet-name MyWallet
       tusdt vault collateral-value 3 --owner 5GrwvaEF... --network testnet
     """
-    config = load_config(network=network or ctx.obj.get("network_override"))
-    decimals = config.get("decimals", 12)
+    config = load_config(network=network)
+    decimals = config.get("decimals", 9)
 
     try:
         if owner:

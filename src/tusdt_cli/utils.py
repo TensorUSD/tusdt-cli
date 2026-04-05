@@ -42,7 +42,7 @@ class HelpfulGroup(click.Group):
 # Balance conversion
 # ---------------------------------------------------------------------------
 
-def format_balance(raw: int, decimals: int = 12) -> str:
+def format_balance(raw: int, decimals: int = 9) -> str:
     """Convert a raw on-chain balance to a human-readable decimal string."""
     if raw == 0:
         return "0"
@@ -55,7 +55,7 @@ def format_balance(raw: int, decimals: int = 12) -> str:
     return f"{whole}.{frac_str}"
 
 
-def parse_balance(human: str, decimals: int = 12) -> int:
+def parse_balance(human: str, decimals: int = 9) -> int:
     """Convert a human-readable decimal string to a raw on-chain integer."""
     human = human.strip()
     factor = 10 ** decimals

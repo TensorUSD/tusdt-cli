@@ -5,7 +5,6 @@ import click
 from tusdt_cli.client import TUSDTClient
 from tusdt_cli.config import load_config, NETWORKS
 from tusdt_cli.utils import (
-    ContractError,
     HelpfulGroup,
     print_dict,
     print_error,
@@ -36,7 +35,7 @@ def price(ctx: click.Context, network: str | None) -> None:
     Examples:
       tusdt oracle price --network testnet
     """
-    config = load_config(network=network or ctx.obj.get("network_override"))
+    config = load_config(network=network)
 
     try:
         keypair = get_reader_keypair(config)
@@ -75,7 +74,7 @@ def round_info(ctx: click.Context, network: str | None) -> None:
     Examples:
       tusdt oracle round --network testnet
     """
-    config = load_config(network=network or ctx.obj.get("network_override"))
+    config = load_config(network=network)
 
     try:
         keypair = get_reader_keypair(config)

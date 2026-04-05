@@ -5,7 +5,6 @@ import click
 from tusdt_cli.client import TUSDTClient
 from tusdt_cli.config import load_config, NETWORKS
 from tusdt_cli.utils import (
-    ContractError,
     HelpfulGroup,
     format_balance,
     parse_balance,
@@ -53,8 +52,8 @@ def balance(ctx: click.Context, owner: str | None, wallet_name: str | None, netw
       tusdt token balance --wallet-name MyWallet
       tusdt token balance --owner 5GrwvaEF... --network testnet
     """
-    config = load_config(network=network or ctx.obj.get("network_override"))
-    decimals = config.get("decimals", 12)
+    config = load_config(network=network)
+    decimals = config.get("decimals", 9)
 
     try:
         if owner:
@@ -88,8 +87,8 @@ def balance(ctx: click.Context, owner: str | None, wallet_name: str | None, netw
 # ------------------------------------------------------------------
 
 @token_group.command("approve")
-@click.argument("spender", type=str)
-@click.argument("amount", type=str)
+@click.argument("spender", type=str, metavar="<spender>")
+@click.argument("amount", type=str, metavar="<amount>")
 @_wallet_option
 @_network_option
 @click.pass_context
@@ -103,23 +102,21 @@ def approve(ctx: click.Context, spender: str, amount: str, wallet_name: str | No
       tusdt token approve 5GrwvaEF... 1000 --wallet-name MyWallet
       tusdt token approve SpenderWallet 500.5 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network or ctx.obj.get("network_override"))
+    config = load_config(network=network)
     if wallet_name:
         config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 12)
+    decimals = config.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
 
     try:
         spender = resolve_ss58(spender, config.get("wallet_path"))
     except Exception as exc:
         print_error(str(exc))
-        return
 
     try:
         keypair = get_signer_keypair(config)
     except Exception as exc:
         print_error(str(exc))
-        return
 
     print_info(f"Signer: {keypair.ss58_address}")
     print_info(f"Approving {spender} to spend {amount} tokens...")
@@ -138,7 +135,7 @@ def approve(ctx: click.Context, spender: str, amount: str, wallet_name: str | No
 # ------------------------------------------------------------------
 
 @token_group.command("allowance")
-@click.argument("spender", type=str)
+@click.argument("spender", type=str, metavar="<spender>")
 @click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
 @_wallet_option
 @_network_option
@@ -153,8 +150,8 @@ def allowance(ctx: click.Context, spender: str, owner: str | None, wallet_name: 
       tusdt token allowance 5GrwvaEF... --wallet-name MyWallet
       tusdt token allowance SpenderWallet --owner 5Abc123... --network testnet
     """
-    config = load_config(network=network or ctx.obj.get("network_override"))
-    decimals = config.get("decimals", 12)
+    config = load_config(network=network)
+    decimals = config.get("decimals", 9)
 
     try:
         if owner:
@@ -190,8 +187,8 @@ def allowance(ctx: click.Context, spender: str, owner: str | None, wallet_name: 
 # ------------------------------------------------------------------
 
 @token_group.command("transfer")
-@click.argument("to", type=str)
-@click.argument("amount", type=str)
+@click.argument("to", type=str, metavar="<recipient>")
+@click.argument("amount", type=str, metavar="<amount>")
 @_wallet_option
 @_network_option
 @click.pass_context
@@ -205,23 +202,21 @@ def transfer(ctx: click.Context, to: str, amount: str, wallet_name: str | None, 
       tusdt token transfer 5GrwvaEF... 50 --wallet-name MyWallet
       tusdt token transfer RecipientWallet 100.5 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network or ctx.obj.get("network_override"))
+    config = load_config(network=network)
     if wallet_name:
         config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 12)
+    decimals = config.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
 
     try:
         to = resolve_ss58(to, config.get("wallet_path"))
     except Exception as exc:
         print_error(str(exc))
-        return
 
     try:
         keypair = get_signer_keypair(config)
     except Exception as exc:
         print_error(str(exc))
-        return
 
     print_info(f"Signer: {keypair.ss58_address}")
     print_info(f"Transferring {amount} tokens to {to}...")

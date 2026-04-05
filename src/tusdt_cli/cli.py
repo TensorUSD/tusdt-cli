@@ -11,7 +11,7 @@ import click
 from rich.tree import Tree
 
 from tusdt_cli import __version__
-from tusdt_cli.config import load_config, save_config, CONFIG_FILE, NETWORKS, apply_network_override
+from tusdt_cli.config import load_config, save_config, CONFIG_FILE, NETWORKS
 from tusdt_cli.utils import console, print_dict, print_error, print_info, print_success, HelpfulGroup
 from tusdt_cli.wallet import get_default_wallet_path, list_wallets
 

@@ -1,7 +1,16 @@
 # tusdt-cli
 
-Command-line interface for interacting with the **TUSDT** ink! smart-contract
-system (Vault, Auction, ERC-20 Token, Oracle) on the Bittensor network.
+Command-line interface for the **TUSDT** stablecoin system — a set of ink!
+smart contracts deployed on the Bittensor (subtensor) network.  TUSDT lets
+users lock native TAO tokens as collateral in **vaults** to mint a
+USD-pegged stablecoin.  This CLI gives you full control over:
+
+- **Vaults** — create, deposit collateral, borrow TUSDT, repay, and release collateral
+- **Token** — check balances, transfer TUSDT, and manage spending approvals
+- **Auctions** — browse and bid on liquidation auctions for under-collateralised vaults
+- **Oracle** — inspect the on-chain price feed that determines collateral ratios
+
+No web UI required — everything runs from your terminal.
 
 ## Installation
 
@@ -34,6 +43,16 @@ The CLI comes pre-configured with the Finney RPC endpoint, contract addresses,
 and bundled ABI metadata. No upfront configuration is required — pass
 `--wallet-name` on any command that needs signing.
 
+```bash
+# Check CLI version
+tusdt --version
+
+# Get help for any command
+tusdt --help
+tusdt vault --help
+tusdt vault create --help
+```
+
 ### 1. List wallets
 
 ```bash
@@ -42,59 +61,66 @@ tusdt wallet list
 
 ### 2. Vault operations
 
-Anywhere an address is expected you can pass a **wallet name** instead and the
-CLI resolves the SS58 address from `coldkeypub.txt` automatically.
+Anywhere an address is expected you can pass a **wallet name** via `--wallet-name`
+and the CLI resolves the SS58 address from `coldkeypub.txt` automatically or use `--owner` and supply ss58 address
 
 ```bash
-# Create a vault (prompts for coldkey password)
+# Create a vault with 10 TAO as collateral (prompts for coldkey password)
 tusdt vault create --amount 10 --wallet-name MyWallet
 
-# View your vault (no password needed – reads coldkeypub.txt)
-tusdt vault info MyWallet 0
-# …or via --wallet-name
-tusdt vault info --wallet-name MyWallet 0
+# View vault #0 (no password needed – reads coldkeypub.txt)
+#                ↓vault ID
+tusdt vault info 0 --wallet-name MyWallet
+tusdt vault info 0 --owner 5GrwvaEF...
 
 # List all vaults for a wallet
-tusdt vault list MyWallet
-# …or via --wallet-name
 tusdt vault list --wallet-name MyWallet
+tusdt vault list --owner 5GrwvaEF...
 
-# Add more collateral
+# Add 5 TAO collateral to vault #0
+#                          ↓vault ID
 tusdt vault add-collateral 0 --amount 5 --wallet-name MyWallet
 
-# Borrow against collateral
-tusdt vault borrow 0 100 --wallet-name MyWallet
+# Borrow 100 TUSDT from vault #0
+#                  ↓vaultID ↓TUSDT amount
+tusdt vault borrow 0        100 --wallet-name MyWallet
 
-# Repay borrowed tokens
-tusdt vault repay 0 50 --wallet-name MyWallet
+# Repay 50 TUSDT to vault #0
+#                 ↓vault ID ↓TUSDT amount
+tusdt vault repay 0         50 --wallet-name MyWallet
 
-# Release collateral
-tusdt vault release-collateral 0 2 --wallet-name MyWallet
+# Release 2 TAO collateral from vault #0
+#                              ↓vaultID ↓TAO amount
+tusdt vault release-collateral 0        2 --wallet-name MyWallet
 
-# Check max borrow capacity
-tusdt vault max-borrow MyWallet 0
-tusdt vault max-borrow --wallet-name MyWallet 0
+# Check max borrow capacity for vault #0
+#                      ↓vault ID
+tusdt vault max-borrow 0 --wallet-name MyWallet
 
-# Check collateral value
-tusdt vault collateral-value MyWallet 0
-tusdt vault collateral-value --wallet-name MyWallet 0
+# Check collateral value for vault #0
+#                            ↓vault ID
+tusdt vault collateral-value 0 --wallet-name MyWallet
 ```
 
 ### 3. Token operations
 
 ```bash
 # Check balance (wallet name or SS58 address)
-tusdt token balance MyWallet
 tusdt token balance --wallet-name MyWallet
+tusdt token balance --owner 5GrwvaEF...
 
-# Transfer tokens
-tusdt token transfer RecipientWallet 100 --wallet-name MyWallet
+# Transfer 100 TUSDT to another wallet
+#                    ↓recipient (wallet name or SS58)  ↓TUSDT amount
+tusdt token transfer RecipientWallet                  100 --wallet-name MyWallet
 
-# Approve spender
-tusdt token approve SpenderWallet 1000 --wallet-name MyWallet
+# Approve a spender to use up to 1000 of your TUSDT
+#                   ↓spender(wallet name or SS58) ↓TUSDT amount
+tusdt token approve SpenderWallet                 1000 --wallet-name MyWallet
 
-# Check allowance (both args accept wallet names)
-tusdt token allowance MyWallet SpenderWallet
+# Check allowance (spender wallet name or SS58 address)
+#                     ↓spender
+tusdt token allowance SpenderWallet --wallet-name MyWallet
+tusdt token allowance SpenderWallet --owner 5GrwvaEF...
 ```
 
 ### 4. Auction operations
@@ -104,18 +130,23 @@ tusdt token allowance MyWallet SpenderWallet
 tusdt auction list-active
 
 # View auction details
+#                ↓ auction ID
 tusdt auction info 0
 
-# Place a bid (with optional hotkey for metadata)
-tusdt auction bid 0 500 --wallet-name MyWallet --wallet-hotkey default
+# Place a 500 TUSDT bid on auction #0
+#                 ↓auctionID ↓TUSDT bid amount
+tusdt auction bid 0          500 --wallet-name MyWallet --wallet-hotkey default
 
 # Finalize a completed auction
+#                      ↓ auction ID
 tusdt auction finalize 0 --wallet-name MyWallet
 
 # Withdraw refund for a non-winning bid
-tusdt auction withdraw-refund 0 1 --wallet-name MyWallet
+#                             ↓auctionID ↓bid ID
+tusdt auction withdraw-refund 0          1 --wallet-name MyWallet
 
-# Check your bid (resolves address from coldkeypub.txt, no password)
+# Check your bid on auction #0 (no password, reads coldkeypub.txt)
+#                    ↓ auction ID
 tusdt auction my-bid 0 --wallet-name MyWallet
 ```
 
@@ -135,7 +166,7 @@ Two networks are available: **finney** (mainnet, default) and **testnet**.
 
 ```bash
 # Per-command override (not saved)
-tusdt vault list MyWallet --network testnet
+tusdt vault list --wallet-name MyWallet --network testnet
 tusdt oracle price --network testnet
 
 # Save as default
@@ -180,6 +211,7 @@ tusdt config set --vault 5Hh...
 | `oracle_metadata`  | Path to oracle ABI JSON              | bundled                                              |
 | `signer`           | Mnemonic seed phrase or keyfile path | —                                                    |
 | `wallet_name`      | Default bittensor wallet name        | —                                                    |
+| `wallet_hotkey`    | Default hotkey name                  | `default`                                            |
 | `wallet_path`      | Path to wallets directory            | `~/.bittensor/wallets`                               |
 | `decimals`         | Decimal places for balance display   | `9`                                                  |
 
@@ -201,12 +233,24 @@ Finalized
 ┌─ Transaction ──────────────────────────────────────────────────┐
 │  Extrinsic: 0xabc123…                                          │
 │  Block: 0xdef456…                                              │
-│  Explorer: https://taostats.io/hash/0xabc…?network=finney │
+│  Explorer: https://taostats.io/hash/0xabc…?network=finney      │
 └────────────────────────────────────────────────────────────────┘
 ```
 
 The `network` parameter in the URL matches the `--network` flag (or the
 configured default).
+
+## Contributing
+
+Contributions are welcome. To get started:
+
+1. Fork the repository and clone your fork
+2. Install in development mode: `pip install -e .` (or `uv sync`)
+3. Create a branch for your change: `git checkout -b my-feature`
+4. Make your changes and test locally
+5. Submit a pull request against `main`
+
+Please keep pull requests focused — one feature or fix per PR.
 
 ## Repositories
 
