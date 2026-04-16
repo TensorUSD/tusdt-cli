@@ -463,3 +463,361 @@ def collateral_value(ctx: click.Context, vault_id: int, owner: str | None, walle
         "Owner": owner,
         "Collateral value": format_balance(value, decimals),
     })
+
+
+# ------------------------------------------------------------------
+# total-debt
+# ------------------------------------------------------------------
+
+@vault_group.command("total-debt")
+@click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
+@_wallet_option
+@_network_option
+@click.pass_context
+def total_debt(ctx: click.Context, owner: str | None, wallet_name: str | None, network: str | None) -> None:
+    """Show total debt for an owner across all vaults.
+
+    \b
+    Examples:
+      tusdt vault total-debt --wallet-name MyWallet
+      tusdt vault total-debt --owner 5GrwvaEF... --network testnet
+    """
+    config = load_config(network=network)
+    decimals = config.get("decimals", 9)
+
+    try:
+        if owner:
+            owner = resolve_ss58(owner, config.get("wallet_path"))
+        elif wallet_name:
+            owner = resolve_ss58(wallet_name, config.get("wallet_path"))
+        else:
+            print_error("Provide --owner (address or wallet name) or --wallet-name")
+            return
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        value = client.get_total_debt(keypair, owner)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_dict("Total Debt", {
+        "Owner": owner,
+        "Total debt": format_balance(value, decimals),
+        "Raw": value,
+    })
+
+
+# ------------------------------------------------------------------
+# liquidation-auction
+# ------------------------------------------------------------------
+
+@vault_group.command("liquidation-auction")
+@click.argument("vault_id", type=int, metavar="<vault-id>")
+@click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
+@_wallet_option
+@_network_option
+@click.pass_context
+def liquidation_auction(ctx: click.Context, vault_id: int, owner: str | None, wallet_name: str | None, network: str | None) -> None:
+    """Show the active liquidation auction ID for a vault.
+
+    \b
+    VAULT_ID is the numeric ID of the vault to query.
+    Examples:
+      tusdt vault liquidation-auction 0 --wallet-name MyWallet
+      tusdt vault liquidation-auction 3 --owner 5GrwvaEF... --network testnet
+    """
+    config = load_config(network=network)
+
+    try:
+        if owner:
+            owner = resolve_ss58(owner, config.get("wallet_path"))
+        elif wallet_name:
+            owner = resolve_ss58(wallet_name, config.get("wallet_path"))
+        else:
+            print_error("Provide --owner (address or wallet name) or --wallet-name")
+            return
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        auction_id = client.get_liquidation_auction_id(keypair, owner, vault_id)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    if auction_id is None:
+        print_info(f"No active liquidation auction for vault {vault_id} (owner: {owner})")
+    else:
+        print_dict(f"Liquidation Auction – Vault #{vault_id}", {
+            "Owner": owner,
+            "Auction ID": auction_id,
+        })
+
+
+# ------------------------------------------------------------------
+# list-all
+# ------------------------------------------------------------------
+
+@vault_group.command("list-all")
+@click.option("--page", default=0, show_default=True, help="Page number (10 per page)")
+@_network_option
+@click.pass_context
+def list_all_vaults(ctx: click.Context, page: int, network: str | None) -> None:
+    """List all vaults across all owners (paginated).
+
+    \b
+    Examples:
+      tusdt vault list-all --network testnet
+      tusdt vault list-all --page 2 --network testnet
+    """
+    config = load_config(network=network)
+    decimals = config.get("decimals", 9)
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        total = client.get_total_vaults_count(keypair)
+        vaults = client.get_all_vaults(keypair, page)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    if not vaults:
+        print_info(f"No vaults found (page {page})")
+        return
+
+    rows = []
+    for v in vaults:
+        rows.append([
+            str(v.get("id", "?")),
+            str(v.get("owner", "?")),
+            format_balance(v.get("collateral_balance", 0), decimals),
+            format_balance(v.get("borrowed_token_balance", 0), decimals),
+            str(v.get("created_at", "?")),
+        ])
+
+    print_info(f"Total vaults: {total}  |  Page: {page}")
+    print_table(
+        "All Vaults",
+        ["ID", "Owner", "Collateral", "Borrowed", "Created"],
+        rows,
+    )
+
+
+# ------------------------------------------------------------------
+# params
+# ------------------------------------------------------------------
+
+@vault_group.command("params")
+@_network_option
+@click.pass_context
+def vault_params(ctx: click.Context, network: str | None) -> None:
+    """Show vault contract parameters.
+
+    \b
+    Examples:
+      tusdt vault params --network testnet
+    """
+    config = load_config(network=network)
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        params = client.get_contract_params(keypair)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    if isinstance(params, dict):
+        display = {}
+        for key, value in params.items():
+            display[key] = value
+        print_dict("Vault Contract Parameters", display)
+    else:
+        print_dict("Vault Contract Parameters", {"Raw": params})
+
+
+# ------------------------------------------------------------------
+# total-collateral
+# ------------------------------------------------------------------
+
+@vault_group.command("total-collateral")
+@_network_option
+@click.pass_context
+def total_collateral(ctx: click.Context, network: str | None) -> None:
+    """Show total collateral balance across all vaults.
+
+    \b
+    Examples:
+      tusdt vault total-collateral --network testnet
+    """
+    config = load_config(network=network)
+    decimals = config.get("decimals", 9)
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        value = client.get_total_collateral_balance(keypair)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_dict("Total Collateral", {
+        "Total collateral": format_balance(value, decimals),
+        "Raw": value,
+    })
+
+
+# ------------------------------------------------------------------
+# total-count
+# ------------------------------------------------------------------
+
+@vault_group.command("total-count")
+@_network_option
+@click.pass_context
+def total_count(ctx: click.Context, network: str | None) -> None:
+    """Show total vault count across all owners.
+
+    \b
+    Examples:
+      tusdt vault total-count --network testnet
+    """
+    config = load_config(network=network)
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        count = client.get_total_vaults_count(keypair)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_dict("Total Vaults", {"Count": count})
+
+
+# ------------------------------------------------------------------
+# accrue-interest
+# ------------------------------------------------------------------
+
+@vault_group.command("accrue-interest")
+@click.argument("vault_id", type=int, metavar="<vault-id>")
+@click.option("--owner", required=True, help="Vault owner SS58 address or wallet name")
+@_wallet_option
+@_network_option
+@click.pass_context
+def accrue_interest(ctx: click.Context, vault_id: int, owner: str, wallet_name: str | None, network: str | None) -> None:
+    """Accrue interest on a vault.
+
+    \b
+    VAULT_ID is the numeric ID of the vault.
+    Examples:
+      tusdt vault accrue-interest 0 --owner 5GrwvaEF... --wallet-name MyWallet
+    """
+    config = load_config(network=network)
+    if wallet_name:
+        config["wallet_name"] = wallet_name
+
+    try:
+        owner = resolve_ss58(owner, config.get("wallet_path"))
+        keypair = get_signer_keypair(config)
+    except Exception as exc:
+        print_error(str(exc))
+
+    print_info(f"Signer: {keypair.ss58_address}")
+    print_info(f"Accruing interest on vault {vault_id} (owner: {owner})...")
+
+    try:
+        client = TUSDTClient(config)
+        result = client.accrue_interest(keypair, owner, vault_id)
+        print_success("Interest accrued!")
+        print_tx_result(result, config.get("network", "finney"))
+    except Exception as exc:
+        print_error(str(exc))
+
+
+# ------------------------------------------------------------------
+# trigger-liquidation
+# ------------------------------------------------------------------
+
+@vault_group.command("trigger-liquidation")
+@click.argument("vault_id", type=int, metavar="<vault-id>")
+@click.option("--owner", required=True, help="Vault owner SS58 address or wallet name")
+@_wallet_option
+@_network_option
+@click.pass_context
+def trigger_liquidation(ctx: click.Context, vault_id: int, owner: str, wallet_name: str | None, network: str | None) -> None:
+    """Trigger a liquidation auction for an undercollateralized vault.
+
+    \b
+    VAULT_ID is the numeric ID of the vault.
+    Examples:
+      tusdt vault trigger-liquidation 0 --owner 5GrwvaEF... --wallet-name MyWallet
+    """
+    config = load_config(network=network)
+    if wallet_name:
+        config["wallet_name"] = wallet_name
+
+    try:
+        owner = resolve_ss58(owner, config.get("wallet_path"))
+        keypair = get_signer_keypair(config)
+    except Exception as exc:
+        print_error(str(exc))
+
+    print_info(f"Signer: {keypair.ss58_address}")
+    print_info(f"Triggering liquidation for vault {vault_id} (owner: {owner})...")
+
+    try:
+        client = TUSDTClient(config)
+        result = client.trigger_liquidation(keypair, owner, vault_id)
+        print_success("Liquidation auction triggered!")
+        print_tx_result(result, config.get("network", "finney"))
+    except Exception as exc:
+        print_error(str(exc))
+
+
+# ------------------------------------------------------------------
+# settle-liquidation
+# ------------------------------------------------------------------
+
+@vault_group.command("settle-liquidation")
+@click.argument("vault_id", type=int, metavar="<vault-id>")
+@click.option("--owner", required=True, help="Vault owner SS58 address or wallet name")
+@_wallet_option
+@_network_option
+@click.pass_context
+def settle_liquidation(ctx: click.Context, vault_id: int, owner: str, wallet_name: str | None, network: str | None) -> None:
+    """Settle a completed liquidation auction for a vault.
+
+    \b
+    VAULT_ID is the numeric ID of the vault.
+    Examples:
+      tusdt vault settle-liquidation 0 --owner 5GrwvaEF... --wallet-name MyWallet
+    """
+    config = load_config(network=network)
+    if wallet_name:
+        config["wallet_name"] = wallet_name
+
+    try:
+        owner = resolve_ss58(owner, config.get("wallet_path"))
+        keypair = get_signer_keypair(config)
+    except Exception as exc:
+        print_error(str(exc))
+
+    print_info(f"Signer: {keypair.ss58_address}")
+    print_info(f"Settling liquidation for vault {vault_id} (owner: {owner})...")
+
+    try:
+        client = TUSDTClient(config)
+        result = client.settle_liquidation(keypair, owner, vault_id)
+        print_success("Liquidation settled!")
+        print_tx_result(result, config.get("network", "finney"))
+    except Exception as exc:
+        print_error(str(exc))

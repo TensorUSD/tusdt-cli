@@ -352,3 +352,220 @@ def my_bid(ctx: click.Context, auction_id: int, wallet_name: str | None, network
         "Amount": format_balance(data.get("amount", 0), decimals),
         "Withdrawn": data.get("is_withdrawn", False),
     })
+
+
+# ------------------------------------------------------------------
+# list-all  (read-only – all auctions including finalized)
+# ------------------------------------------------------------------
+
+@auction_group.command("list-all")
+@click.option("--page", default=0, show_default=True, help="Page number (10 per page)")
+@_network_option
+@click.pass_context
+def list_all(ctx: click.Context, page: int, network: str | None) -> None:
+    """List all auctions (active + finalized, paginated).
+
+    \b
+    Examples:
+      tusdt auction list-all --network testnet
+      tusdt auction list-all --page 2 --network testnet
+    """
+    config = load_config(network=network)
+    decimals = config.get("decimals", 9)
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        total = client.get_total_auctions_count(keypair)
+        auctions = client.list_all_auctions(keypair, page)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    if not auctions:
+        print_info(f"No auctions found (page {page})")
+        return
+
+    rows = []
+    for a in auctions:
+        rows.append([
+            str(a.get("id", "?")),
+            str(a.get("vault_id", "?")),
+            format_balance(a.get("collateral_balance", 0), decimals),
+            format_balance(a.get("debt_balance", 0), decimals),
+            format_balance(a.get("highest_bid", 0), decimals),
+            str(a.get("bid_count", 0)),
+            str(a.get("is_finalized", "?")),
+        ])
+
+    print_info(f"Total auctions: {total}  |  Page: {page}")
+    print_table(
+        "All Auctions",
+        ["ID", "Vault", "Collateral", "Debt", "Highest Bid", "Bids", "Finalized"],
+        rows,
+    )
+
+
+# ------------------------------------------------------------------
+# total-count
+# ------------------------------------------------------------------
+
+@auction_group.command("total-count")
+@_network_option
+@click.pass_context
+def total_count(ctx: click.Context, network: str | None) -> None:
+    """Show total auction count.
+
+    \b
+    Examples:
+      tusdt auction total-count --network testnet
+    """
+    config = load_config(network=network)
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        count = client.get_total_auctions_count(keypair)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_dict("Total Auctions", {"Count": count})
+
+
+# ------------------------------------------------------------------
+# vault-auction
+# ------------------------------------------------------------------
+
+@auction_group.command("vault-auction")
+@click.argument("vault_id", type=int, metavar="<vault-id>")
+@click.option("--owner", required=True, help="Vault owner SS58 address or wallet name")
+@_network_option
+@click.pass_context
+def vault_auction(ctx: click.Context, vault_id: int, owner: str, network: str | None) -> None:
+    """Show the active auction for a specific vault.
+
+    \b
+    VAULT_ID is the numeric ID of the vault.
+    Examples:
+      tusdt auction vault-auction 0 --owner 5GrwvaEF... --network testnet
+    """
+    config = load_config(network=network)
+
+    try:
+        owner = resolve_ss58(owner, config.get("wallet_path"))
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        auction_id = client.get_active_vault_auction(keypair, owner, vault_id)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    if auction_id is None:
+        print_info(f"No active auction for vault {vault_id} (owner: {owner})")
+    else:
+        print_dict(f"Active Auction – Vault #{vault_id}", {
+            "Owner": owner,
+            "Auction ID": auction_id,
+        })
+
+
+# ------------------------------------------------------------------
+# bids  (list bids for an auction)
+# ------------------------------------------------------------------
+
+@auction_group.command("bids")
+@click.argument("auction_id", type=int, metavar="<auction-id>")
+@click.option("--page", default=0, show_default=True, help="Page number (10 per page)")
+@_network_option
+@click.pass_context
+def list_bids(ctx: click.Context, auction_id: int, page: int, network: str | None) -> None:
+    """List bids for an auction (paginated).
+
+    \b
+    AUCTION_ID is the numeric ID of the auction.
+    Examples:
+      tusdt auction bids 5 --network testnet
+      tusdt auction bids 5 --page 1 --network testnet
+    """
+    config = load_config(network=network)
+    decimals = config.get("decimals", 9)
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        bids = client.list_bids(keypair, auction_id, page)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    if not bids:
+        print_info(f"No bids for auction {auction_id} (page {page})")
+        return
+
+    rows = []
+    for b in bids:
+        rows.append([
+            str(b.get("id", "?")),
+            str(b.get("bidder", "?")),
+            format_balance(b.get("amount", 0), decimals),
+            str(b.get("is_withdrawn", False)),
+        ])
+
+    print_info(f"Bids for auction {auction_id}  |  Page: {page}")
+    print_table(
+        f"Bids – Auction #{auction_id}",
+        ["Bid ID", "Bidder", "Amount", "Withdrawn"],
+        rows,
+    )
+
+
+# ------------------------------------------------------------------
+# bid-info  (single bid details)
+# ------------------------------------------------------------------
+
+@auction_group.command("bid-info")
+@click.argument("auction_id", type=int, metavar="<auction-id>")
+@click.argument("bid_id", type=int, metavar="<bid-id>")
+@_network_option
+@click.pass_context
+def bid_info(ctx: click.Context, auction_id: int, bid_id: int, network: str | None) -> None:
+    """Show details for a specific bid.
+
+    \b
+    AUCTION_ID is the numeric ID of the auction.
+    BID_ID     is the numeric ID of the bid.
+    Examples:
+      tusdt auction bid-info 5 1 --network testnet
+    """
+    config = load_config(network=network)
+    decimals = config.get("decimals", 9)
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        data = client.get_bid(keypair, auction_id, bid_id)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    if data is None:
+        print_error(f"Bid {bid_id} not found in auction {auction_id}")
+        return
+
+    metadata = data.get("metadata")
+    hot_key = metadata.get("hot_key", "N/A") if isinstance(metadata, dict) else "N/A"
+
+    print_dict(f"Bid #{bid_id} – Auction #{auction_id}", {
+        "Bid ID": data.get("id", bid_id),
+        "Auction ID": data.get("auction_id", auction_id),
+        "Bidder": data.get("bidder", "?"),
+        "Amount": format_balance(data.get("amount", 0), decimals),
+        "Hotkey": hot_key,
+        "Withdrawn": data.get("is_withdrawn", False),
+    })

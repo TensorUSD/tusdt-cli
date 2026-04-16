@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x5ad2ab290b4330dc0f70638c4f3d639b15e0c54808109021bb9dc80d0b914dbf",
+    "hash": "0xf822d916d014d6f046f364d4107908fdf52f397514ddac654912881443a38ca2",
     "language": "ink! 5.1.1",
     "compiler": "rustc 1.93.0",
     "build_info": {
@@ -432,6 +432,80 @@
           "type": 18
         },
         "selector": "0x681266a0"
+      },
+      {
+        "args": [
+          {
+            "label": "spender",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "delta_value",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 3
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Increases a spender's allowance by a specified amount."
+        ],
+        "label": "increase_allowance",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 18
+        },
+        "selector": "0xf551d422"
+      },
+      {
+        "args": [
+          {
+            "label": "spender",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "delta_value",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 3
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Decreases a spender's allowance by a specified amount."
+        ],
+        "label": "decrease_allowance",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 18
+        },
+        "selector": "0xf998ebd9"
       },
       {
         "args": [

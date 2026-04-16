@@ -275,6 +275,58 @@ class TUSDTClient:
         )
         return unwrap_result(result)
 
+    def get_total_debt(self, keypair: Keypair, owner: str) -> int:
+        """Return the total debt for *owner* across all their vaults."""
+        result = self._read(self.vault, keypair, "get_total_debt", args={"owner": owner})
+        return unwrap_plain(result)
+
+    def get_liquidation_auction_id(self, keypair: Keypair, owner: str, vault_id: int) -> Optional[int]:
+        """Return the active liquidation auction ID for a vault, or ``None``."""
+        result = self._read(
+            self.vault, keypair, "get_liquidation_auction_id", args={"owner": owner, "vault_id": vault_id}
+        )
+        return unwrap_option(result)
+
+    def get_all_vaults(self, keypair: Keypair, page: int = 0) -> list[dict]:
+        """Return a page of all vaults (any owner)."""
+        result = self._read(self.vault, keypair, "get_all_vaults", args={"page": page})
+        vaults = unwrap_result(result)
+        if isinstance(vaults, list):
+            return vaults
+        return []
+
+    def get_total_collateral_balance(self, keypair: Keypair) -> int:
+        """Return the total collateral balance across all vaults."""
+        result = self._read(self.vault, keypair, "get_total_collateral_balance")
+        return unwrap_plain(result)
+
+    def get_total_vaults_count(self, keypair: Keypair) -> int:
+        """Return the total number of vaults across all owners."""
+        result = self._read(self.vault, keypair, "get_total_vaults_count")
+        return unwrap_plain(result)
+
+    def get_contract_params(self, keypair: Keypair) -> dict:
+        """Return the vault contract parameters."""
+        result = self._read(self.vault, keypair, "get_contract_params")
+        raw = unwrap_plain(result)
+        return raw if isinstance(raw, dict) else raw
+
+    def accrue_interest(self, keypair: Keypair, owner: str, vault_id: int) -> dict[str, Any]:
+        """Accrue interest on a vault."""
+        return self._exec(self.vault, keypair, "accrue_interest", args={"owner": owner, "vault_id": vault_id})
+
+    def trigger_liquidation(self, keypair: Keypair, owner: str, vault_id: int) -> dict[str, Any]:
+        """Trigger a liquidation auction for an undercollateralized vault."""
+        return self._exec(
+            self.vault, keypair, "trigger_liquidation_auction", args={"owner": owner, "vault_id": vault_id}
+        )
+
+    def settle_liquidation(self, keypair: Keypair, owner: str, vault_id: int) -> dict[str, Any]:
+        """Settle a completed liquidation auction for a vault."""
+        return self._exec(
+            self.vault, keypair, "settle_liquidation_auction", args={"owner": owner, "vault_id": vault_id}
+        )
+
     def get_token_address(self, keypair: Keypair) -> str:
         """Query the token contract address from the vault contract."""
         result = self._read(self.vault, keypair, "get_token_address")
@@ -378,6 +430,43 @@ class TUSDTClient:
             return None
         return raw if isinstance(raw, dict) else raw
 
+    def list_all_auctions(self, keypair: Keypair, page: int = 0) -> list[dict]:
+        """Return a page of all auctions (active + finalized)."""
+        result = self._read(self.auction, keypair, "get_all_auctions", args={"page": page})
+        auctions = unwrap_result(result)
+        if isinstance(auctions, list):
+            return auctions
+        return []
+
+    def get_total_auctions_count(self, keypair: Keypair) -> int:
+        """Return the total number of auctions."""
+        result = self._read(self.auction, keypair, "get_total_auctions_count")
+        return unwrap_plain(result)
+
+    def get_active_vault_auction(self, keypair: Keypair, vault_owner: str, vault_id: int) -> Optional[int]:
+        """Return the active auction ID for a specific vault, or ``None``."""
+        result = self._read(
+            self.auction, keypair, "get_active_vault_auction",
+            args={"vault_owner": vault_owner, "vault_id": vault_id},
+        )
+        return unwrap_option(result)
+
+    def list_bids(self, keypair: Keypair, auction_id: int, page: int = 0) -> list[dict]:
+        """Return a page of bids for an auction."""
+        result = self._read(self.auction, keypair, "get_bids", args={"auction_id": auction_id, "page": page})
+        bids = unwrap_result(result)
+        if isinstance(bids, list):
+            return bids
+        return []
+
+    def get_bid(self, keypair: Keypair, auction_id: int, bid_id: int) -> Optional[dict]:
+        """Get a specific bid by auction ID and bid ID."""
+        result = self._read(self.auction, keypair, "get_bid", args={"auction_id": auction_id, "bid_id": bid_id})
+        raw = unwrap_option(result)
+        if raw is None:
+            return None
+        return raw if isinstance(raw, dict) else raw
+
     # ==================================================================
     # ORACLE OPERATIONS
     # ==================================================================
@@ -393,4 +482,58 @@ class TUSDTClient:
     def get_current_round(self, keypair: Keypair) -> int:
         """Return the current oracle round ID."""
         result = self._read(self.oracle, keypair, "current_round_id")
+        return unwrap_plain(result)
+
+    def submit_price(self, keypair: Keypair, price: int, hot_key: Optional[str] = None) -> dict[str, Any]:
+        """Submit a price to the oracle as a reporter."""
+        args: dict[str, Any] = {"price": price}
+        if hot_key:
+            args["metadata"] = {"hot_key": hot_key}
+        else:
+            args["metadata"] = None
+        return self._exec(self.oracle, keypair, "submit_price", args=args)
+
+    def commit_round(self, keypair: Keypair, override_price: Optional[int] = None) -> dict[str, Any]:
+        """Commit the current oracle round. Optionally override the median price."""
+        args: dict[str, Any] = {"override_price": override_price}
+        return self._exec(self.oracle, keypair, "commit_round", args=args)
+
+    def get_round_price(self, keypair: Keypair, round_id: int) -> Optional[dict]:
+        """Return the price data for a specific round."""
+        result = self._read(self.oracle, keypair, "get_round_price", args={"round_id": round_id})
+        raw = unwrap_option(result)
+        if raw is None:
+            return None
+        return raw if isinstance(raw, dict) else raw
+
+    def get_price_history(self, keypair: Keypair, page: int = 0) -> list:
+        """Return a page of price history."""
+        result = self._read(self.oracle, keypair, "get_price_history", args={"page": page})
+        raw = unwrap_plain(result)
+        if isinstance(raw, list):
+            return raw
+        return []
+
+    def get_price_history_count(self, keypair: Keypair) -> int:
+        """Return the total number of price history entries."""
+        result = self._read(self.oracle, keypair, "get_price_history_count")
+        return unwrap_plain(result)
+
+    def get_round_submissions(self, keypair: Keypair, round_id: int) -> list:
+        """Return all submissions for a specific round."""
+        result = self._read(self.oracle, keypair, "get_round_submissions", args={"round_id": round_id})
+        raw = unwrap_plain(result)
+        if isinstance(raw, list):
+            return raw
+        return []
+
+    def get_current_round_summary(self, keypair: Keypair) -> dict:
+        """Return a summary of the current oracle round."""
+        result = self._read(self.oracle, keypair, "get_current_round_summary")
+        raw = unwrap_plain(result)
+        return raw if isinstance(raw, dict) else raw
+
+    def is_reporter(self, keypair: Keypair, account: str) -> bool:
+        """Check if an account is a registered oracle reporter."""
+        result = self._read(self.oracle, keypair, "is_reporter", args={"account": account})
         return unwrap_plain(result)
