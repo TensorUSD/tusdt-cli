@@ -343,6 +343,69 @@ class TUSDTClient:
         return unwrap_plain(result)
 
     # ==================================================================
+    # VAULT GOVERNANCE OPERATIONS
+    # ==================================================================
+
+    def get_governance(self, keypair: Keypair) -> str:
+        """Return the current governance account address."""
+        result = self._read(self.vault, keypair, "governance")
+        return unwrap_plain(result)
+
+    def get_platform(self, keypair: Keypair) -> str:
+        """Return the current platform account address."""
+        result = self._read(self.vault, keypair, "platform")
+        return unwrap_plain(result)
+
+    def is_paused(self, keypair: Keypair) -> bool:
+        """Return whether the vault contract is paused."""
+        result = self._read(self.vault, keypair, "paused")
+        return unwrap_plain(result)
+
+    def get_pending_params_update(self, keypair: Keypair) -> Optional[dict]:
+        """Return the pending contract parameter update, if any."""
+        result = self._read(self.vault, keypair, "get_pending_contract_params_update")
+        raw = unwrap_option(result)
+        if raw is None:
+            return None
+        return raw if isinstance(raw, dict) else raw
+
+    def update_governance(self, keypair: Keypair, new_governance: str) -> dict[str, Any]:
+        """Transfer governance to a new account."""
+        return self._exec(self.vault, keypair, "update_governance", args={"new_governance": new_governance})
+
+    def update_platform(self, keypair: Keypair, new_platform: str) -> dict[str, Any]:
+        """Update the platform account."""
+        return self._exec(self.vault, keypair, "update_platform", args={"new_platform": new_platform})
+
+    def pause_contract(self, keypair: Keypair) -> dict[str, Any]:
+        """Pause the vault contract."""
+        return self._exec(self.vault, keypair, "pause")
+
+    def unpause_contract(self, keypair: Keypair) -> dict[str, Any]:
+        """Unpause the vault contract."""
+        return self._exec(self.vault, keypair, "unpause")
+
+    def set_contract_params(
+        self,
+        keypair: Keypair,
+        params: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Schedule a contract parameter update with timelock."""
+        return self._exec(self.vault, keypair, "set_contract_params", args={"params": params})
+
+    def execute_params_update(self, keypair: Keypair) -> dict[str, Any]:
+        """Execute the pending contract parameter update after timelock."""
+        return self._exec(self.vault, keypair, "execute_contract_params_update")
+
+    def cancel_params_update(self, keypair: Keypair) -> dict[str, Any]:
+        """Cancel the pending contract parameter update."""
+        return self._exec(self.vault, keypair, "cancel_contract_params_update")
+
+    def claim_surplus_tusdt(self, keypair: Keypair, amount: int) -> dict[str, Any]:
+        """Claim surplus TUSDT tokens held by the vault contract."""
+        return self._exec(self.vault, keypair, "claim_surplus_tusdt", args={"amount": amount})
+
+    # ==================================================================
     # TOKEN (ERC-20) OPERATIONS
     # ==================================================================
 

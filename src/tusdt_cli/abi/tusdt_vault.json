@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xfeb5afbdc25d8d527f7a75500c0b9652f2a1e88d819dba899bd529304e3eb02d",
+    "hash": "0xe4d7f1444d502507d321c1717baf2343352ad4bc81a724997d81621ad6ed6931",
     "language": "ink! 5.1.1",
     "compiler": "rustc 1.93.0",
     "build_info": {
@@ -1021,7 +1021,7 @@
           {
             "docs": [],
             "indexed": false,
-            "label": "previous_borrowed_balance",
+            "label": "previous_debt_balance",
             "type": {
               "displayName": [
                 "Balance"
@@ -1032,7 +1032,7 @@
           {
             "docs": [],
             "indexed": false,
-            "label": "borrowed_balance",
+            "label": "debt_balance",
             "type": {
               "displayName": [
                 "Balance"
@@ -1217,6 +1217,36 @@
         "args": [
           {
             "docs": [],
+            "indexed": true,
+            "label": "previous_platform",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_platform",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [],
+        "label": "VaultPlatformUpdated",
+        "module_path": "tusdt_vault::vault",
+        "signature_topic": "0x968c8e8d6f99c403be206758aadc258fd0abf2dc43f439545cb6ab8508461735"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
             "indexed": false,
             "label": "params",
             "type": {
@@ -1330,6 +1360,32 @@
           "type": 43
         },
         "selector": "0xc33c8b6a"
+      },
+      {
+        "args": [
+          {
+            "label": "new_platform",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "update_platform",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 43
+        },
+        "selector": "0xa59697ab"
       },
       {
         "args": [],
@@ -1497,7 +1553,7 @@
         ],
         "default": false,
         "docs": [
-          " Repays borrowed tokens from a vault, accruing interest and burning the repaid tokens."
+          " Repays borrowed tokens from a vault, routing accrued interest to the platform and burning only principal."
         ],
         "label": "repay_token",
         "mutates": true,
@@ -1645,7 +1701,8 @@
         ],
         "default": false,
         "docs": [
-          " Settles a finalized liquidation auction, transferring collateral to the winner and clearing vault debt.",
+          " Settles a finalized liquidation auction, transferring collateral to the winner,",
+          " routing accrued interest to the platform, and burning only principal.",
           "",
           " This remains callable while paused so governance can freeze new mutations without",
           " trapping already-finalized auction proceeds in the auction contract."
@@ -1770,6 +1827,24 @@
           "type": 52
         },
         "selector": "0x9f90cf17"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [
+          " Returns the current platform account."
+        ],
+        "label": "platform",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 52
+        },
+        "selector": "0x2b86e96a"
       },
       {
         "args": [],
@@ -2150,6 +2225,15 @@
               "layout": {
                 "leaf": {
                   "key": "0x00000000",
+                  "ty": 0
+                }
+              },
+              "name": "platform"
+            },
+            {
+              "layout": {
+                "leaf": {
+                  "key": "0x00000000",
                   "ty": 3
                 }
               },
@@ -2525,6 +2609,15 @@
                               "ty": 4
                             }
                           },
+                          "name": "debt_balance"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x8d337809",
+                              "ty": 4
+                            }
+                          },
                           "name": "total_interest_accrued"
                         },
                         {
@@ -2776,6 +2869,11 @@
               },
               {
                 "name": "borrowed_token_balance",
+                "type": 4,
+                "typeName": "Balance"
+              },
+              {
+                "name": "debt_balance",
                 "type": 4,
                 "typeName": "Balance"
               },
@@ -3217,6 +3315,11 @@
                 "name": "governance",
                 "type": 0,
                 "typeName": "<AccountId as::ink::storage::traits::AutoStorableHint<::ink::\nstorage::traits::ManualKey<2977074604u32, ()>,>>::Type"
+              },
+              {
+                "name": "platform",
+                "type": 0,
+                "typeName": "<AccountId as::ink::storage::traits::AutoStorableHint<::ink::\nstorage::traits::ManualKey<3492713953u32, ()>,>>::Type"
               },
               {
                 "name": "paused",

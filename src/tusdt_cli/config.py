@@ -23,13 +23,12 @@ NETWORKS: dict[str, dict[str, str]] = {
     },
     "testnet": {
         "rpc": "wss://test.finney.opentensor.ai:443",
-        "vault_address": "5HhJKNf7XjmppAyPeBKN5xQk6joNMWHTnEgup4msxfcKcYKp",
-        "token_address": "5GGqBAYWW84wvdTeZGM68dHng1UaWTxxc4ZzFhuQXF9zqK9J",
-        "auction_address": "5Cninzamn4GVi1J1St578ENyNEDrMi5hXucY7rUj1WzREgAt",
-        "oracle_address": "5FqciR795agP8wEojv2TRegwN757EJURyzjDREUvzCX3cqZS",
+        "vault_address": "5GNTed7P5zkJJ1Gz53BZxWqhmfNtMAhqERtDCqb4CMX3PjQN",
+        "token_address": "5Cp7QWWcwmzPYQ3SzBkuqCWjj8GY5wyU6a35yB3r5odRpCVB",
+        "auction_address": "5GcDCbdsRFwkwPVtWu2n5fbpQDTQikaorkZDT5nGRuiabs4B",
+        "oracle_address": "5FqL7G8yu4TxEeZnkminyP5DyjE6yTmh62x69vbyTRHBXDJQ",
     },
 }
-
 DEFAULT_CONFIG: dict[str, Any] = {
     "network": "finney",
     "rpc": NETWORKS["finney"]["rpc"],
@@ -86,7 +85,11 @@ def load_config(network: str | None = None) -> dict[str, Any]:
             config.update(saved)
         except (json.JSONDecodeError, OSError):
             pass
-    return apply_network_override(config, network)
+    # Use the explicit --network flag if provided, otherwise fall back to
+    # the network stored in the config file so that preset addresses are
+    # always applied consistently.
+    effective_network = network or config.get("network")
+    return apply_network_override(config, effective_network)
 
 
 def save_config(config: dict[str, Any]) -> None:
