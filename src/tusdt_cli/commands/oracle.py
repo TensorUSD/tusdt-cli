@@ -6,6 +6,7 @@ from tusdt_cli.client import TUSDTClient
 from tusdt_cli.config import load_config, NETWORKS
 from tusdt_cli.utils import (
     HelpfulGroup,
+    ModeAwareGroup,
     format_balance,
     print_dict,
     print_error,
@@ -29,7 +30,13 @@ _wallet_option = click.option(
 )
 
 
-@click.group("oracle", cls=HelpfulGroup)
+_ORACLE_ADVANCED = {
+    "submit-price", "commit-round", "round-price", "history",
+    "history-count", "submissions", "summary", "is-reporter",
+}
+
+
+@click.group("oracle", cls=ModeAwareGroup, advanced_commands=_ORACLE_ADVANCED)
 def oracle_group() -> None:
     """Oracle price-feed operations."""
 

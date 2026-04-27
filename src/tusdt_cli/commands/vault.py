@@ -6,6 +6,7 @@ from tusdt_cli.client import TUSDTClient
 from tusdt_cli.config import load_config, NETWORKS
 from tusdt_cli.utils import (
     HelpfulGroup,
+    ModeAwareGroup,
     format_balance,
     parse_balance,
     print_dict,
@@ -30,7 +31,17 @@ _wallet_option = click.option(
 )
 
 
-@click.group("vault", cls=HelpfulGroup)
+_VAULT_ADVANCED = {
+    "total-debt", "liquidation-auction", "list-all", "params",
+    "total-collateral", "total-count", "accrue-interest",
+    "trigger-liquidation", "settle-liquidation", "governance",
+    "platform", "paused", "pending-update", "update-governance",
+    "update-platform", "pause", "unpause", "set-params",
+    "execute-update", "cancel-update", "claim-surplus",
+}
+
+
+@click.group("vault", cls=ModeAwareGroup, advanced_commands=_VAULT_ADVANCED)
 def vault_group() -> None:
     """Manage collateral vaults."""
 

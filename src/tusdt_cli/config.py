@@ -23,10 +23,10 @@ NETWORKS: dict[str, dict[str, str]] = {
     },
     "testnet": {
         "rpc": "wss://test.finney.opentensor.ai:443",
-        "vault_address": "5GNTed7P5zkJJ1Gz53BZxWqhmfNtMAhqERtDCqb4CMX3PjQN",
-        "token_address": "5Cp7QWWcwmzPYQ3SzBkuqCWjj8GY5wyU6a35yB3r5odRpCVB",
-        "auction_address": "5GcDCbdsRFwkwPVtWu2n5fbpQDTQikaorkZDT5nGRuiabs4B",
-        "oracle_address": "5FqL7G8yu4TxEeZnkminyP5DyjE6yTmh62x69vbyTRHBXDJQ",
+        "vault_address": "5CQP45Ndo4ofYWpHMmhPP6qsLTaXL5juyGMakebhyCcthvt7",
+        "token_address": "5FMjrtVqE68ChqEK2Ngfe7JavgfXBfKjGgUWYP21PcBbghVu",
+        "auction_address": "5H1TgBrMtJr1Rw8ZvkHxNp5y23D28RbDggqAVgpgRGboBkD2",
+        "oracle_address": "5CSweFLJZff8cLEWEZxEafnMCKwxiWLrbPSM1ji3QLdFoMcd",
     },
 }
 DEFAULT_CONFIG: dict[str, Any] = {
@@ -45,6 +45,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "wallet_hotkey": "default",
     "wallet_path": str(Path.home() / ".bittensor" / "wallets"),
     "decimals": 9,
+    "access_mode": "user",
 }
 
 
@@ -78,6 +79,7 @@ def load_config(network: str | None = None) -> dict[str, Any]:
     network's preset (RPC + contract addresses).
     """
     config = dict(DEFAULT_CONFIG)
+    saved: dict[str, Any] = {}
     if CONFIG_FILE.exists():
         try:
             with open(CONFIG_FILE) as f:
@@ -85,11 +87,15 @@ def load_config(network: str | None = None) -> dict[str, Any]:
             config.update(saved)
         except (json.JSONDecodeError, OSError):
             pass
-    # Use the explicit --network flag if provided, otherwise fall back to
-    # the network stored in the config file so that preset addresses are
-    # always applied consistently.
     effective_network = network or config.get("network")
-    return apply_network_override(config, effective_network)
+    config = apply_network_override(config, effective_network)
+    # Saved values take priority over network presets so that explicit
+    # 'config set' changes (e.g. --oracle) are never silently overwritten.
+    config.update(saved)
+    # The effective network name is always authoritative.
+    if effective_network:
+        config["network"] = effective_network
+    return config
 
 
 def save_config(config: dict[str, Any]) -> None:

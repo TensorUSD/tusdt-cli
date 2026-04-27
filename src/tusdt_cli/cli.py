@@ -76,6 +76,8 @@ def config_show(ctx: click.Context, network: Optional[str]) -> None:
 @click.option("--wallet-hotkey", default=None, help="Bittensor hotkey name (default: 'default')")
 @click.option("--wallet-path", default=None, help="Path to bittensor wallets directory")
 @click.option("--decimals", default=None, type=int, help="Decimal places for balance display")
+@click.option("--access-mode", "access_mode", type=click.Choice(["user", "dev"], case_sensitive=False),
+              default=None, help="Command visibility: 'user' (basic) or 'dev' (all commands)")
 def config_set(
     network: Optional[str],
     rpc: Optional[str],
@@ -92,6 +94,7 @@ def config_set(
     wallet_hotkey: Optional[str],
     wallet_path: Optional[str],
     decimals: Optional[int],
+    access_mode: Optional[str],
 ) -> None:
     """Update configuration values.  Only provided options are changed."""
     cfg = load_config()
@@ -119,6 +122,7 @@ def config_set(
         ("wallet_hotkey", wallet_hotkey),
         ("wallet_path", wallet_path),
         ("decimals", decimals),
+        ("access_mode", access_mode),
     ]
     for key, value in pairs:
         if value is not None:

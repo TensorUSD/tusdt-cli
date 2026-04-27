@@ -6,6 +6,7 @@ from tusdt_cli.client import TUSDTClient
 from tusdt_cli.config import load_config, NETWORKS
 from tusdt_cli.utils import (
     HelpfulGroup,
+    ModeAwareGroup,
     format_balance,
     parse_balance,
     print_dict,
@@ -31,7 +32,10 @@ _wallet_option = click.option(
 )
 
 
-@click.group("auction", cls=HelpfulGroup)
+_AUCTION_ADVANCED = {"list-all", "total-count", "vault-auction", "bids", "bid-info"}
+
+
+@click.group("auction", cls=ModeAwareGroup, advanced_commands=_AUCTION_ADVANCED)
 def auction_group() -> None:
     """Liquidation auction operations."""
 
