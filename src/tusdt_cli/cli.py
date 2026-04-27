@@ -97,15 +97,32 @@ def config_set(
     access_mode: Optional[str],
 ) -> None:
     """Update configuration values.  Only provided options are changed."""
-    cfg = load_config()
+    # Read only the raw saved overrides — not the full resolved config.
+    # This prevents baking in package-default ABI paths or network-preset
+    # addresses, so package upgrades automatically pick up new defaults.
+    saved_overrides: dict = {}
+    if CONFIG_FILE.exists():
+        try:
+            with open(CONFIG_FILE) as f:
+                saved_overrides = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            pass
+
     updates: dict = {}
 
-    # Apply network preset first – individual flags override afterwards
+    # When --network is passed, save only the network name.
+    # load_config() resolves preset addresses dynamically on every call, so
+    # persisting them would prevent new package defaults from being picked up.
     if network:
         net = network.lower()
         if net in NETWORKS:
-            updates.update(NETWORKS[net])
             updates["network"] = net
+            # Clear any previously baked-in network keys from the saved file
+            # so upgraded package defaults take effect (migration of old configs).
+            for key in ("rpc", "vault_address", "token_address", "auction_address", "oracle_address"):
+                saved_overrides.pop(key, None)
+            for key in ("vault_metadata", "token_metadata", "auction_metadata", "oracle_metadata"):
+                saved_overrides.pop(key, None)
 
     pairs = [
         ("rpc", rpc),
@@ -132,8 +149,8 @@ def config_set(
         print_info("No options provided – nothing changed.")
         return
 
-    cfg.update(updates)
-    save_config(cfg)
+    saved_overrides.update(updates)
+    save_config(saved_overrides)
     print_success("Configuration updated.")
     for k, v in updates.items():
         console.print(f"  [cyan]{k}[/cyan] = {v}")

@@ -1091,6 +1091,7 @@ def unpause_contract(ctx: click.Context, wallet_name: str | None, network: str |
 @click.option("--borrow-cap", type=str, default=None, help="Borrow cap in human-readable units")
 @click.option("--auction-duration-ms", type=int, default=None, help="Auction duration in milliseconds")
 @click.option("--max-oracle-age-ms", type=int, default=None, help="Max oracle age in milliseconds")
+@click.option("--transaction-fee", type=int, default=None, help="Transaction fee in basis points (e.g. 3 for 0.03%%)")
 @_wallet_option
 @_network_option
 @click.pass_context
@@ -1103,6 +1104,7 @@ def set_params(
     borrow_cap: str | None,
     auction_duration_ms: int | None,
     max_oracle_age_ms: int | None,
+    transaction_fee: int | None,
     wallet_name: str | None,
     network: str | None,
 ) -> None:
@@ -1134,6 +1136,8 @@ def set_params(
         params["auction_duration_ms"] = auction_duration_ms
     if max_oracle_age_ms is not None:
         params["max_oracle_age_ms"] = max_oracle_age_ms
+    if transaction_fee is not None:
+        params["transaction_fee"] = transaction_fee
 
     if not params:
         print_error("Provide at least one parameter to update")

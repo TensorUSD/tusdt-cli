@@ -84,6 +84,10 @@ def load_config(network: str | None = None) -> dict[str, Any]:
         try:
             with open(CONFIG_FILE) as f:
                 saved = json.load(f)
+            # Strip stale ABI paths so new bundled defaults are used after upgrades.
+            for key in ("vault_metadata", "token_metadata", "auction_metadata", "oracle_metadata"):
+                if key in saved and not Path(saved[key]).exists():
+                    del saved[key]
             config.update(saved)
         except (json.JSONDecodeError, OSError):
             pass

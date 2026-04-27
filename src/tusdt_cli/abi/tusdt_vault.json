@@ -1,10 +1,10 @@
 {
   "source": {
-    "hash": "0xe4d7f1444d502507d321c1717baf2343352ad4bc81a724997d81621ad6ed6931",
+    "hash": "0x5a7ac3caa10c23abf03bc47dc543413d3df2e1d71f8e27dd6e12d1cc66040244",
     "language": "ink! 5.1.1",
-    "compiler": "rustc 1.93.0",
+    "compiler": "rustc 1.91.1",
     "build_info": {
-      "build_mode": "Debug",
+      "build_mode": "Release",
       "cargo_contract_version": "5.0.3",
       "rust_toolchain": "stable-x86_64-unknown-linux-gnu",
       "wasm_opt_settings": {
@@ -864,12 +864,23 @@
               ],
               "type": 4
             }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "transaction_fee",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
           }
         ],
         "docs": [],
         "label": "TokensRepaid",
         "module_path": "tusdt_vault::vault",
-        "signature_topic": "0xa22358280da53ef96c37f9cb59b4d27b8a530b444e954a3816229235cf85a87f"
+        "signature_topic": "0xe11c88de1af2c4787d5ce47b80816c6ec7b7780637ea93c5d178e116d4a8192f"
       },
       {
         "args": [
@@ -946,12 +957,23 @@
               ],
               "type": 4
             }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "transaction_fee",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
           }
         ],
         "docs": [],
         "label": "TokensBorrowed",
         "module_path": "tusdt_vault::vault",
-        "signature_topic": "0xef408f7426ce09f14f19c91265cc2ee4df89c6ac79710581f4fa4f3d957ba479"
+        "signature_topic": "0xd775a1237b32075dc9df9854ae98ebab6cdcd965c2f0ce6ec26b0050345c2956"
       },
       {
         "args": [
@@ -1128,6 +1150,17 @@
           {
             "docs": [],
             "indexed": false,
+            "label": "transaction_fee",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
             "label": "debt_cleared",
             "type": {
               "displayName": [
@@ -1140,7 +1173,7 @@
         "docs": [],
         "label": "VaultLiquidated",
         "module_path": "tusdt_vault::vault",
-        "signature_topic": "0xd52517f8ee9efe39dba45c5b5c2b5886cfae3f29bac9804ac58366b71d877578"
+        "signature_topic": "0x0f04fc35605f02b23135e50b8a19aa13f9ce70003ec278b3986a4972bdc4b37e"
       },
       {
         "args": [
@@ -1516,7 +1549,9 @@
         ],
         "default": false,
         "docs": [
-          " Borrows tokens against the vault's collateral, validating collateral ratio and accruing interest."
+          " Borrows tokens against the vault's collateral, validating collateral ratio,",
+          " accruing interest, minting the fee portion to the platform, and sending",
+          " the net borrowed tokens to the caller."
         ],
         "label": "borrow_token",
         "mutates": true,
@@ -1553,7 +1588,8 @@
         ],
         "default": false,
         "docs": [
-          " Repays borrowed tokens from a vault, routing accrued interest to the platform and burning only principal."
+          " Repays borrowed tokens from a vault, charging the transaction fee in TUSDT,",
+          " routing accrued interest and the fee to the platform, and burning only principal net supply."
         ],
         "label": "repay_token",
         "mutates": true,
@@ -2426,6 +2462,25 @@
                     },
                     {
                       "layout": {
+                        "struct": {
+                          "fields": [
+                            {
+                              "layout": {
+                                "leaf": {
+                                  "key": "0x00000000",
+                                  "ty": 5
+                                }
+                              },
+                              "name": "0"
+                            }
+                          ],
+                          "name": "Ratio"
+                        }
+                      },
+                      "name": "transaction_fee"
+                    },
+                    {
+                      "layout": {
                         "leaf": {
                           "key": "0x00000000",
                           "ty": 4
@@ -2512,6 +2567,15 @@
                                             }
                                           },
                                           "name": "borrow_cap"
+                                        },
+                                        {
+                                          "layout": {
+                                            "leaf": {
+                                              "key": "0x00000000",
+                                              "ty": 6
+                                            }
+                                          },
+                                          "name": "transaction_fee"
                                         },
                                         {
                                           "layout": {
@@ -3549,6 +3613,11 @@
                 "typeName": "Balance"
               },
               {
+                "name": "transaction_fee",
+                "type": 36,
+                "typeName": "Ratio"
+              },
+              {
                 "name": "auction_duration_ms",
                 "type": 4,
                 "typeName": "u64"
@@ -3676,6 +3745,11 @@
                 "name": "borrow_cap",
                 "type": 4,
                 "typeName": "Balance"
+              },
+              {
+                "name": "transaction_fee",
+                "type": 6,
+                "typeName": "u32"
               },
               {
                 "name": "auction_duration_ms",
@@ -3886,90 +3960,98 @@
               },
               {
                 "index": 4,
-                "name": "TokenBorrowedNotZero"
+                "name": "InsufficientTokenBalance"
               },
               {
                 "index": 5,
-                "name": "InvalidRatio"
+                "name": "InvalidTransactionFee"
               },
               {
                 "index": 6,
-                "name": "InvalidAuctionDuration"
+                "name": "TokenBorrowedNotZero"
               },
               {
                 "index": 7,
-                "name": "CollateralRatioExceeded"
+                "name": "InvalidRatio"
               },
               {
                 "index": 8,
-                "name": "LiquidationRatioExceeded"
+                "name": "InvalidAuctionDuration"
               },
               {
                 "index": 9,
-                "name": "BorrowCapExceeded"
+                "name": "CollateralRatioExceeded"
               },
               {
                 "index": 10,
-                "name": "RepayAmountTooHigh"
+                "name": "LiquidationRatioExceeded"
               },
               {
                 "index": 11,
-                "name": "VaultInLiquidation"
+                "name": "BorrowCapExceeded"
               },
               {
                 "index": 12,
-                "name": "NotLiquidatable"
+                "name": "RepayAmountTooHigh"
               },
               {
                 "index": 13,
-                "name": "LiquidationAuctionExists"
+                "name": "VaultInLiquidation"
               },
               {
                 "index": 14,
-                "name": "AuctionContractCallFailed"
+                "name": "NotLiquidatable"
               },
               {
                 "index": 15,
-                "name": "AuctionNotFound"
+                "name": "LiquidationAuctionExists"
               },
               {
                 "index": 16,
-                "name": "AuctionNotFinalized"
+                "name": "AuctionContractCallFailed"
               },
               {
                 "index": 17,
-                "name": "ArithmeticError"
+                "name": "AuctionNotFound"
               },
               {
                 "index": 18,
-                "name": "NotGovernance"
+                "name": "AuctionNotFinalized"
               },
               {
                 "index": 19,
-                "name": "ContractPaused"
+                "name": "ArithmeticError"
               },
               {
                 "index": 20,
-                "name": "OracleCallFailed"
+                "name": "NotGovernance"
               },
               {
                 "index": 21,
-                "name": "OraclePriceUnavailable"
+                "name": "ContractPaused"
               },
               {
                 "index": 22,
-                "name": "OraclePriceStale"
+                "name": "OracleCallFailed"
               },
               {
                 "index": 23,
-                "name": "InvalidOracleMaxAge"
+                "name": "OraclePriceUnavailable"
               },
               {
                 "index": 24,
-                "name": "NoPendingContractParamsUpdate"
+                "name": "OraclePriceStale"
               },
               {
                 "index": 25,
+                "name": "InvalidOracleMaxAge"
+              },
+              {
+                "index": 26,
+                "name": "NoPendingContractParamsUpdate"
+              },
+              {
+                "index": 27,
                 "name": "ContractParamsUpdateTimelockActive"
               }
             ]
