@@ -16,10 +16,10 @@ _ABI_DIR = Path(__file__).resolve().parent / "abi"
 NETWORKS: dict[str, dict[str, str]] = {
     "finney": {
         "rpc": "wss://entrypoint-finney.opentensor.ai:443",
-        "vault_address": "5HhJKNf7XjmppAyPeBKN5xQk6joNMWHTnEgup4msxfcKcYKp",
-        "token_address": "5GGqBAYWW84wvdTeZGM68dHng1UaWTxxc4ZzFhuQXF9zqK9J",
-        "auction_address": "5Cninzamn4GVi1J1St578ENyNEDrMi5hXucY7rUj1WzREgAt",
-        "oracle_address": "5FqciR795agP8wEojv2TRegwN757EJURyzjDREUvzCX3cqZS",
+        "vault_address": "5GxJw8kTpapdHRW5KUXQLVDpXMMnA61mbzS6nF6jWsEeWExV",
+        "token_address": "5CJ4HtCPdoMfdNUk6B7vZ348XryeXAnb5BmDNGejob1FziNH",
+        "auction_address": "5HipAvNRiuh9mpTKztPLTvwyYkhzuSqxe1wsUy1fbRwbZUbQ",
+        "oracle_address": "5Dfz8xgQoCsaWWrDxjeCuKB8R6AtYymWZDDDAe2q7NE8tL8A",
     },
     "testnet": {
         "rpc": "wss://test.finney.opentensor.ai:443",

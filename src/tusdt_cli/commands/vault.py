@@ -38,6 +38,7 @@ _VAULT_ADVANCED = {
     "platform", "paused", "pending-update", "update-governance",
     "update-platform", "pause", "unpause", "set-params",
     "execute-update", "cancel-update", "claim-surplus",
+    "token-address", "auction-address", "oracle-address", "collateral-balance",
 }
 
 
@@ -1274,3 +1275,144 @@ def claim_surplus(ctx: click.Context, amount: str, wallet_name: str | None, netw
         print_tx_result(result, config.get("network", "finney"))
     except Exception as exc:
         print_error(str(exc))
+
+
+# ------------------------------------------------------------------
+# token-address
+# ------------------------------------------------------------------
+
+@vault_group.command("token-address")
+@_network_option
+@click.pass_context
+def token_address(ctx: click.Context, network: str | None) -> None:
+    """Show the token contract address registered in the vault.
+
+    \b
+    Examples:
+      tusdt vault token-address --network testnet
+    """
+    config = load_config(network=network)
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        addr = client.get_token_address(keypair)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_dict("Token Contract", {"Address": addr})
+
+
+# ------------------------------------------------------------------
+# auction-address
+# ------------------------------------------------------------------
+
+@vault_group.command("auction-address")
+@_network_option
+@click.pass_context
+def auction_address(ctx: click.Context, network: str | None) -> None:
+    """Show the auction contract address registered in the vault.
+
+    \b
+    Examples:
+      tusdt vault auction-address --network testnet
+    """
+    config = load_config(network=network)
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        addr = client.get_auction_address(keypair)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_dict("Auction Contract", {"Address": addr})
+
+
+# ------------------------------------------------------------------
+# oracle-address
+# ------------------------------------------------------------------
+
+@vault_group.command("oracle-address")
+@_network_option
+@click.pass_context
+def oracle_address(ctx: click.Context, network: str | None) -> None:
+    """Show the oracle contract address registered in the vault.
+
+    \b
+    Examples:
+      tusdt vault oracle-address --network testnet
+    """
+    config = load_config(network=network)
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        addr = client.get_oracle_address(keypair)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_dict("Oracle Contract", {"Address": addr})
+
+
+# ------------------------------------------------------------------
+# collateral-balance
+# ------------------------------------------------------------------
+
+@vault_group.command("collateral-balance")
+@click.argument("vault_id", type=int, metavar="<vault-id>")
+@click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
+@_wallet_option
+@_network_option
+@click.pass_context
+def collateral_balance(
+    ctx: click.Context,
+    vault_id: int,
+    owner: str | None,
+    wallet_name: str | None,
+    network: str | None,
+) -> None:
+    """Show the raw collateral balance for a specific vault.
+
+    \b
+    VAULT_ID is the numeric ID of the vault.
+    Owner is resolved from --wallet-name, or pass --owner explicitly.
+    Examples:
+      tusdt vault collateral-balance 0 --wallet-name MyWallet
+      tusdt vault collateral-balance 3 --owner 5GrwvaEF... --network testnet
+    """
+    config = load_config(network=network)
+    decimals = config.get("decimals", 9)
+
+    try:
+        if owner:
+            owner = resolve_ss58(owner, config.get("wallet_path"))
+        elif wallet_name:
+            owner = resolve_ss58(wallet_name, config.get("wallet_path"))
+        else:
+            print_error("Provide --owner (address or wallet name) or --wallet-name")
+            return
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        value = client.get_vault_collateral_balance(keypair, owner, vault_id)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    if value is None:
+        print_error(f"Vault {vault_id} not found for owner {owner}")
+        return
+
+    print_dict(f"Collateral Balance – Vault #{vault_id}", {
+        "Owner": owner,
+        "Collateral balance": format_balance(value, decimals),
+        "Raw": value,
+    })

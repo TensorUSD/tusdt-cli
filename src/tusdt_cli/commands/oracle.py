@@ -31,8 +31,10 @@ _wallet_option = click.option(
 
 
 _ORACLE_ADVANCED = {
-    "submit-price", "commit-round", "round-price", "history",
+    "submit-price", "commit-round", "commit-round-gov", "round-price", "history",
     "history-count", "submissions", "summary", "is-reporter",
+    "controller", "validator", "max-deviation", "max-submissions",
+    "set-reporter", "set-validator", "set-max-deviation", "update-governance",
 }
 
 
@@ -474,3 +476,383 @@ def is_reporter(ctx: click.Context, account: str, network: str | None) -> None:
         "Account": account,
         "Is reporter": result,
     })
+
+
+# ------------------------------------------------------------------
+# controller
+# ------------------------------------------------------------------
+
+@oracle_group.command("controller")
+@_network_option
+@click.pass_context
+def controller(ctx: click.Context, network: str | None) -> None:
+    """Show the oracle controller address.
+
+    \b
+    Examples:
+      tusdt oracle controller --network testnet
+    """
+    config = load_config(network=network)
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        addr = client.get_oracle_controller(keypair)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_dict("Oracle Controller", {"Address": addr})
+
+
+# ------------------------------------------------------------------
+# validator
+# ------------------------------------------------------------------
+
+@oracle_group.command("validator")
+@_network_option
+@click.pass_context
+def validator(ctx: click.Context, network: str | None) -> None:
+    """Show the oracle validator address.
+
+    \b
+    Examples:
+      tusdt oracle validator --network testnet
+    """
+    config = load_config(network=network)
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        addr = client.get_oracle_validator(keypair)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_dict("Oracle Validator", {"Address": addr if addr is not None else "Not set"})
+
+
+# ------------------------------------------------------------------
+# max-deviation
+# ------------------------------------------------------------------
+
+@oracle_group.command("max-deviation")
+@_network_option
+@click.pass_context
+def max_deviation(ctx: click.Context, network: str | None) -> None:
+    """Show the maximum allowed price deviation between rounds.
+
+    \b
+    Examples:
+      tusdt oracle max-deviation --network testnet
+    """
+    config = load_config(network=network)
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        raw = client.get_max_price_deviation(keypair)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    val = int(raw) / 10**18 if raw else 0
+    print_dict("Max Price Deviation", {
+        "Deviation": f"{val:.6f}",
+        "Raw": raw,
+    })
+
+
+# ------------------------------------------------------------------
+# max-submissions
+# ------------------------------------------------------------------
+
+@oracle_group.command("max-submissions")
+@_network_option
+@click.pass_context
+def max_submissions(ctx: click.Context, network: str | None) -> None:
+    """Show the maximum number of price submissions allowed per round.
+
+    \b
+    Examples:
+      tusdt oracle max-submissions --network testnet
+    """
+    config = load_config(network=network)
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        count = client.get_max_round_submissions(keypair)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_dict("Max Round Submissions", {"Max submissions": count})
+
+
+# ------------------------------------------------------------------
+# commit-round-gov
+# ------------------------------------------------------------------
+
+@oracle_group.command("commit-round-gov")
+@click.argument("price_value", type=str, metavar="<price>")
+@_wallet_option
+@_network_option
+@click.pass_context
+def commit_round_gov(
+    ctx: click.Context,
+    price_value: str,
+    wallet_name: str | None,
+    network: str | None,
+) -> None:
+    """Commit the current oracle round with an explicit price (governance only).
+
+    \b
+    Bypasses the minimum-reporter requirement; use only as a governance override.
+    PRICE is a decimal value (e.g. 245.50) scaled by 10^18.
+    Examples:
+      tusdt oracle commit-round-gov 245.50 --wallet-name MyWallet --network testnet
+    """
+    config = load_config(network=network)
+    if wallet_name:
+        config["wallet_name"] = wallet_name
+
+    try:
+        price_float = float(price_value)
+        raw_price = int(price_float * 10**18)
+    except ValueError:
+        print_error(f"Invalid price value: {price_value}")
+        return
+
+    try:
+        keypair = get_signer_keypair(config)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_info(f"Signer: {keypair.ss58_address}")
+    print_info(f"Committing round with governance price {price_value} (raw: {raw_price})...")
+
+    try:
+        client = TUSDTClient(config)
+        result = client.commit_round_governance(keypair, raw_price)
+        print_success("Round committed (governance)!")
+        print_tx_result(result, config.get("network", "finney"))
+    except Exception as exc:
+        print_error(str(exc))
+
+
+# ------------------------------------------------------------------
+# set-reporter
+# ------------------------------------------------------------------
+
+@oracle_group.command("set-reporter")
+@click.argument("account", type=str, metavar="<account>")
+@click.option("--enable/--disable", default=None,
+              help="Enable or disable the reporter (one required)")
+@_wallet_option
+@_network_option
+@click.pass_context
+def set_reporter_cmd(
+    ctx: click.Context,
+    account: str,
+    enable: bool | None,
+    wallet_name: str | None,
+    network: str | None,
+) -> None:
+    """Enable or disable an oracle reporter account (validator only).
+
+    \b
+    ACCOUNT is an SS58 address or wallet name.
+    Examples:
+      tusdt oracle set-reporter 5GrwvaEF... --enable --wallet-name MyWallet
+      tusdt oracle set-reporter 5GrwvaEF... --disable --wallet-name MyWallet
+    """
+    if enable is None:
+        print_error("Specify --enable or --disable")
+        return
+
+    config = load_config(network=network)
+    if wallet_name:
+        config["wallet_name"] = wallet_name
+
+    try:
+        account = resolve_ss58(account, config.get("wallet_path"))
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    try:
+        keypair = get_signer_keypair(config)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    action = "Enabling" if enable else "Disabling"
+    print_info(f"Signer: {keypair.ss58_address}")
+    print_info(f"{action} reporter {account}...")
+
+    try:
+        client = TUSDTClient(config)
+        result = client.set_reporter(keypair, account, enable)
+        print_success(f"Reporter {'enabled' if enable else 'disabled'}!")
+        print_tx_result(result, config.get("network", "finney"))
+    except Exception as exc:
+        print_error(str(exc))
+
+
+# ------------------------------------------------------------------
+# set-validator
+# ------------------------------------------------------------------
+
+@oracle_group.command("set-validator")
+@click.argument("account", type=str, metavar="<account>", required=False, default=None)
+@click.option("--clear", is_flag=True, default=False,
+              help="Clear the validator (set to None)")
+@_wallet_option
+@_network_option
+@click.pass_context
+def set_validator_cmd(
+    ctx: click.Context,
+    account: str | None,
+    clear: bool,
+    wallet_name: str | None,
+    network: str | None,
+) -> None:
+    """Set the oracle validator account (governance only).
+
+    \b
+    ACCOUNT is an SS58 address or wallet name.  Use --clear to unset.
+    Examples:
+      tusdt oracle set-validator 5GrwvaEF... --wallet-name MyWallet
+      tusdt oracle set-validator --clear --wallet-name MyWallet
+    """
+    if not clear and account is None:
+        print_error("Provide <account> or --clear")
+        return
+    if clear and account is not None:
+        print_error("--clear and <account> are mutually exclusive")
+        return
+
+    config = load_config(network=network)
+    if wallet_name:
+        config["wallet_name"] = wallet_name
+
+    resolved: str | None = None
+    if not clear:
+        try:
+            resolved = resolve_ss58(account, config.get("wallet_path"))
+        except Exception as exc:
+            print_error(str(exc))
+            return
+
+    try:
+        keypair = get_signer_keypair(config)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_info(f"Signer: {keypair.ss58_address}")
+    print_info(f"Setting validator to {'None' if clear else resolved}...")
+
+    try:
+        client = TUSDTClient(config)
+        result = client.set_validator(keypair, resolved)
+        print_success("Validator updated!")
+        print_tx_result(result, config.get("network", "finney"))
+    except Exception as exc:
+        print_error(str(exc))
+
+
+# ------------------------------------------------------------------
+# set-max-deviation
+# ------------------------------------------------------------------
+
+@oracle_group.command("set-max-deviation")
+@click.argument("deviation", type=str, metavar="<deviation>")
+@_wallet_option
+@_network_option
+@click.pass_context
+def set_max_deviation(
+    ctx: click.Context,
+    deviation: str,
+    wallet_name: str | None,
+    network: str | None,
+) -> None:
+    """Set the maximum allowed price deviation between rounds (governance only).
+
+    \b
+    DEVIATION is a decimal value (e.g. 20.0 for 20%) scaled by 10^18.
+    Examples:
+      tusdt oracle set-max-deviation 20.0 --wallet-name MyWallet --network testnet
+    """
+    config = load_config(network=network)
+    if wallet_name:
+        config["wallet_name"] = wallet_name
+
+    try:
+        deviation_float = float(deviation)
+        raw_deviation = int(deviation_float * 10**18)
+    except ValueError:
+        print_error(f"Invalid deviation value: {deviation}")
+        return
+
+    try:
+        keypair = get_signer_keypair(config)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_info(f"Signer: {keypair.ss58_address}")
+    print_info(f"Setting max price deviation to {deviation}% (raw: {raw_deviation})...")
+
+    try:
+        client = TUSDTClient(config)
+        result = client.set_max_price_deviation(keypair, raw_deviation)
+        print_success("Max price deviation updated!")
+        print_tx_result(result, config.get("network", "finney"))
+    except Exception as exc:
+        print_error(str(exc))
+
+
+# ------------------------------------------------------------------
+# update-governance
+# ------------------------------------------------------------------
+
+@oracle_group.command("update-governance")
+@click.argument("address", type=str, metavar="<new-governance-address>")
+@_wallet_option
+@_network_option
+@click.pass_context
+def update_governance(
+    ctx: click.Context,
+    address: str,
+    wallet_name: str | None,
+    network: str | None,
+) -> None:
+    """Transfer oracle governance to a new address (controller only).
+
+    \b
+    Examples:
+      tusdt oracle update-governance 5GrwvaEF... --wallet-name MyWallet
+    """
+    config = load_config(network=network)
+    if wallet_name:
+        config["wallet_name"] = wallet_name
+
+    try:
+        keypair = get_signer_keypair(config)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_info(f"Signer: {keypair.ss58_address}")
+    print_info(f"Updating oracle governance to {address}...")
+
+    try:
+        client = TUSDTClient(config)
+        result = client.oracle_update_governance(keypair, address)
+        print_success("Oracle governance updated!")
+        print_tx_result(result, config.get("network", "finney"))
+    except Exception as exc:
+        print_error(str(exc))

@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x5a7ac3caa10c23abf03bc47dc543413d3df2e1d71f8e27dd6e12d1cc66040244",
+    "hash": "0x457d7d553c9d7d3ab4dddfbc78a2b06042cfb31f2fe5612cf36404dcac003001",
     "language": "ink! 5.1.1",
     "compiler": "rustc 1.91.1",
     "build_info": {
@@ -520,6 +520,25 @@
         "label": "OracleGovernanceUpdated",
         "module_path": "tusdt_oracle::oracle",
         "signature_topic": "0x8076edb2c7ad187c70699e83a771437602b58b5145ad1c777bb879abe3f990c8"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "max_price_deviation",
+            "type": {
+              "displayName": [
+                "Ratio"
+              ],
+              "type": 36
+            }
+          }
+        ],
+        "docs": [],
+        "label": "MaxPriceDeviationUpdated",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0xdf92cfe8304a7dfe48998ca021158b2d606b3dd9d86bab86d14c4c2b0d2a2259"
       },
       {
         "args": [
@@ -4028,30 +4047,34 @@
               },
               {
                 "index": 21,
-                "name": "ContractPaused"
+                "name": "NotGovernanceOrPlatform"
               },
               {
                 "index": 22,
-                "name": "OracleCallFailed"
+                "name": "ContractPaused"
               },
               {
                 "index": 23,
-                "name": "OraclePriceUnavailable"
+                "name": "OracleCallFailed"
               },
               {
                 "index": 24,
-                "name": "OraclePriceStale"
+                "name": "OraclePriceUnavailable"
               },
               {
                 "index": 25,
-                "name": "InvalidOracleMaxAge"
+                "name": "OraclePriceStale"
               },
               {
                 "index": 26,
-                "name": "NoPendingContractParamsUpdate"
+                "name": "InvalidOracleMaxAge"
               },
               {
                 "index": 27,
+                "name": "NoPendingContractParamsUpdate"
+              },
+              {
+                "index": 28,
                 "name": "ContractParamsUpdateTimelockActive"
               }
             ]

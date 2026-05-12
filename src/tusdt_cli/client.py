@@ -342,6 +342,14 @@ class TUSDTClient:
         result = self._read(self.vault, keypair, "get_oracle_address")
         return unwrap_plain(result)
 
+    def get_vault_collateral_balance(self, keypair: Keypair, owner: str, vault_id: int) -> Optional[int]:
+        """Return the raw collateral balance for a specific vault, or None if not found."""
+        result = self._read(
+            self.vault, keypair, "get_vault_collateral_balance",
+            args={"owner": owner, "vault_id": vault_id},
+        )
+        return unwrap_option(result)
+
     # ==================================================================
     # VAULT GOVERNANCE OPERATIONS
     # ==================================================================
@@ -600,3 +608,46 @@ class TUSDTClient:
         """Check if an account is a registered oracle reporter."""
         result = self._read(self.oracle, keypair, "is_reporter", args={"account": account})
         return unwrap_plain(result)
+
+    def get_oracle_controller(self, keypair: Keypair) -> str:
+        """Return the oracle controller account address."""
+        result = self._read(self.oracle, keypair, "controller")
+        return unwrap_plain(result)
+
+    def get_oracle_validator(self, keypair: Keypair) -> Optional[str]:
+        """Return the oracle validator account, or None if not set."""
+        result = self._read(self.oracle, keypair, "validator")
+        return unwrap_option(result)
+
+    def get_max_price_deviation(self, keypair: Keypair) -> int:
+        """Return the current max price deviation ratio (10^18 scale)."""
+        result = self._read(self.oracle, keypair, "max_price_deviation")
+        return unwrap_plain(result)
+
+    def get_max_round_submissions(self, keypair: Keypair) -> int:
+        """Return the maximum number of submissions allowed per round."""
+        result = self._read(self.oracle, keypair, "max_round_submissions")
+        return unwrap_plain(result)
+
+    def commit_round_governance(self, keypair: Keypair, price: int) -> dict[str, Any]:
+        """Governance commits the current oracle round with an explicit price."""
+        return self._exec(self.oracle, keypair, "commit_round_governance", args={"price": price})
+
+    def set_reporter(self, keypair: Keypair, reporter: str, enabled: bool) -> dict[str, Any]:
+        """Enable or disable an oracle reporter account (validator only)."""
+        return self._exec(self.oracle, keypair, "set_reporter", args={"reporter": reporter, "enabled": enabled})
+
+    def set_validator(self, keypair: Keypair, validator: Optional[str]) -> dict[str, Any]:
+        """Set the oracle validator account (governance only). Pass None to clear."""
+        return self._exec(self.oracle, keypair, "set_validator", args={"validator": validator})
+
+    def set_max_price_deviation(self, keypair: Keypair, max_price_deviation: int) -> dict[str, Any]:
+        """Set the maximum allowed price deviation between rounds (governance only)."""
+        return self._exec(
+            self.oracle, keypair, "set_max_price_deviation",
+            args={"max_price_deviation": max_price_deviation},
+        )
+
+    def oracle_update_governance(self, keypair: Keypair, new_governance: str) -> dict[str, Any]:
+        """Transfer oracle governance to a new account (controller only)."""
+        return self._exec(self.oracle, keypair, "update_governance", args={"new_governance": new_governance})
