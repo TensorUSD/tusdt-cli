@@ -9,9 +9,8 @@ from typing import Any
 
 from substrateinterface import Keypair, SubstrateInterface
 from substrateinterface.contracts import ContractInstance, ContractMetadata
-from substrateinterface.exceptions import ContractReadFailedException
-
 from substrateinterface.contracts import ContractMetadata as _ContractMetadata
+from substrateinterface.exceptions import ContractReadFailedException
 
 from tusdt_cli.utils import (
     ContractError,
@@ -20,6 +19,7 @@ from tusdt_cli.utils import (
     unwrap_plain,
     unwrap_result,
 )
+
 
 # ---------------------------------------------------------------------------
 # Patch: fix substrate-interface 1.8.1 V5 metadata loading bug
@@ -55,10 +55,14 @@ def _fixed_convert(self: _ContractMetadata) -> None:
 
     # V1 -> V2: name -> label
     if self.metadata_version <= 1:
+
         def _replace_name(obj: dict) -> dict:
             if "name" in obj:
-                obj["label"] = "::".join(obj.pop("name")) if isinstance(obj["name"], list) else obj.pop("name")
+                obj["label"] = (
+                    "::".join(obj.pop("name")) if isinstance(obj["name"], list) else obj.pop("name")
+                )
             return obj
+
         for section in ("constructors", "events", "messages"):
             for idx, c in enumerate(self.metadata_dict["spec"][section]):
                 self.metadata_dict["spec"][section][idx]["args"] = [_replace_name(a) for a in c["args"]]
@@ -66,18 +70,20 @@ def _fixed_convert(self: _ContractMetadata) -> None:
 
     # V2 -> V3: default payable=True for constructors
     if self.metadata_version <= 2:
-        for idx, c in enumerate(self.metadata_dict["spec"]["constructors"]):
+        for _idx, c in enumerate(self.metadata_dict["spec"]["constructors"]):
             c["payable"] = True
 
     # V4 -> V5: add module_path and signature_topic to events
     if self.metadata_version <= 4:
-        for idx, event in enumerate(self.metadata_dict["spec"]["events"]):
+        for _idx, event in enumerate(self.metadata_dict["spec"]["events"]):
             event["module_path"] = event.get("module_path", "")
             event["signature_topic"] = event.get("signature_topic", "")
 
     # Set type offset and prefix
     self._ContractMetadata__type_offset = 0
-    if "V0" in self.metadata_dict and tuple(int(x) for x in self.metadata_dict["metadataVersion"].split(".")) < (0, 7, 0):
+    if "V0" in self.metadata_dict and tuple(
+        int(x) for x in self.metadata_dict["metadataVersion"].split(".")
+    ) < (0, 7, 0):
         self._ContractMetadata__type_offset = 1
 
     self.type_string_prefix = f"ink::{self.metadata_dict['source']['hash']}"
@@ -96,6 +102,7 @@ def _fixed_convert(self: _ContractMetadata) -> None:
         if hasattr(raw_types, "value_object"):
             raw_types = raw_types.value_object
         self.substrate.runtime_config.update_from_scale_info_types(raw_types, prefix=self.type_string_prefix)
+
 
 _ContractMetadata._ContractMetadata__convert_to_latest_metadata = _fixed_convert
 
