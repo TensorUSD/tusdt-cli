@@ -138,15 +138,15 @@ def print_info(msg: str) -> None:
     console.print(f"[dim]{msg}[/dim]")
 
 
-def taostats_url(extrinsic_hash: str, network: str = "finney") -> str:
-    """Build a Taostats explorer URL for a given extrinsic hash."""
-    return f"https://taostats.io/hash/{extrinsic_hash}?network={network}"
+def viewpallet_url(extrinsic_hash: str, network: str = "finney") -> str:
+    """Build a ViewPallet explorer URL for a given extrinsic hash."""
+    return f"https://dev-node.tensorusd.com/explorer/transactions/{extrinsic_hash}"
 
 
 def print_tx_result(result: dict[str, Any], network: str = "finney") -> None:
     """Print transaction result with taostats explorer link."""
     ex_hash = result.get("extrinsic_hash", "")
-    url = taostats_url(ex_hash, network)
+    url = viewpallet_url(ex_hash, network)
     print_dict(
         "Transaction",
         {
