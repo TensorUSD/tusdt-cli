@@ -20,6 +20,7 @@ console = Console()
 # Custom Click classes – show full help on missing arguments
 # ---------------------------------------------------------------------------
 
+
 class HelpfulCommand(click.Command):
     """Command that prints full help text when a required argument is missing."""
 
@@ -48,6 +49,7 @@ class ModeAwareGroup(HelpfulGroup):
     def _is_user_mode(self) -> bool:
         try:
             from tusdt_cli.config import load_config  # local import avoids circular dependency
+
             return load_config().get("access_mode", "user") == "user"
         except Exception:
             return True
@@ -62,20 +64,19 @@ class ModeAwareGroup(HelpfulGroup):
         super().format_commands(ctx, formatter)
         if self._advanced and self._is_user_mode():
             with formatter.section(""):
-                formatter.write_text(
-                    "Tip: run 'tusdt config set --access-mode dev' to show all commands."
-                )
+                formatter.write_text("Tip: run 'tusdt config set --access-mode dev' to show all commands.")
 
 
 # ---------------------------------------------------------------------------
 # Balance conversion
 # ---------------------------------------------------------------------------
 
+
 def format_balance(raw: int, decimals: int = 9) -> str:
     """Convert a raw on-chain balance to a human-readable decimal string."""
     if raw == 0:
         return "0"
-    factor = 10 ** decimals
+    factor = 10**decimals
     whole = raw // factor
     frac = raw % factor
     if frac == 0:
@@ -87,7 +88,7 @@ def format_balance(raw: int, decimals: int = 9) -> str:
 def parse_balance(human: str, decimals: int = 9) -> int:
     """Convert a human-readable decimal string to a raw on-chain integer."""
     human = human.strip()
-    factor = 10 ** decimals
+    factor = 10**decimals
     if "." in human:
         whole_s, frac_s = human.split(".", 1)
         whole = int(whole_s) if whole_s else 0
@@ -99,6 +100,7 @@ def parse_balance(human: str, decimals: int = 9) -> int:
 # ---------------------------------------------------------------------------
 # Rich output helpers
 # ---------------------------------------------------------------------------
+
 
 def print_table(title: str, columns: list[str], rows: list[list[Any]]) -> None:
     """Render a table with *columns* headers and *rows* data."""
@@ -136,25 +138,29 @@ def print_info(msg: str) -> None:
     console.print(f"[dim]{msg}[/dim]")
 
 
-def taostats_url(extrinsic_hash: str, network: str = "finney") -> str:
-    """Build a Taostats explorer URL for a given extrinsic hash."""
-    return f"https://taostats.io/hash/{extrinsic_hash}?network={network}"
+def viewpallet_url(extrinsic_hash: str, network: str = "finney") -> str:
+    """Build a ViewPallet explorer URL for a given extrinsic hash."""
+    return f"https://dev-node.tensorusd.com/explorer/transactions/{extrinsic_hash}"
 
 
 def print_tx_result(result: dict[str, Any], network: str = "finney") -> None:
     """Print transaction result with taostats explorer link."""
     ex_hash = result.get("extrinsic_hash", "")
-    url = taostats_url(ex_hash, network)
-    print_dict("Transaction", {
-        "Extrinsic": ex_hash,
-        "Block": result.get("block_hash", ""),
-        "Explorer": url,
-    })
+    url = viewpallet_url(ex_hash, network)
+    print_dict(
+        "Transaction",
+        {
+            "Extrinsic": ex_hash,
+            "Block": result.get("block_hash", ""),
+            "Explorer": url,
+        },
+    )
 
 
 # ---------------------------------------------------------------------------
 # Contract result helpers
 # ---------------------------------------------------------------------------
+
 
 class ContractError(Exception):
     """Raised when a contract call returns an error."""

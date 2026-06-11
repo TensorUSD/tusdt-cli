@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x1ffba8579ded7cfd696f06013745d347feb75a94fdcab6d485ef30d4a57553c1",
+    "hash": "0xc68a58b5ddfe56f20d9d93e1f2105532755b321c0dc7a842b0d5ef530e6211e7",
     "language": "ink! 5.1.1",
     "compiler": "rustc 1.91.1",
     "build_info": {
@@ -147,7 +147,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when the winning bid tokens are transferred out by the controller."
+        ],
         "label": "WinningBidTransferred",
         "module_path": "tusdt_auction::auction",
         "signature_topic": "0x2453946cbe1f6032b08342168446e55733a50984aaed83e6915336a88b93032e"
@@ -177,7 +179,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when auction governance is transferred to a new account."
+        ],
         "label": "AuctionGovernanceUpdated",
         "module_path": "tusdt_auction::auction",
         "signature_topic": "0x650e7dc10cf216636c442ddc7c09760c72b7152d8c3e9e56f48fd38c4ed0e637"
@@ -229,7 +233,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when a bid is placed or raised on an auction."
+        ],
         "label": "BidPlaced",
         "module_path": "tusdt_auction::auction",
         "signature_topic": "0x53773ad8dd764d7c2e273caf090006fa7ba6b468938259aa3d27ecd3b9b95f1b"
@@ -248,7 +254,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when the admin account (allowed to bid on expired no-bid auctions) is updated."
+        ],
         "label": "AdminUpdated",
         "module_path": "tusdt_auction::auction",
         "signature_topic": "0xd04478a9ddad3ba01e57d8112d890c26a28aca5c43c35dfb522ed2f0107cf985"
@@ -311,7 +319,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when a new liquidation auction is created."
+        ],
         "label": "AuctionCreated",
         "module_path": "tusdt_auction::auction",
         "signature_topic": "0x2d6206165e4527a66ee2e32d8b2fe44913914651cdd0fa449efd415b3b697558"
@@ -341,7 +351,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when a losing bidder withdraws their refund."
+        ],
         "label": "RefundWithdrawn",
         "module_path": "tusdt_auction::auction",
         "signature_topic": "0x6040b9f8282871cf9199cf80cc6df679351435d48bc8743ad81a192b1f665d23"
@@ -404,7 +416,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when an auction is finalized, identifying the winning bidder."
+        ],
         "label": "AuctionFinalized",
         "module_path": "tusdt_auction::auction",
         "signature_topic": "0x2bb1b99d11a544c4702e6bb53e1eaea4a6f257ac8d2e41b9c747027662fadd53"
@@ -445,7 +459,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted whenever an owner sets or updates a spender's allowance."
+        ],
         "label": "Approval",
         "module_path": "tusdt_erc20::tusdt",
         "signature_topic": "0x1a35e726f5feffda199144f6097b2ba23713e549bfcbe090c0981e3bcdfbcc1d"
@@ -486,7 +502,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted on token movement; `from = None` denotes a mint, `to = None` denotes a burn."
+        ],
         "label": "Transfer",
         "module_path": "tusdt_erc20::tusdt",
         "signature_topic": "0xb5b61a3e6a21a16be4f044b517c28ac692492f73c5bfd3f60178ad98c767f4cb"
@@ -595,7 +613,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Sets or clears the admin account that may bid on expired no-bid auctions; governance-only."
+        ],
         "label": "set_admin",
         "mutates": true,
         "payable": false,
@@ -621,7 +641,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Transfers auction governance to a new account; controller-only."
+        ],
         "label": "update_governance",
         "mutates": true,
         "payable": false,

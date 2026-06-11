@@ -3,9 +3,8 @@
 import click
 
 from tusdt_cli.client import TUSDTClient
-from tusdt_cli.config import load_config, NETWORKS
+from tusdt_cli.config import NETWORKS, load_config
 from tusdt_cli.utils import (
-    HelpfulGroup,
     ModeAwareGroup,
     format_balance,
     parse_balance,
@@ -14,8 +13,8 @@ from tusdt_cli.utils import (
     print_info,
     print_success,
     print_table,
-    print_warning,
     print_tx_result,
+    print_warning,
 )
 from tusdt_cli.wallet import get_reader_keypair, get_signer_keypair, load_hotkey, resolve_ss58
 
@@ -27,7 +26,8 @@ _network_option = click.option(
 )
 
 _wallet_option = click.option(
-    "--wallet-name", default=None,
+    "--wallet-name",
+    default=None,
     help="Bittensor wallet name for signing (prompts for coldkey password)",
 )
 
@@ -43,6 +43,7 @@ def auction_group() -> None:
 # ------------------------------------------------------------------
 # list-active  (read-only – no --wallet-name needed)
 # ------------------------------------------------------------------
+
 
 @auction_group.command("list-active")
 @click.option("--page", default=0, show_default=True, help="Page number (10 per page)")
@@ -74,15 +75,17 @@ def list_active(ctx: click.Context, page: int, network: str | None) -> None:
 
     rows = []
     for a in auctions:
-        rows.append([
-            str(a.get("id", "?")),
-            str(a.get("vault_id", "?")),
-            format_balance(a.get("collateral_balance", 0), decimals),
-            format_balance(a.get("debt_balance", 0), decimals),
-            format_balance(a.get("highest_bid", 0), decimals),
-            str(a.get("bid_count", 0)),
-            str(a.get("ends_at", "?")),
-        ])
+        rows.append(
+            [
+                str(a.get("id", "?")),
+                str(a.get("vault_id", "?")),
+                format_balance(a.get("collateral_balance", 0), decimals),
+                format_balance(a.get("debt_balance", 0), decimals),
+                format_balance(a.get("highest_bid", 0), decimals),
+                str(a.get("bid_count", 0)),
+                str(a.get("ends_at", "?")),
+            ]
+        )
 
     print_info(f"Active auctions: {total}  |  Page: {page}")
     print_table(
@@ -95,6 +98,7 @@ def list_active(ctx: click.Context, page: int, network: str | None) -> None:
 # ------------------------------------------------------------------
 # info  (read-only – no --wallet-name needed)
 # ------------------------------------------------------------------
+
 
 @auction_group.command("info")
 @click.argument("auction_id", type=int, metavar="<auction-id>")
@@ -123,30 +127,35 @@ def auction_info(ctx: click.Context, auction_id: int, network: str | None) -> No
         print_error(f"Auction {auction_id} not found")
         return
 
-    print_dict(f"Auction #{auction_id}", {
-        "ID": data.get("id", auction_id),
-        "Vault Owner": data.get("vault_owner", "?"),
-        "Vault ID": data.get("vault_id", "?"),
-        "Collateral": format_balance(data.get("collateral_balance", 0), decimals),
-        "Debt": format_balance(data.get("debt_balance", 0), decimals),
-        "Starts at": data.get("starts_at", "?"),
-        "Ends at": data.get("ends_at", "?"),
-        "Highest bidder": data.get("highest_bidder") or "None",
-        "Highest bid": format_balance(data.get("highest_bid", 0), decimals),
-        "Bid count": data.get("bid_count", 0),
-        "Finalized": data.get("is_finalized", False),
-    })
+    print_dict(
+        f"Auction #{auction_id}",
+        {
+            "ID": data.get("id", auction_id),
+            "Vault Owner": data.get("vault_owner", "?"),
+            "Vault ID": data.get("vault_id", "?"),
+            "Collateral": format_balance(data.get("collateral_balance", 0), decimals),
+            "Debt": format_balance(data.get("debt_balance", 0), decimals),
+            "Starts at": data.get("starts_at", "?"),
+            "Ends at": data.get("ends_at", "?"),
+            "Highest bidder": data.get("highest_bidder") or "None",
+            "Highest bid": format_balance(data.get("highest_bid", 0), decimals),
+            "Bid count": data.get("bid_count", 0),
+            "Finalized": data.get("is_finalized", False),
+        },
+    )
 
 
 # ------------------------------------------------------------------
 # bid  (has --wallet-hotkey for hotkey SS58 metadata)
 # ------------------------------------------------------------------
 
+
 @auction_group.command("bid")
 @click.argument("auction_id", type=int, metavar="<auction-id>")
 @click.argument("amount", type=str, metavar="<amount>")
-@click.option("--wallet-hotkey", default=None,
-              help="Hotkey name to resolve its SS58 address for bid metadata")
+@click.option(
+    "--wallet-hotkey", default=None, help="Hotkey name to resolve its SS58 address for bid metadata"
+)
 @_wallet_option
 @_network_option
 @click.pass_context
@@ -229,6 +238,7 @@ def bid(
 # finalize
 # ------------------------------------------------------------------
 
+
 @auction_group.command("finalize")
 @click.argument("auction_id", type=int, metavar="<auction-id>")
 @_wallet_option
@@ -267,13 +277,16 @@ def finalize(ctx: click.Context, auction_id: int, wallet_name: str | None, netwo
 # withdraw-refund
 # ------------------------------------------------------------------
 
+
 @auction_group.command("withdraw-refund")
 @click.argument("auction_id", type=int, metavar="<auction-id>")
 @click.argument("bid_id", type=int, metavar="<bid-id>")
 @_wallet_option
 @_network_option
 @click.pass_context
-def withdraw_refund(ctx: click.Context, auction_id: int, bid_id: int, wallet_name: str | None, network: str | None) -> None:
+def withdraw_refund(
+    ctx: click.Context, auction_id: int, bid_id: int, wallet_name: str | None, network: str | None
+) -> None:
     """Withdraw a refund for a non-winning bid after auction finalization.
 
     \b
@@ -306,6 +319,7 @@ def withdraw_refund(ctx: click.Context, auction_id: int, bid_id: int, wallet_nam
 # ------------------------------------------------------------------
 # my-bid  (uses --wallet-name to determine bidder address)
 # ------------------------------------------------------------------
+
 
 @auction_group.command("my-bid")
 @click.argument("auction_id", type=int, metavar="<auction-id>")
@@ -349,18 +363,22 @@ def my_bid(ctx: click.Context, auction_id: int, wallet_name: str | None, network
         print_info(f"No bid found for {bidder} in auction {auction_id}")
         return
 
-    print_dict(f"Your Bid – Auction #{auction_id}", {
-        "Bid ID": data.get("id", "?"),
-        "Auction ID": data.get("auction_id", auction_id),
-        "Bidder": data.get("bidder", bidder),
-        "Amount": format_balance(data.get("amount", 0), decimals),
-        "Withdrawn": data.get("is_withdrawn", False),
-    })
+    print_dict(
+        f"Your Bid – Auction #{auction_id}",
+        {
+            "Bid ID": data.get("id", "?"),
+            "Auction ID": data.get("auction_id", auction_id),
+            "Bidder": data.get("bidder", bidder),
+            "Amount": format_balance(data.get("amount", 0), decimals),
+            "Withdrawn": data.get("is_withdrawn", False),
+        },
+    )
 
 
 # ------------------------------------------------------------------
 # list-all  (read-only – all auctions including finalized)
 # ------------------------------------------------------------------
+
 
 @auction_group.command("list-all")
 @click.option("--page", default=0, show_default=True, help="Page number (10 per page)")
@@ -392,15 +410,17 @@ def list_all(ctx: click.Context, page: int, network: str | None) -> None:
 
     rows = []
     for a in auctions:
-        rows.append([
-            str(a.get("id", "?")),
-            str(a.get("vault_id", "?")),
-            format_balance(a.get("collateral_balance", 0), decimals),
-            format_balance(a.get("debt_balance", 0), decimals),
-            format_balance(a.get("highest_bid", 0), decimals),
-            str(a.get("bid_count", 0)),
-            str(a.get("is_finalized", "?")),
-        ])
+        rows.append(
+            [
+                str(a.get("id", "?")),
+                str(a.get("vault_id", "?")),
+                format_balance(a.get("collateral_balance", 0), decimals),
+                format_balance(a.get("debt_balance", 0), decimals),
+                format_balance(a.get("highest_bid", 0), decimals),
+                str(a.get("bid_count", 0)),
+                str(a.get("is_finalized", "?")),
+            ]
+        )
 
     print_info(f"Total auctions: {total}  |  Page: {page}")
     print_table(
@@ -413,6 +433,7 @@ def list_all(ctx: click.Context, page: int, network: str | None) -> None:
 # ------------------------------------------------------------------
 # total-count
 # ------------------------------------------------------------------
+
 
 @auction_group.command("total-count")
 @_network_option
@@ -440,6 +461,7 @@ def total_count(ctx: click.Context, network: str | None) -> None:
 # ------------------------------------------------------------------
 # vault-auction
 # ------------------------------------------------------------------
+
 
 @auction_group.command("vault-auction")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
@@ -473,15 +495,19 @@ def vault_auction(ctx: click.Context, vault_id: int, owner: str, network: str | 
     if auction_id is None:
         print_info(f"No active auction for vault {vault_id} (owner: {owner})")
     else:
-        print_dict(f"Active Auction – Vault #{vault_id}", {
-            "Owner": owner,
-            "Auction ID": auction_id,
-        })
+        print_dict(
+            f"Active Auction – Vault #{vault_id}",
+            {
+                "Owner": owner,
+                "Auction ID": auction_id,
+            },
+        )
 
 
 # ------------------------------------------------------------------
 # bids  (list bids for an auction)
 # ------------------------------------------------------------------
+
 
 @auction_group.command("bids")
 @click.argument("auction_id", type=int, metavar="<auction-id>")
@@ -514,12 +540,14 @@ def list_bids(ctx: click.Context, auction_id: int, page: int, network: str | Non
 
     rows = []
     for b in bids:
-        rows.append([
-            str(b.get("id", "?")),
-            str(b.get("bidder", "?")),
-            format_balance(b.get("amount", 0), decimals),
-            str(b.get("is_withdrawn", False)),
-        ])
+        rows.append(
+            [
+                str(b.get("id", "?")),
+                str(b.get("bidder", "?")),
+                format_balance(b.get("amount", 0), decimals),
+                str(b.get("is_withdrawn", False)),
+            ]
+        )
 
     print_info(f"Bids for auction {auction_id}  |  Page: {page}")
     print_table(
@@ -532,6 +560,7 @@ def list_bids(ctx: click.Context, auction_id: int, page: int, network: str | Non
 # ------------------------------------------------------------------
 # bid-info  (single bid details)
 # ------------------------------------------------------------------
+
 
 @auction_group.command("bid-info")
 @click.argument("auction_id", type=int, metavar="<auction-id>")
@@ -565,11 +594,14 @@ def bid_info(ctx: click.Context, auction_id: int, bid_id: int, network: str | No
     metadata = data.get("metadata")
     hot_key = metadata.get("hot_key", "N/A") if isinstance(metadata, dict) else "N/A"
 
-    print_dict(f"Bid #{bid_id} – Auction #{auction_id}", {
-        "Bid ID": data.get("id", bid_id),
-        "Auction ID": data.get("auction_id", auction_id),
-        "Bidder": data.get("bidder", "?"),
-        "Amount": format_balance(data.get("amount", 0), decimals),
-        "Hotkey": hot_key,
-        "Withdrawn": data.get("is_withdrawn", False),
-    })
+    print_dict(
+        f"Bid #{bid_id} – Auction #{auction_id}",
+        {
+            "Bid ID": data.get("id", bid_id),
+            "Auction ID": data.get("auction_id", auction_id),
+            "Bidder": data.get("bidder", "?"),
+            "Amount": format_balance(data.get("amount", 0), decimals),
+            "Hotkey": hot_key,
+            "Withdrawn": data.get("is_withdrawn", False),
+        },
+    )

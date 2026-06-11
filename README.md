@@ -9,6 +9,8 @@ USD-pegged stablecoin.  This CLI gives you full control over:
 - **Token** — check balances, transfer TUSDT, and manage spending approvals
 - **Auctions** — browse and bid on liquidation auctions for under-collateralised vaults
 - **Oracle** — inspect the on-chain price feed that determines collateral ratios
+- **Governance** — manage maintainer, council, proposals, voting, and cross-contract admin
+- **Treasury** — manage fund balances, distribute revenue, and release funds
 
 No web UI required — everything runs from your terminal.
 
@@ -160,6 +162,70 @@ tusdt oracle price
 tusdt oracle round
 ```
 
+### 6. Governance operations
+
+```bash
+# View maintainer and council
+tusdt governance maintainer
+tusdt governance council
+
+# Check if an account is on the council
+tusdt governance is-council 5GrwvaEF...
+
+# View governance parameters and current epoch
+tusdt governance params
+tusdt governance current-epoch
+
+# View proposals
+tusdt governance proposal-count
+tusdt governance get-proposal 0
+
+# Check if a (coldkey, hotkey) pair has voted
+tusdt governance has-voted 0 --coldkey 5GrwvaEF... --hotkey 5GrwvaEF...
+
+# View quorum for an epoch
+tusdt governance quorum 42
+
+# Submit a proposal
+tusdt governance submit-proposal \
+  --cid "QmXyz..." --kind non-funding \
+  --hotkey 5GrwvaEF... --wallet-name MyWallet
+
+# Cast a vote
+tusdt governance vote 0 \
+  --hotkey 5GrwvaEF... --support \
+  --balance 1000 --multiplier-bps 10000 \
+  --proof 0xabcdef --wallet-name MyWallet
+
+# Finalize and execute a proposal
+tusdt governance finalize-proposal 0 --wallet-name MyWallet
+tusdt governance execute-proposal 0 --wallet-name MyWallet
+```
+
+### 7. Treasury operations
+
+```bash
+# View treasury governance and token address
+tusdt treasury governance
+tusdt treasury token
+
+# Check fund balances
+tusdt treasury fund-balance-tusdt emergency
+tusdt treasury fund-balance-native insurance
+
+# View pending distributions
+tusdt treasury pending-tusdt
+tusdt treasury pending-native
+
+# Distribute pending funds
+tusdt treasury distribute --wallet-name MyWallet
+
+# Release funds from a fund
+tusdt treasury release emergency \
+  --token-kind tusdt --amount 5000 \
+  --recipient 5GrwvaEF... --wallet-name MyWallet
+```
+
 ## Network selection
 
 Two networks are available: **finney** (mainnet, default) and **testnet**.
@@ -194,26 +260,33 @@ tusdt config set --signer "word1 word2 word3 ... word12"
 
 # Override contract addresses or RPC
 tusdt config set --rpc wss://custom-endpoint:443
-tusdt config set --vault 5Hh...
+tusdt config set --vault 5GxJ...
+tusdt config set --governance 5CEP...
+tusdt config set --treasury 5Fcj...
 ```
 
-| Key                | Description                          | Default                                              |
-|--------------------|--------------------------------------|------------------------------------------------------|
-| `network`          | Active network preset                | `finney`                                             |
-| `rpc`              | WebSocket RPC endpoint               | `wss://entrypoint-finney.opentensor.ai:443`          |
-| `vault_address`    | Vault contract SS58 address          | `5HhJKNf7XjmppAyPeBKN5xQk6joNMWHTnEgup4msxfcKcYKp`   |
-| `token_address`    | Token (ERC-20) contract SS58 address | `5GGqBAYWW84wvdTeZGM68dHng1UaWTxxc4ZzFhuQXF9zqK9J`   |
-| `auction_address`  | Auction contract SS58 address        | `5Cninzamn4GVi1J1St578ENyNEDrMi5hXucY7rUj1WzREgAt`   |
-| `oracle_address`   | Oracle contract SS58 address         | `5FqciR795agP8wEojv2TRegwN757EJURyzjDREUvzCX3cqZS`   |
-| `vault_metadata`   | Path to vault ABI JSON               | bundled                                              |
-| `token_metadata`   | Path to token ABI JSON               | bundled                                              |
-| `auction_metadata` | Path to auction ABI JSON             | bundled                                              |
-| `oracle_metadata`  | Path to oracle ABI JSON              | bundled                                              |
-| `signer`           | Mnemonic seed phrase or keyfile path | —                                                    |
-| `wallet_name`      | Default bittensor wallet name        | —                                                    |
-| `wallet_hotkey`    | Default hotkey name                  | `default`                                            |
-| `wallet_path`      | Path to wallets directory            | `~/.bittensor/wallets`                               |
-| `decimals`         | Decimal places for balance display   | `9`                                                  |
+| Key                    | Description                            | Default                                              |
+|------------------------|----------------------------------------|------------------------------------------------------|
+| `network`              | Active network preset                  | `finney`                                             |
+| `rpc`                  | WebSocket RPC endpoint                 | `wss://entrypoint-finney.opentensor.ai:443`          |
+| `vault_address`        | Vault contract SS58 address            | `5GxJw8kTpapdHRW5KUXQLVDpXMMnA61mbzS6nF6jWsEeWExV` |
+| `token_address`        | Token (ERC-20) contract SS58 address   | `5CJ4HtCPdoMfdNUk6B7vZ348XryeXAnb5BmDNGejob1FziNH` |
+| `auction_address`      | Auction contract SS58 address          | `5HipAvNRiuh9mpTKztPLTvwyYkhzuSqxe1wsUy1fbRwbZUbQ` |
+| `oracle_address`       | Oracle contract SS58 address           | `5Dfz8xgQoCsaWWrDxjeCuKB8R6AtYymWZDDDAe2q7NE8tL8A` |
+| `governance_address`   | Governance contract SS58 address       | `5CEPPTnB2YtEv7Cf8TXrFkdr6BPkDAUhDJbiT38t1A1g83g5` |
+| `treasury_address`     | Treasury contract SS58 address         | `5FcjwHj8NkAMbPzkqzYweeC7KW4LffLW7KEKAR62Dx2cft2f` |
+| `vault_metadata`       | Path to vault ABI JSON                 | bundled                                              |
+| `token_metadata`       | Path to token ABI JSON                 | bundled                                              |
+| `auction_metadata`     | Path to auction ABI JSON               | bundled                                              |
+| `oracle_metadata`      | Path to oracle ABI JSON                | bundled                                              |
+| `governance_metadata`  | Path to governance ABI JSON            | bundled                                              |
+| `treasury_metadata`    | Path to treasury ABI JSON              | bundled                                              |
+| `signer`               | Mnemonic seed phrase or keyfile path   | —                                                    |
+| `wallet_name`          | Default bittensor wallet name          | —                                                    |
+| `wallet_hotkey`        | Default hotkey name                    | `default`                                            |
+| `wallet_path`          | Path to wallets directory              | `~/.bittensor/wallets`                               |
+| `decimals`             | Decimal places for balance display     | `9`                                                  |
+| `access_mode`          | Command visibility (`user` or `dev`)   | `user`                                               |
 
 ## Networks
 
@@ -239,6 +312,38 @@ Finalized
 
 The `network` parameter in the URL matches the `--network` flag (or the
 configured default).
+
+## Linting
+
+```bash
+ruff check src/          # Lint
+ruff format src/         # Format
+ruff check --fix src/    # Auto-fix lint issues
+```
+
+## Building & Publishing
+
+```bash
+# Install build tools
+pip install build twine
+
+# Clean old dist files
+rm -rf dist/
+
+# Build the package (wheel + sdist)
+python -m build
+
+# Check the build (optional but recommended)
+twine check dist/*
+
+# Publish to PyPI using an API token
+TWINE_USERNAME=__token__ TWINE_PASSWORD=pypi-xxxx twine upload dist/*
+
+# Publish to TestPyPI first (optional, for validation)
+TWINE_USERNAME=__token__ TWINE_PASSWORD=pypi-xxxx twine upload --repository testpypi dist/*
+```
+
+After publishing, users can install with `pip install tusdt-cli` (or `pip install --upgrade tusdt-cli` to upgrade).
 
 ## Contributing
 

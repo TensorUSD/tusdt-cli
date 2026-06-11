@@ -11,29 +11,30 @@ import os
 from dataclasses import dataclass, field
 from getpass import getpass
 from pathlib import Path
-from typing import Optional
 
 from substrateinterface import Keypair
-
 
 # ---------------------------------------------------------------------------
 # Data classes
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class HotkeyInfo:
     """Represents a single hotkey entry inside a wallet."""
+
     name: str
-    ss58_address: Optional[str] = None
+    ss58_address: str | None = None
     is_encrypted: bool = False
 
 
 @dataclass
 class WalletInfo:
     """Represents a bittensor wallet (coldkey + hotkeys)."""
+
     name: str
     path: str
-    coldkey_address: Optional[str] = None
+    coldkey_address: str | None = None
     hotkeys: list[HotkeyInfo] = field(default_factory=list)
 
 
@@ -41,12 +42,13 @@ class WalletInfo:
 # Low-level helpers
 # ---------------------------------------------------------------------------
 
+
 def get_default_wallet_path() -> Path:
     """Return the default bittensor wallet directory."""
     return Path.home() / ".bittensor" / "wallets"
 
 
-def _read_ss58_from_pubfile(path: Path) -> Optional[str]:
+def _read_ss58_from_pubfile(path: Path) -> str | None:
     """Extract an SS58 address from a coldkeypub.txt or hotkey JSON file."""
     try:
         with open(path) as f:
@@ -85,7 +87,7 @@ def _decrypt_keyfile(path: Path, password: str) -> dict:
     Bittensor coldkey format: ``$NACL`` (5 bytes) + nonce (24 bytes) + ciphertext.
     Key is derived via Argon2i with a well-known hardcoded salt.
     """
-    from nacl import secret, pwhash, encoding
+    from nacl import encoding, pwhash, secret
 
     with open(path, "rb") as f:
         raw = f.read()
@@ -132,7 +134,7 @@ def _keypair_from_keydata(data: dict) -> Keypair:
     raise ValueError("Keyfile does not contain a recognised private-key format")
 
 
-def _load_keyfile(path: Path, password: Optional[str] = None) -> Keypair:
+def _load_keyfile(path: Path, password: str | None = None) -> Keypair:
     """Load a keyfile (encrypted or plain) and return a Keypair."""
     if _is_encrypted(path):
         if password is None:
@@ -148,6 +150,7 @@ def _load_keyfile(path: Path, password: Optional[str] = None) -> Keypair:
 # Public API
 # ---------------------------------------------------------------------------
 
+
 def resolve_ss58(name_or_address: str, wallet_path: str | None = None) -> str:
     """Resolve a wallet name or SS58 address to an SS58 address.
 
@@ -161,12 +164,11 @@ def resolve_ss58(name_or_address: str, wallet_path: str | None = None) -> str:
         ss58 = _read_ss58_from_pubfile(wallet_dir / "coldkeypub.txt")
         if ss58:
             return ss58
-        raise ValueError(
-            f"Wallet '{name_or_address}' found but coldkeypub.txt is missing or unreadable"
-        )
+        raise ValueError(f"Wallet '{name_or_address}' found but coldkeypub.txt is missing or unreadable")
     return name_or_address
 
-def list_wallets(wallet_path: Optional[str] = None) -> list[WalletInfo]:
+
+def list_wallets(wallet_path: str | None = None) -> list[WalletInfo]:
     """Scan the wallet directory and return wallet info without decrypting keys."""
     wp = Path(wallet_path).expanduser() if wallet_path else get_default_wallet_path()
     if not wp.exists():
@@ -188,12 +190,10 @@ def list_wallets(wallet_path: Optional[str] = None) -> list[WalletInfo]:
                 if hk.name.endswith(".pub") or hk.name.endswith("pub.txt"):
                     continue
                 encrypted = _is_encrypted(hk)
-                hk_address: Optional[str] = None
+                hk_address: str | None = None
                 if not encrypted:
                     hk_address = _read_ss58_from_pubfile(hk)
-                hotkey_list.append(
-                    HotkeyInfo(name=hk.name, ss58_address=hk_address, is_encrypted=encrypted)
-                )
+                hotkey_list.append(HotkeyInfo(name=hk.name, ss58_address=hk_address, is_encrypted=encrypted))
 
         wallets.append(
             WalletInfo(
@@ -208,8 +208,8 @@ def list_wallets(wallet_path: Optional[str] = None) -> list[WalletInfo]:
 
 def load_coldkey(
     wallet_name: str,
-    wallet_path: Optional[str] = None,
-    password: Optional[str] = None,
+    wallet_path: str | None = None,
+    password: str | None = None,
 ) -> Keypair:
     """Load and (if necessary) decrypt the coldkey for *wallet_name*."""
     wp = Path(wallet_path).expanduser() if wallet_path else get_default_wallet_path()
@@ -222,7 +222,7 @@ def load_coldkey(
 def load_hotkey(
     wallet_name: str,
     hotkey_name: str = "default",
-    wallet_path: Optional[str] = None,
+    wallet_path: str | None = None,
 ) -> Keypair:
     """Load an (unencrypted) hotkey file and return its Keypair."""
     wp = Path(wallet_path).expanduser() if wallet_path else get_default_wallet_path()

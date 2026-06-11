@@ -5,20 +5,20 @@ commands.
 """
 
 import json
-from typing import Optional
 
 import click
 from rich.tree import Tree
 
 from tusdt_cli import __version__
-from tusdt_cli.config import load_config, save_config, CONFIG_FILE, NETWORKS
-from tusdt_cli.utils import console, print_dict, print_error, print_info, print_success, HelpfulGroup
-from tusdt_cli.wallet import get_default_wallet_path, list_wallets
-
-from tusdt_cli.commands.vault import vault_group
-from tusdt_cli.commands.token import token_group
 from tusdt_cli.commands.auction import auction_group
+from tusdt_cli.commands.governance import governance_group
 from tusdt_cli.commands.oracle import oracle_group
+from tusdt_cli.commands.token import token_group
+from tusdt_cli.commands.treasury import treasury_group
+from tusdt_cli.commands.vault import vault_group
+from tusdt_cli.config import CONFIG_FILE, NETWORKS, load_config, save_config
+from tusdt_cli.utils import HelpfulGroup, console, print_dict, print_info, print_success
+from tusdt_cli.wallet import get_default_wallet_path, list_wallets
 
 _network_option = click.option(
     "--network",
@@ -32,6 +32,7 @@ _network_option = click.option(
 # Root group
 # ======================================================================
 
+
 @click.group()
 @click.version_option(__version__, prog_name="tusdt-cli")
 @click.pass_context
@@ -44,6 +45,7 @@ def cli(ctx: click.Context) -> None:
 # config commands
 # ======================================================================
 
+
 @cli.group("config", cls=HelpfulGroup)
 def config_group() -> None:
     """View and update CLI configuration."""
@@ -52,7 +54,7 @@ def config_group() -> None:
 @config_group.command("show")
 @_network_option
 @click.pass_context
-def config_show(ctx: click.Context, network: Optional[str]) -> None:
+def config_show(ctx: click.Context, network: str | None) -> None:
     """Display the current configuration."""
     cfg = load_config(network=network)
     print_dict("Configuration", cfg)
@@ -60,41 +62,58 @@ def config_show(ctx: click.Context, network: Optional[str]) -> None:
 
 
 @config_group.command("set")
-@click.option("--network", type=click.Choice(list(NETWORKS.keys()), case_sensitive=False), default=None,
-              help="Switch to a network preset (finney, testnet)")
+@click.option(
+    "--network",
+    type=click.Choice(list(NETWORKS.keys()), case_sensitive=False),
+    default=None,
+    help="Switch to a network preset (finney, testnet)",
+)
 @click.option("--rpc", default=None, help="WebSocket RPC endpoint (e.g. ws://127.0.0.1:9944)")
 @click.option("--vault", "vault_address", default=None, help="Vault contract SS58 address")
 @click.option("--token", "token_address", default=None, help="Token contract SS58 address")
 @click.option("--auction", "auction_address", default=None, help="Auction contract SS58 address")
 @click.option("--oracle", "oracle_address", default=None, help="Oracle contract SS58 address")
+@click.option("--governance", "governance_address", default=None, help="Governance contract SS58 address")
+@click.option("--treasury", "treasury_address", default=None, help="Treasury contract SS58 address")
 @click.option("--vault-metadata", default=None, help="Path to tusdt_vault.json ABI")
 @click.option("--token-metadata", default=None, help="Path to tusdt_erc20.json ABI")
 @click.option("--auction-metadata", default=None, help="Path to tusdt_auction.json ABI")
 @click.option("--oracle-metadata", default=None, help="Path to tusdt_oracle.json ABI")
+@click.option("--governance-metadata", default=None, help="Path to tusdt_governance.json ABI")
+@click.option("--treasury-metadata", default=None, help="Path to tusdt_treasury.json ABI")
 @click.option("--signer", default=None, help="Mnemonic seed phrase or path to keyfile")
 @click.option("--wallet-name", default=None, help="Bittensor wallet name to use for signing")
 @click.option("--wallet-hotkey", default=None, help="Bittensor hotkey name (default: 'default')")
 @click.option("--wallet-path", default=None, help="Path to bittensor wallets directory")
 @click.option("--decimals", default=None, type=int, help="Decimal places for balance display")
-@click.option("--access-mode", "access_mode", type=click.Choice(["user", "dev"], case_sensitive=False),
-              default=None, help="Command visibility: 'user' (basic) or 'dev' (all commands)")
+@click.option(
+    "--access-mode",
+    "access_mode",
+    type=click.Choice(["user", "dev"], case_sensitive=False),
+    default=None,
+    help="Command visibility: 'user' (basic) or 'dev' (all commands)",
+)
 def config_set(
-    network: Optional[str],
-    rpc: Optional[str],
-    vault_address: Optional[str],
-    token_address: Optional[str],
-    auction_address: Optional[str],
-    oracle_address: Optional[str],
-    vault_metadata: Optional[str],
-    token_metadata: Optional[str],
-    auction_metadata: Optional[str],
-    oracle_metadata: Optional[str],
-    signer: Optional[str],
-    wallet_name: Optional[str],
-    wallet_hotkey: Optional[str],
-    wallet_path: Optional[str],
-    decimals: Optional[int],
-    access_mode: Optional[str],
+    network: str | None,
+    rpc: str | None,
+    vault_address: str | None,
+    token_address: str | None,
+    auction_address: str | None,
+    oracle_address: str | None,
+    governance_address: str | None,
+    treasury_address: str | None,
+    vault_metadata: str | None,
+    token_metadata: str | None,
+    auction_metadata: str | None,
+    oracle_metadata: str | None,
+    governance_metadata: str | None,
+    treasury_metadata: str | None,
+    signer: str | None,
+    wallet_name: str | None,
+    wallet_hotkey: str | None,
+    wallet_path: str | None,
+    decimals: int | None,
+    access_mode: str | None,
 ) -> None:
     """Update configuration values.  Only provided options are changed."""
     # Read only the raw saved overrides — not the full resolved config.
@@ -119,9 +138,24 @@ def config_set(
             updates["network"] = net
             # Clear any previously baked-in network keys from the saved file
             # so upgraded package defaults take effect (migration of old configs).
-            for key in ("rpc", "vault_address", "token_address", "auction_address", "oracle_address"):
+            for key in (
+                "rpc",
+                "vault_address",
+                "token_address",
+                "auction_address",
+                "oracle_address",
+                "governance_address",
+                "treasury_address",
+            ):
                 saved_overrides.pop(key, None)
-            for key in ("vault_metadata", "token_metadata", "auction_metadata", "oracle_metadata"):
+            for key in (
+                "vault_metadata",
+                "token_metadata",
+                "auction_metadata",
+                "oracle_metadata",
+                "governance_metadata",
+                "treasury_metadata",
+            ):
                 saved_overrides.pop(key, None)
 
     pairs = [
@@ -130,10 +164,14 @@ def config_set(
         ("token_address", token_address),
         ("auction_address", auction_address),
         ("oracle_address", oracle_address),
+        ("governance_address", governance_address),
+        ("treasury_address", treasury_address),
         ("vault_metadata", vault_metadata),
         ("token_metadata", token_metadata),
         ("auction_metadata", auction_metadata),
         ("oracle_metadata", oracle_metadata),
+        ("governance_metadata", governance_metadata),
+        ("treasury_metadata", treasury_metadata),
         ("signer", signer),
         ("wallet_name", wallet_name),
         ("wallet_hotkey", wallet_hotkey),
@@ -160,6 +198,7 @@ def config_set(
 # wallet commands
 # ======================================================================
 
+
 @cli.group("wallet", cls=HelpfulGroup)
 def wallet_group() -> None:
     """List and inspect bittensor wallets."""
@@ -169,7 +208,7 @@ def wallet_group() -> None:
 @click.option("--path", default=None, help="Custom wallet directory path")
 @_network_option
 @click.pass_context
-def wallet_list(ctx: click.Context, path: Optional[str], network: Optional[str]) -> None:
+def wallet_list(ctx: click.Context, path: str | None, network: str | None) -> None:
     """List all bittensor wallets with their addresses."""
     cfg = load_config(network=network)
     wallet_path = path or cfg.get("wallet_path") or str(get_default_wallet_path())
@@ -198,11 +237,14 @@ cli.add_command(vault_group)
 cli.add_command(token_group)
 cli.add_command(auction_group)
 cli.add_command(oracle_group)
+cli.add_command(governance_group)
+cli.add_command(treasury_group)
 
 
 # ======================================================================
 # entry point
 # ======================================================================
+
 
 def main() -> None:
     cli()

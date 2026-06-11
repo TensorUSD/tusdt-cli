@@ -3,9 +3,8 @@
 import click
 
 from tusdt_cli.client import TUSDTClient
-from tusdt_cli.config import load_config, NETWORKS
+from tusdt_cli.config import NETWORKS, load_config
 from tusdt_cli.utils import (
-    HelpfulGroup,
     ModeAwareGroup,
     format_balance,
     parse_balance,
@@ -15,6 +14,7 @@ from tusdt_cli.utils import (
     print_success,
     print_table,
     print_tx_result,
+    print_warning,
 )
 from tusdt_cli.wallet import get_reader_keypair, get_signer_keypair, resolve_ss58
 
@@ -26,19 +26,41 @@ _network_option = click.option(
 )
 
 _wallet_option = click.option(
-    "--wallet-name", default=None,
+    "--wallet-name",
+    default=None,
     help="Bittensor wallet name for signing (prompts for coldkey password)",
 )
 
 
 _VAULT_ADVANCED = {
-    "total-debt", "liquidation-auction", "list-all", "params",
-    "total-collateral", "total-count", "accrue-interest",
-    "trigger-liquidation", "settle-liquidation", "governance",
-    "platform", "paused", "pending-update", "update-governance",
-    "update-platform", "pause", "unpause", "set-params",
-    "execute-update", "cancel-update", "claim-surplus",
-    "token-address", "auction-address", "oracle-address", "collateral-balance",
+    "total-debt",
+    "liquidation-auction",
+    "list-all",
+    "params",
+    "total-collateral",
+    "total-count",
+    "accrue-interest",
+    "trigger-liquidation",
+    "settle-liquidation",
+    "governance",
+    "platform",
+    "paused",
+    "pending-update",
+    "update-governance",
+    "update-platform",
+    "pause",
+    "unpause",
+    "set-params",
+    "execute-update",
+    "cancel-update",
+    "claim-surplus",
+    "token-address",
+    "auction-address",
+    "oracle-address",
+    "collateral-balance",
+    "treasury-address",
+    "update-treasury",
+    "emergency-drain",
 }
 
 
@@ -50,6 +72,7 @@ def vault_group() -> None:
 # ------------------------------------------------------------------
 # create
 # ------------------------------------------------------------------
+
 
 @vault_group.command("create")
 @click.option("--amount", required=True, help="Collateral amount in human-readable units (e.g. 1.5)")
@@ -91,13 +114,16 @@ def create_vault(ctx: click.Context, amount: str, wallet_name: str | None, netwo
 # add-collateral
 # ------------------------------------------------------------------
 
+
 @vault_group.command("add-collateral")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.option("--amount", required=True, help="Collateral amount to add (e.g. 2.5)")
 @_wallet_option
 @_network_option
 @click.pass_context
-def add_collateral(ctx: click.Context, vault_id: int, amount: str, wallet_name: str | None, network: str | None) -> None:
+def add_collateral(
+    ctx: click.Context, vault_id: int, amount: str, wallet_name: str | None, network: str | None
+) -> None:
     """Add collateral to an existing vault.
 
     \b
@@ -133,13 +159,16 @@ def add_collateral(ctx: click.Context, vault_id: int, amount: str, wallet_name: 
 # borrow
 # ------------------------------------------------------------------
 
+
 @vault_group.command("borrow")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.argument("amount", type=str, metavar="<amount>")
 @_wallet_option
 @_network_option
 @click.pass_context
-def borrow(ctx: click.Context, vault_id: int, amount: str, wallet_name: str | None, network: str | None) -> None:
+def borrow(
+    ctx: click.Context, vault_id: int, amount: str, wallet_name: str | None, network: str | None
+) -> None:
     """Borrow TUSDT tokens against a vault's collateral.
 
     \b
@@ -176,13 +205,16 @@ def borrow(ctx: click.Context, vault_id: int, amount: str, wallet_name: str | No
 # repay
 # ------------------------------------------------------------------
 
+
 @vault_group.command("repay")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.argument("amount", type=str, metavar="<amount>")
 @_wallet_option
 @_network_option
 @click.pass_context
-def repay(ctx: click.Context, vault_id: int, amount: str, wallet_name: str | None, network: str | None) -> None:
+def repay(
+    ctx: click.Context, vault_id: int, amount: str, wallet_name: str | None, network: str | None
+) -> None:
     """Repay borrowed TUSDT tokens to a vault.
 
     \b
@@ -219,13 +251,16 @@ def repay(ctx: click.Context, vault_id: int, amount: str, wallet_name: str | Non
 # release-collateral
 # ------------------------------------------------------------------
 
+
 @vault_group.command("release-collateral")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.argument("amount", type=str, metavar="<amount>")
 @_wallet_option
 @_network_option
 @click.pass_context
-def release_collateral(ctx: click.Context, vault_id: int, amount: str, wallet_name: str | None, network: str | None) -> None:
+def release_collateral(
+    ctx: click.Context, vault_id: int, amount: str, wallet_name: str | None, network: str | None
+) -> None:
     """Release collateral from a vault.
 
     \b
@@ -262,13 +297,16 @@ def release_collateral(ctx: click.Context, vault_id: int, amount: str, wallet_na
 # info
 # ------------------------------------------------------------------
 
+
 @vault_group.command("info")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
 @_wallet_option
 @_network_option
 @click.pass_context
-def vault_info(ctx: click.Context, vault_id: int, owner: str | None, wallet_name: str | None, network: str | None) -> None:
+def vault_info(
+    ctx: click.Context, vault_id: int, owner: str | None, wallet_name: str | None, network: str | None
+) -> None:
     """Display detailed information for a single vault.
 
     \b
@@ -305,21 +343,25 @@ def vault_info(ctx: click.Context, vault_id: int, owner: str | None, wallet_name
         print_error(f"Vault {vault_id} not found for owner {owner}")
         return
 
-    print_dict(f"Vault #{vault_id}", {
-        "ID": vault_data.get("id", vault_id),
-        "Owner": vault_data.get("owner", owner),
-        "Collateral": format_balance(vault_data.get("collateral_balance", 0), decimals),
-        "Borrowed (principal)": format_balance(vault_data.get("borrowed_token_balance", 0), decimals),
-        "Debt (principal + interest)": format_balance(vault_data.get("debt_balance", 0), decimals),
-        "Interest accrued": format_balance(vault_data.get("total_interest_accrued", 0), decimals),
-        "Created at": vault_data.get("created_at", "?"),
-        "Interest accrued at": vault_data.get("last_interest_accrued_at", "?"),
-    })
+    print_dict(
+        f"Vault #{vault_id}",
+        {
+            "ID": vault_data.get("id", vault_id),
+            "Owner": vault_data.get("owner", owner),
+            "Collateral": format_balance(vault_data.get("collateral_balance", 0), decimals),
+            "Borrowed (principal)": format_balance(vault_data.get("borrowed_token_balance", 0), decimals),
+            "Debt (principal + interest)": format_balance(vault_data.get("debt_balance", 0), decimals),
+            "Interest accrued": format_balance(vault_data.get("total_interest_accrued", 0), decimals),
+            "Created at": vault_data.get("created_at", "?"),
+            "Interest accrued at": vault_data.get("last_interest_accrued_at", "?"),
+        },
+    )
 
 
 # ------------------------------------------------------------------
 # list
 # ------------------------------------------------------------------
+
 
 @vault_group.command("list")
 @click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
@@ -327,7 +369,9 @@ def vault_info(ctx: click.Context, vault_id: int, owner: str | None, wallet_name
 @_wallet_option
 @_network_option
 @click.pass_context
-def list_vaults(ctx: click.Context, owner: str | None, page: int, wallet_name: str | None, network: str | None) -> None:
+def list_vaults(
+    ctx: click.Context, owner: str | None, page: int, wallet_name: str | None, network: str | None
+) -> None:
     """List vaults for an owner (paginated).
 
     \b
@@ -366,13 +410,15 @@ def list_vaults(ctx: click.Context, owner: str | None, page: int, wallet_name: s
 
     rows = []
     for v in vaults:
-        rows.append([
-            str(v.get("id", "?")),
-            format_balance(v.get("collateral_balance", 0), decimals),
-            format_balance(v.get("borrowed_token_balance", 0), decimals),
-            format_balance(v.get("debt_balance", 0), decimals),
-            str(v.get("created_at", "?")),
-        ])
+        rows.append(
+            [
+                str(v.get("id", "?")),
+                format_balance(v.get("collateral_balance", 0), decimals),
+                format_balance(v.get("borrowed_token_balance", 0), decimals),
+                format_balance(v.get("debt_balance", 0), decimals),
+                str(v.get("created_at", "?")),
+            ]
+        )
 
     print_info(f"Total vaults: {total}  |  Page: {page}")
     print_table(
@@ -386,13 +432,16 @@ def list_vaults(ctx: click.Context, owner: str | None, page: int, wallet_name: s
 # max-borrow
 # ------------------------------------------------------------------
 
+
 @vault_group.command("max-borrow")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
 @_wallet_option
 @_network_option
 @click.pass_context
-def max_borrow(ctx: click.Context, vault_id: int, owner: str | None, wallet_name: str | None, network: str | None) -> None:
+def max_borrow(
+    ctx: click.Context, vault_id: int, owner: str | None, wallet_name: str | None, network: str | None
+) -> None:
     """Show the maximum additional borrowing capacity for a vault.
 
     \b
@@ -425,15 +474,19 @@ def max_borrow(ctx: click.Context, vault_id: int, owner: str | None, wallet_name
         print_error(str(exc))
         return
 
-    print_dict(f"Max Borrow – Vault #{vault_id}", {
-        "Owner": owner,
-        "Max additional borrow": format_balance(value, decimals),
-    })
+    print_dict(
+        f"Max Borrow – Vault #{vault_id}",
+        {
+            "Owner": owner,
+            "Max additional borrow": format_balance(value, decimals),
+        },
+    )
 
 
 # ------------------------------------------------------------------
 # collateral-value
 # ------------------------------------------------------------------
+
 
 @vault_group.command("collateral-value")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
@@ -441,7 +494,9 @@ def max_borrow(ctx: click.Context, vault_id: int, owner: str | None, wallet_name
 @_wallet_option
 @_network_option
 @click.pass_context
-def collateral_value(ctx: click.Context, vault_id: int, owner: str | None, wallet_name: str | None, network: str | None) -> None:
+def collateral_value(
+    ctx: click.Context, vault_id: int, owner: str | None, wallet_name: str | None, network: str | None
+) -> None:
     """Show the collateral value (in borrowed-token terms) for a vault.
 
     \b
@@ -474,15 +529,19 @@ def collateral_value(ctx: click.Context, vault_id: int, owner: str | None, walle
         print_error(str(exc))
         return
 
-    print_dict(f"Collateral Value – Vault #{vault_id}", {
-        "Owner": owner,
-        "Collateral value": format_balance(value, decimals),
-    })
+    print_dict(
+        f"Collateral Value – Vault #{vault_id}",
+        {
+            "Owner": owner,
+            "Collateral value": format_balance(value, decimals),
+        },
+    )
 
 
 # ------------------------------------------------------------------
 # total-debt
 # ------------------------------------------------------------------
+
 
 @vault_group.command("total-debt")
 @click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
@@ -520,16 +579,20 @@ def total_debt(ctx: click.Context, owner: str | None, wallet_name: str | None, n
         print_error(str(exc))
         return
 
-    print_dict("Total Debt", {
-        "Owner": owner,
-        "Total debt": format_balance(value, decimals),
-        "Raw": value,
-    })
+    print_dict(
+        "Total Debt",
+        {
+            "Owner": owner,
+            "Total debt": format_balance(value, decimals),
+            "Raw": value,
+        },
+    )
 
 
 # ------------------------------------------------------------------
 # liquidation-auction
 # ------------------------------------------------------------------
+
 
 @vault_group.command("liquidation-auction")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
@@ -537,7 +600,9 @@ def total_debt(ctx: click.Context, owner: str | None, wallet_name: str | None, n
 @_wallet_option
 @_network_option
 @click.pass_context
-def liquidation_auction(ctx: click.Context, vault_id: int, owner: str | None, wallet_name: str | None, network: str | None) -> None:
+def liquidation_auction(
+    ctx: click.Context, vault_id: int, owner: str | None, wallet_name: str | None, network: str | None
+) -> None:
     """Show the active liquidation auction ID for a vault.
 
     \b
@@ -571,15 +636,19 @@ def liquidation_auction(ctx: click.Context, vault_id: int, owner: str | None, wa
     if auction_id is None:
         print_info(f"No active liquidation auction for vault {vault_id} (owner: {owner})")
     else:
-        print_dict(f"Liquidation Auction – Vault #{vault_id}", {
-            "Owner": owner,
-            "Auction ID": auction_id,
-        })
+        print_dict(
+            f"Liquidation Auction – Vault #{vault_id}",
+            {
+                "Owner": owner,
+                "Auction ID": auction_id,
+            },
+        )
 
 
 # ------------------------------------------------------------------
 # list-all
 # ------------------------------------------------------------------
+
 
 @vault_group.command("list-all")
 @click.option("--page", default=0, show_default=True, help="Page number (10 per page)")
@@ -611,14 +680,16 @@ def list_all_vaults(ctx: click.Context, page: int, network: str | None) -> None:
 
     rows = []
     for v in vaults:
-        rows.append([
-            str(v.get("id", "?")),
-            str(v.get("owner", "?")),
-            format_balance(v.get("collateral_balance", 0), decimals),
-            format_balance(v.get("borrowed_token_balance", 0), decimals),
-            format_balance(v.get("debt_balance", 0), decimals),
-            str(v.get("created_at", "?")),
-        ])
+        rows.append(
+            [
+                str(v.get("id", "?")),
+                str(v.get("owner", "?")),
+                format_balance(v.get("collateral_balance", 0), decimals),
+                format_balance(v.get("borrowed_token_balance", 0), decimals),
+                format_balance(v.get("debt_balance", 0), decimals),
+                str(v.get("created_at", "?")),
+            ]
+        )
 
     print_info(f"Total vaults: {total}  |  Page: {page}")
     print_table(
@@ -631,6 +702,7 @@ def list_all_vaults(ctx: click.Context, page: int, network: str | None) -> None:
 # ------------------------------------------------------------------
 # params
 # ------------------------------------------------------------------
+
 
 @vault_group.command("params")
 @_network_option
@@ -665,6 +737,7 @@ def vault_params(ctx: click.Context, network: str | None) -> None:
 # total-collateral
 # ------------------------------------------------------------------
 
+
 @vault_group.command("total-collateral")
 @_network_option
 @click.pass_context
@@ -686,15 +759,19 @@ def total_collateral(ctx: click.Context, network: str | None) -> None:
         print_error(str(exc))
         return
 
-    print_dict("Total Collateral", {
-        "Total collateral": format_balance(value, decimals),
-        "Raw": value,
-    })
+    print_dict(
+        "Total Collateral",
+        {
+            "Total collateral": format_balance(value, decimals),
+            "Raw": value,
+        },
+    )
 
 
 # ------------------------------------------------------------------
 # total-count
 # ------------------------------------------------------------------
+
 
 @vault_group.command("total-count")
 @_network_option
@@ -723,13 +800,16 @@ def total_count(ctx: click.Context, network: str | None) -> None:
 # accrue-interest
 # ------------------------------------------------------------------
 
+
 @vault_group.command("accrue-interest")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.option("--owner", required=True, help="Vault owner SS58 address or wallet name")
 @_wallet_option
 @_network_option
 @click.pass_context
-def accrue_interest(ctx: click.Context, vault_id: int, owner: str, wallet_name: str | None, network: str | None) -> None:
+def accrue_interest(
+    ctx: click.Context, vault_id: int, owner: str, wallet_name: str | None, network: str | None
+) -> None:
     """Accrue interest on a vault.
 
     \b
@@ -763,13 +843,16 @@ def accrue_interest(ctx: click.Context, vault_id: int, owner: str, wallet_name: 
 # trigger-liquidation
 # ------------------------------------------------------------------
 
+
 @vault_group.command("trigger-liquidation")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.option("--owner", required=True, help="Vault owner SS58 address or wallet name")
 @_wallet_option
 @_network_option
 @click.pass_context
-def trigger_liquidation(ctx: click.Context, vault_id: int, owner: str, wallet_name: str | None, network: str | None) -> None:
+def trigger_liquidation(
+    ctx: click.Context, vault_id: int, owner: str, wallet_name: str | None, network: str | None
+) -> None:
     """Trigger a liquidation auction for an undercollateralized vault.
 
     \b
@@ -803,13 +886,16 @@ def trigger_liquidation(ctx: click.Context, vault_id: int, owner: str, wallet_na
 # settle-liquidation
 # ------------------------------------------------------------------
 
+
 @vault_group.command("settle-liquidation")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.option("--owner", required=True, help="Vault owner SS58 address or wallet name")
 @_wallet_option
 @_network_option
 @click.pass_context
-def settle_liquidation(ctx: click.Context, vault_id: int, owner: str, wallet_name: str | None, network: str | None) -> None:
+def settle_liquidation(
+    ctx: click.Context, vault_id: int, owner: str, wallet_name: str | None, network: str | None
+) -> None:
     """Settle a completed liquidation auction for a vault.
 
     \b
@@ -843,6 +929,7 @@ def settle_liquidation(ctx: click.Context, vault_id: int, owner: str, wallet_nam
 # governance
 # ------------------------------------------------------------------
 
+
 @vault_group.command("governance")
 @_network_option
 @click.pass_context
@@ -864,6 +951,7 @@ def governance(ctx: click.Context, network: str | None) -> None:
 # ------------------------------------------------------------------
 # platform
 # ------------------------------------------------------------------
+
 
 @vault_group.command("platform")
 @_network_option
@@ -887,6 +975,7 @@ def platform(ctx: click.Context, network: str | None) -> None:
 # paused
 # ------------------------------------------------------------------
 
+
 @vault_group.command("paused")
 @_network_option
 @click.pass_context
@@ -908,6 +997,7 @@ def paused(ctx: click.Context, network: str | None) -> None:
 # ------------------------------------------------------------------
 # pending-update
 # ------------------------------------------------------------------
+
 
 @vault_group.command("pending-update")
 @_network_option
@@ -933,6 +1023,7 @@ def pending_update(ctx: click.Context, network: str | None) -> None:
 # ------------------------------------------------------------------
 # update-governance
 # ------------------------------------------------------------------
+
 
 @vault_group.command("update-governance")
 @click.argument("address", type=str, metavar="<new-governance-address>")
@@ -972,6 +1063,7 @@ def update_governance(ctx: click.Context, address: str, wallet_name: str | None,
 # update-platform
 # ------------------------------------------------------------------
 
+
 @vault_group.command("update-platform")
 @click.argument("address", type=str, metavar="<new-platform-address>")
 @_wallet_option
@@ -1010,6 +1102,7 @@ def update_platform(ctx: click.Context, address: str, wallet_name: str | None, n
 # pause
 # ------------------------------------------------------------------
 
+
 @vault_group.command("pause")
 @_wallet_option
 @_network_option
@@ -1046,6 +1139,7 @@ def pause_contract(ctx: click.Context, wallet_name: str | None, network: str | N
 # ------------------------------------------------------------------
 # unpause
 # ------------------------------------------------------------------
+
 
 @vault_group.command("unpause")
 @_wallet_option
@@ -1084,6 +1178,7 @@ def unpause_contract(ctx: click.Context, wallet_name: str | None, network: str |
 # set-params
 # ------------------------------------------------------------------
 
+
 @vault_group.command("set-params")
 @click.option("--collateral-ratio", type=int, default=None, help="Collateral ratio (e.g. 150 for 150%%)")
 @click.option("--liquidation-ratio", type=int, default=None, help="Liquidation ratio (e.g. 120 for 120%%)")
@@ -1092,7 +1187,9 @@ def unpause_contract(ctx: click.Context, wallet_name: str | None, network: str |
 @click.option("--borrow-cap", type=str, default=None, help="Borrow cap in human-readable units")
 @click.option("--auction-duration-ms", type=int, default=None, help="Auction duration in milliseconds")
 @click.option("--max-oracle-age-ms", type=int, default=None, help="Max oracle age in milliseconds")
-@click.option("--transaction-fee", type=int, default=None, help="Transaction fee in basis points (e.g. 3 for 0.03%%)")
+@click.option(
+    "--transaction-fee", type=int, default=None, help="Transaction fee in basis points (e.g. 3 for 0.03%%)"
+)
 @_wallet_option
 @_network_option
 @click.pass_context
@@ -1166,6 +1263,7 @@ def set_params(
 # execute-update
 # ------------------------------------------------------------------
 
+
 @vault_group.command("execute-update")
 @_wallet_option
 @_network_option
@@ -1203,6 +1301,7 @@ def execute_update(ctx: click.Context, wallet_name: str | None, network: str | N
 # cancel-update
 # ------------------------------------------------------------------
 
+
 @vault_group.command("cancel-update")
 @_wallet_option
 @_network_option
@@ -1239,6 +1338,7 @@ def cancel_update(ctx: click.Context, wallet_name: str | None, network: str | No
 # ------------------------------------------------------------------
 # claim-surplus
 # ------------------------------------------------------------------
+
 
 @vault_group.command("claim-surplus")
 @click.argument("amount", type=str, metavar="<amount>")
@@ -1281,6 +1381,7 @@ def claim_surplus(ctx: click.Context, amount: str, wallet_name: str | None, netw
 # token-address
 # ------------------------------------------------------------------
 
+
 @vault_group.command("token-address")
 @_network_option
 @click.pass_context
@@ -1307,6 +1408,7 @@ def token_address(ctx: click.Context, network: str | None) -> None:
 # ------------------------------------------------------------------
 # auction-address
 # ------------------------------------------------------------------
+
 
 @vault_group.command("auction-address")
 @_network_option
@@ -1335,6 +1437,7 @@ def auction_address(ctx: click.Context, network: str | None) -> None:
 # oracle-address
 # ------------------------------------------------------------------
 
+
 @vault_group.command("oracle-address")
 @_network_option
 @click.pass_context
@@ -1361,6 +1464,7 @@ def oracle_address(ctx: click.Context, network: str | None) -> None:
 # ------------------------------------------------------------------
 # collateral-balance
 # ------------------------------------------------------------------
+
 
 @vault_group.command("collateral-balance")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
@@ -1411,8 +1515,140 @@ def collateral_balance(
         print_error(f"Vault {vault_id} not found for owner {owner}")
         return
 
-    print_dict(f"Collateral Balance – Vault #{vault_id}", {
-        "Owner": owner,
-        "Collateral balance": format_balance(value, decimals),
-        "Raw": value,
-    })
+    print_dict(
+        f"Collateral Balance – Vault #{vault_id}",
+        {
+            "Owner": owner,
+            "Collateral balance": format_balance(value, decimals),
+            "Raw": value,
+        },
+    )
+
+
+# ------------------------------------------------------------------
+# treasury-address
+# ------------------------------------------------------------------
+
+
+@vault_group.command("treasury-address")
+@_network_option
+@click.pass_context
+def vault_treasury_address(ctx: click.Context, network: str | None) -> None:
+    """Show the treasury address registered in the vault contract.
+
+    \b
+    Examples:
+      tusdt vault treasury-address
+      tusdt vault treasury-address --network testnet
+    """
+    config = load_config(network=network)
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        addr = client.vault_get_treasury(keypair)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_dict("Vault Treasury", {"Address": addr})
+
+
+# ------------------------------------------------------------------
+# update-treasury
+# ------------------------------------------------------------------
+
+
+@vault_group.command("update-treasury")
+@click.argument("address", type=str, metavar="<ss58-address>")
+@_wallet_option
+@_network_option
+@click.pass_context
+def vault_update_treasury_cmd(
+    ctx: click.Context,
+    address: str,
+    wallet_name: str | None,
+    network: str | None,
+) -> None:
+    """Update the treasury address in the vault contract (governance only).
+
+    \b
+    ADDRESS is the SS58 address of the new treasury contract.
+    Examples:
+      tusdt vault update-treasury 5GrwvaEF... --wallet-name MyWallet
+      tusdt vault update-treasury 5GrwvaEF... --wallet-name MyWallet --network testnet
+    """
+    config = load_config(network=network)
+    if wallet_name:
+        config["wallet_name"] = wallet_name
+
+    try:
+        keypair = get_signer_keypair(config)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_info(f"Signer: {keypair.ss58_address}")
+    print_info(f"Updating vault treasury address to {address}...")
+
+    try:
+        client = TUSDTClient(config)
+        result = client.vault_update_treasury(keypair, address)
+        print_success("Treasury address updated!")
+        print_tx_result(result, config.get("network", "finney"))
+    except Exception as exc:
+        print_error(str(exc))
+
+
+# ------------------------------------------------------------------
+# emergency-drain
+# ------------------------------------------------------------------
+
+
+@vault_group.command("emergency-drain")
+@click.argument("recipient", type=str, metavar="<ss58-address>")
+@_wallet_option
+@_network_option
+@click.pass_context
+def vault_emergency_drain_cmd(
+    ctx: click.Context,
+    recipient: str,
+    wallet_name: str | None,
+    network: str | None,
+) -> None:
+    """Emergency drain the vault's native balance to a recipient (TESTNET ONLY, governance).
+
+    \b
+    RECIPIENT is the SS58 address to receive the drained native balance.
+    This command is ONLY available on testnet and will refuse to run on finney.
+    Examples:
+      tusdt vault emergency-drain 5GrwvaEF... --wallet-name MyWallet --network testnet
+    """
+    config = load_config(network=network)
+
+    # TESTNET-ONLY guard
+    if config.get("network") != "testnet":
+        print_error("emergency-drain is only available on testnet")
+        return
+
+    print_warning("DESTRUCTIVE OPERATION: This drains the vault's native balance. Only use on testnet.")
+
+    if wallet_name:
+        config["wallet_name"] = wallet_name
+
+    try:
+        keypair = get_signer_keypair(config)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_info(f"Signer: {keypair.ss58_address}")
+    print_info(f"Emergency draining vault native balance to {recipient}...")
+
+    try:
+        client = TUSDTClient(config)
+        result = client.vault_emergency_drain(keypair, recipient)
+        print_success("Emergency drain completed!")
+        print_tx_result(result, config.get("network", "finney"))
+    except Exception as exc:
+        print_error(str(exc))
