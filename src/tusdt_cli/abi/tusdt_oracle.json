@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x1992a513811097b42c75e675ba4fbbc51f6a042f32d8fab9212866963ed49d3c",
+    "hash": "0x97ff698cafe4057cb9777b114f390145f9c99ce4c66a9400a5d9f5d1fb6c8786",
     "language": "ink! 5.1.1",
     "compiler": "rustc 1.91.1",
     "build_info": {
@@ -127,7 +127,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when oracle governance is transferred to a new account."
+        ],
         "label": "OracleGovernanceUpdated",
         "module_path": "tusdt_oracle::oracle",
         "signature_topic": "0x8076edb2c7ad187c70699e83a771437602b58b5145ad1c777bb879abe3f990c8"
@@ -146,7 +148,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when the maximum allowed price deviation is changed."
+        ],
         "label": "MaxPriceDeviationUpdated",
         "module_path": "tusdt_oracle::oracle",
         "signature_topic": "0xdf92cfe8304a7dfe48998ca021158b2d606b3dd9d86bab86d14c4c2b0d2a2259"
@@ -209,7 +213,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when a reporter submits (or replaces) a price for the current round."
+        ],
         "label": "PriceSubmitted",
         "module_path": "tusdt_oracle::oracle",
         "signature_topic": "0x25f17f4539e2597560baeb472abb3a2dc3b00b74ca6456857ed6b775d04d9ae5"
@@ -272,7 +278,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when a round is committed and a new latest price is recorded."
+        ],
         "label": "RoundCommitted",
         "module_path": "tusdt_oracle::oracle",
         "signature_topic": "0xe1b90df25e0fce7ca266a459bd155d63871c00c2f7e4247c092a175ab900c081"
@@ -302,7 +310,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when a reporter is enabled or disabled."
+        ],
         "label": "ReporterUpdated",
         "module_path": "tusdt_oracle::oracle",
         "signature_topic": "0xd418423978c9fba185e0ab908177d71f060b16543e3d7aa68822799de1dcf3c6"
@@ -321,7 +331,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when the validator account is set or cleared."
+        ],
         "label": "ValidatorUpdated",
         "module_path": "tusdt_oracle::oracle",
         "signature_topic": "0x9b9e984a30cbf16f16b8bb47b35802825876301f2562ae285a379d3e2b0cef05"

@@ -1,10 +1,11 @@
 """Substrate/ink! contract client for the TUSDT system.
 
 Wraps ``SubstrateInterface`` and ``ContractInstance`` to provide typed
-methods for the Vault, Token (ERC-20), Auction, and Oracle contracts.
+methods for the Vault, Token (ERC-20), Auction, Oracle, Governance, and
+Treasury contracts.
 """
 
-from typing import Any, Optional
+from typing import Any
 
 from substrateinterface import Keypair, SubstrateInterface
 from substrateinterface.contracts import ContractInstance, ContractMetadata
@@ -15,7 +16,6 @@ from tusdt_cli.utils import (
     console,
     unwrap_option,
     unwrap_plain,
-    unwrap_query,
     unwrap_result,
 )
 
@@ -35,15 +35,17 @@ def _decode_dispatch_error(err: Any) -> str:
 
 
 class TUSDTClient:
-    """High-level client for the four TUSDT contracts."""
+    """High-level client for the TUSDT contract system (six contracts)."""
 
     def __init__(self, config: dict[str, Any]) -> None:
         self.config = config
-        self._substrate: Optional[SubstrateInterface] = None
-        self._vault: Optional[ContractInstance] = None
-        self._token: Optional[ContractInstance] = None
-        self._auction: Optional[ContractInstance] = None
-        self._oracle: Optional[ContractInstance] = None
+        self._substrate: SubstrateInterface | None = None
+        self._vault: ContractInstance | None = None
+        self._token: ContractInstance | None = None
+        self._auction: ContractInstance | None = None
+        self._oracle: ContractInstance | None = None
+        self._governance: ContractInstance | None = None
+        self._treasury: ContractInstance | None = None
 
     # ------------------------------------------------------------------
     # Connection management
@@ -128,6 +130,32 @@ class TUSDTClient:
                 )
             self._oracle = self._load_contract(addr, meta)
         return self._oracle
+
+    @property
+    def governance(self) -> ContractInstance:
+        if self._governance is None:
+            addr = self.config.get("governance_address")
+            meta = self.config.get("governance_metadata")
+            if not addr or not meta:
+                raise ValueError(
+                    "Governance contract not configured. Run:\n"
+                    "  tusdt config set --governance <address> --governance-metadata <path>"
+                )
+            self._governance = self._load_contract(addr, meta)
+        return self._governance
+
+    @property
+    def treasury(self) -> ContractInstance:
+        if self._treasury is None:
+            addr = self.config.get("treasury_address")
+            meta = self.config.get("treasury_metadata")
+            if not addr or not meta:
+                raise ValueError(
+                    "Treasury contract not configured. Run:\n"
+                    "  tusdt config set --treasury <address> --treasury-metadata <path>"
+                )
+            self._treasury = self._load_contract(addr, meta)
+        return self._treasury
 
     # ------------------------------------------------------------------
     # Generic helpers
@@ -235,9 +263,11 @@ class TUSDTClient:
 
     def release_collateral(self, keypair: Keypair, vault_id: int, amount: int) -> dict[str, Any]:
         """Release collateral from a vault."""
-        return self._exec(self.vault, keypair, "release_collateral", args={"vault_id": vault_id, "amount": amount})
+        return self._exec(
+            self.vault, keypair, "release_collateral", args={"vault_id": vault_id, "amount": amount}
+        )
 
-    def get_vault(self, keypair: Keypair, owner: str, vault_id: int) -> Optional[dict]:
+    def get_vault(self, keypair: Keypair, owner: str, vault_id: int) -> dict | None:
         """Query a single vault.  Returns ``None`` when not found."""
         result = self._read(self.vault, keypair, "get_vault", args={"owner": owner, "vault_id": vault_id})
         raw = unwrap_option(result)
@@ -265,7 +295,9 @@ class TUSDTClient:
 
     def get_max_borrow(self, keypair: Keypair, owner: str, vault_id: int) -> int:
         """Return the maximum additional borrowable amount for a vault."""
-        result = self._read(self.vault, keypair, "get_max_borrow", args={"owner": owner, "vault_id": vault_id})
+        result = self._read(
+            self.vault, keypair, "get_max_borrow", args={"owner": owner, "vault_id": vault_id}
+        )
         return unwrap_result(result)
 
     def get_collateral_value(self, keypair: Keypair, owner: str, vault_id: int) -> int:
@@ -280,7 +312,7 @@ class TUSDTClient:
         result = self._read(self.vault, keypair, "get_total_debt", args={"owner": owner})
         return unwrap_plain(result)
 
-    def get_liquidation_auction_id(self, keypair: Keypair, owner: str, vault_id: int) -> Optional[int]:
+    def get_liquidation_auction_id(self, keypair: Keypair, owner: str, vault_id: int) -> int | None:
         """Return the active liquidation auction ID for a vault, or ``None``."""
         result = self._read(
             self.vault, keypair, "get_liquidation_auction_id", args={"owner": owner, "vault_id": vault_id}
@@ -342,10 +374,12 @@ class TUSDTClient:
         result = self._read(self.vault, keypair, "get_oracle_address")
         return unwrap_plain(result)
 
-    def get_vault_collateral_balance(self, keypair: Keypair, owner: str, vault_id: int) -> Optional[int]:
+    def get_vault_collateral_balance(self, keypair: Keypair, owner: str, vault_id: int) -> int | None:
         """Return the raw collateral balance for a specific vault, or None if not found."""
         result = self._read(
-            self.vault, keypair, "get_vault_collateral_balance",
+            self.vault,
+            keypair,
+            "get_vault_collateral_balance",
             args={"owner": owner, "vault_id": vault_id},
         )
         return unwrap_option(result)
@@ -369,7 +403,7 @@ class TUSDTClient:
         result = self._read(self.vault, keypair, "paused")
         return unwrap_plain(result)
 
-    def get_pending_params_update(self, keypair: Keypair) -> Optional[dict]:
+    def get_pending_params_update(self, keypair: Keypair) -> dict | None:
         """Return the pending contract parameter update, if any."""
         result = self._read(self.vault, keypair, "get_pending_contract_params_update")
         raw = unwrap_option(result)
@@ -412,6 +446,212 @@ class TUSDTClient:
     def claim_surplus_tusdt(self, keypair: Keypair, amount: int) -> dict[str, Any]:
         """Claim surplus TUSDT tokens held by the vault contract."""
         return self._exec(self.vault, keypair, "claim_surplus_tusdt", args={"amount": amount})
+
+    def vault_get_treasury(self, keypair: Keypair) -> str:
+        """Return the treasury address from the vault contract."""
+        result = self._read(self.vault, keypair, "treasury")
+        return unwrap_plain(result)
+
+    def vault_update_treasury(self, keypair: Keypair, new_treasury: str) -> dict[str, Any]:
+        """Update the treasury address in the vault contract (governance only)."""
+        return self._exec(self.vault, keypair, "update_treasury", args={"new_treasury": new_treasury})
+
+    def vault_emergency_drain(self, keypair: Keypair, recipient: str) -> dict[str, Any]:
+        """Emergency drain native balance from the vault (TESTNET ONLY, governance)."""
+        return self._exec(self.vault, keypair, "emergency_drain", args={"recipient": recipient})
+
+    # ==================================================================
+    # GOVERNANCE OPERATIONS
+    # ==================================================================
+
+    # --- Read queries ---
+
+    def get_maintainer(self, keypair: Keypair) -> str:
+        """Return the current maintainer account address."""
+        result = self._read(self.governance, keypair, "maintainer")
+        return unwrap_plain(result)
+
+    def get_council(self, keypair: Keypair) -> list:
+        """Return the list of council members."""
+        result = self._read(self.governance, keypair, "council")
+        raw = unwrap_plain(result)
+        return raw if isinstance(raw, list) else []
+
+    def is_council(self, keypair: Keypair, who: str) -> bool:
+        """Check whether an account is a council member."""
+        result = self._read(self.governance, keypair, "is_council", args={"who": who})
+        return unwrap_plain(result)
+
+    def get_governance_treasury(self, keypair: Keypair) -> str:
+        """Return the treasury address from the governance contract."""
+        result = self._read(self.governance, keypair, "treasury")
+        return unwrap_plain(result)
+
+    def get_governance_params(self, keypair: Keypair) -> dict:
+        """Return the governance contract parameters."""
+        result = self._read(self.governance, keypair, "params")
+        raw = unwrap_plain(result)
+        return raw if isinstance(raw, dict) else raw
+
+    def get_current_epoch(self, keypair: Keypair) -> int:
+        """Return the current epoch number."""
+        result = self._read(self.governance, keypair, "current_epoch")
+        return unwrap_plain(result)
+
+    def get_snapshot(self, keypair: Keypair, epoch: int) -> dict | None:
+        """Return the snapshot for a given epoch, or None."""
+        result = self._read(self.governance, keypair, "get_snapshot", args={"epoch": epoch})
+        return unwrap_option(result)
+
+    def get_quorum(self, keypair: Keypair, epoch: int) -> tuple:
+        """Return quorum data for an epoch as (yes, no) balance tuple."""
+        result = self._read(self.governance, keypair, "quorum", args={"epoch": epoch})
+        return unwrap_plain(result)
+
+    def get_proposal_count(self, keypair: Keypair) -> int:
+        """Return the total number of proposals."""
+        result = self._read(self.governance, keypair, "proposal_count")
+        return unwrap_plain(result)
+
+    def get_proposal(self, keypair: Keypair, proposal_id: int) -> dict | None:
+        """Return a proposal by ID, or None if not found."""
+        result = self._read(self.governance, keypair, "get_proposal", args={"proposal_id": proposal_id})
+        raw = unwrap_option(result)
+        if raw is None:
+            return None
+        return raw if isinstance(raw, dict) else raw
+
+    def has_voted(self, keypair: Keypair, proposal_id: int, coldkey: str, hotkey: str) -> bool:
+        """Check whether a (coldkey, hotkey) pair has voted on a proposal."""
+        result = self._read(
+            self.governance,
+            keypair,
+            "has_voted",
+            args={"proposal_id": proposal_id, "coldkey": coldkey, "hotkey": hotkey},
+        )
+        return unwrap_plain(result)
+
+    # --- Mutating methods ---
+
+    def set_maintainer(self, keypair: Keypair, new_maintainer: str) -> dict[str, Any]:
+        """Set a new maintainer (maintainer only)."""
+        return self._exec(self.governance, keypair, "set_maintainer", args={"new_maintainer": new_maintainer})
+
+    def set_council(self, keypair: Keypair, members: list) -> dict[str, Any]:
+        """Set the council member list (maintainer only)."""
+        return self._exec(self.governance, keypair, "set_council", args={"members": members})
+
+    def gov_vault_set_contract_params(self, keypair: Keypair, params: dict) -> dict[str, Any]:
+        """Schedule a vault contract parameter update via governance."""
+        return self._exec(self.governance, keypair, "vault_set_contract_params", args={"params": params})
+
+    def gov_vault_cancel_update(self, keypair: Keypair) -> dict[str, Any]:
+        """Cancel a pending vault contract parameter update via governance."""
+        return self._exec(self.governance, keypair, "vault_cancel_contract_params_update")
+
+    def gov_vault_update_treasury(self, keypair: Keypair, new_treasury: str) -> dict[str, Any]:
+        """Update the vault treasury address via governance."""
+        return self._exec(
+            self.governance, keypair, "vault_update_treasury", args={"new_treasury": new_treasury}
+        )
+
+    def gov_vault_update_platform(self, keypair: Keypair, new_platform: str) -> dict[str, Any]:
+        """Update the vault platform address via governance."""
+        return self._exec(
+            self.governance, keypair, "vault_update_platform", args={"new_platform": new_platform}
+        )
+
+    def gov_vault_unpause(self, keypair: Keypair) -> dict[str, Any]:
+        """Unpause the vault contract via governance."""
+        return self._exec(self.governance, keypair, "vault_unpause")
+
+    def gov_vault_pause(self, keypair: Keypair) -> dict[str, Any]:
+        """Pause the vault contract via governance."""
+        return self._exec(self.governance, keypair, "vault_pause")
+
+    def gov_oracle_set_validator(self, keypair: Keypair, validator: str | None) -> dict[str, Any]:
+        """Set the oracle validator via governance (pass None to clear)."""
+        return self._exec(self.governance, keypair, "oracle_set_validator", args={"validator": validator})
+
+    def gov_oracle_set_max_price_deviation(
+        self, keypair: Keypair, max_price_deviation: int
+    ) -> dict[str, Any]:
+        """Set the oracle max price deviation via governance."""
+        return self._exec(
+            self.governance,
+            keypair,
+            "oracle_set_max_price_deviation",
+            args={"max_price_deviation": max_price_deviation},
+        )
+
+    def gov_oracle_commit_round(self, keypair: Keypair, price: int) -> dict[str, Any]:
+        """Commit the oracle round with an explicit price via governance."""
+        return self._exec(self.governance, keypair, "oracle_commit_round", args={"price": price})
+
+    def gov_auction_set_admin(self, keypair: Keypair, admin: str | None) -> dict[str, Any]:
+        """Set the auction admin via governance (pass None to clear)."""
+        return self._exec(self.governance, keypair, "auction_set_admin", args={"admin": admin})
+
+    def update_governance_params(self, keypair: Keypair, new_params: dict) -> dict[str, Any]:
+        """Update governance contract parameters (maintainer only)."""
+        return self._exec(self.governance, keypair, "update_params", args={"new_params": new_params})
+
+    def submit_proposal(self, keypair: Keypair, cid: str, kind: dict, hotkey: str) -> dict[str, Any]:
+        """Submit a new governance proposal."""
+        return self._exec(
+            self.governance,
+            keypair,
+            "submit_proposal",
+            args={"cid": cid, "kind": kind, "hotkey": hotkey},
+        )
+
+    def vote(
+        self,
+        keypair: Keypair,
+        proposal_id: int,
+        hotkey: str,
+        support: bool,
+        balance: int,
+        multiplier_bps: int,
+        proof: list,
+    ) -> dict[str, Any]:
+        """Cast a vote on a governance proposal."""
+        return self._exec(
+            self.governance,
+            keypair,
+            "vote",
+            args={
+                "proposal_id": proposal_id,
+                "hotkey": hotkey,
+                "support": support,
+                "balance": balance,
+                "multiplier_bps": multiplier_bps,
+                "proof": proof,
+            },
+        )
+
+    def finalize_proposal(self, keypair: Keypair, proposal_id: int) -> dict[str, Any]:
+        """Finalize a governance proposal."""
+        return self._exec(self.governance, keypair, "finalize", args={"proposal_id": proposal_id})
+
+    def execute_proposal(self, keypair: Keypair, proposal_id: int) -> dict[str, Any]:
+        """Execute a finalized governance proposal."""
+        return self._exec(self.governance, keypair, "execute", args={"proposal_id": proposal_id})
+
+    def submit_snapshot(
+        self,
+        keypair: Keypair,
+        root: list,
+        circulating_supply: int,
+        snapshot_block: int,
+    ) -> dict[str, Any]:
+        """Submit a Merkle snapshot for a given block."""
+        return self._exec(
+            self.governance,
+            keypair,
+            "submit_snapshot",
+            args={"root": root, "circulating_supply": circulating_supply, "snapshot_block": snapshot_block},
+        )
 
     # ==================================================================
     # TOKEN (ERC-20) OPERATIONS
@@ -457,7 +697,7 @@ class TUSDTClient:
         result = self._read(self.auction, keypair, "get_active_auctions_count")
         return unwrap_plain(result)
 
-    def get_auction(self, keypair: Keypair, auction_id: int) -> Optional[dict]:
+    def get_auction(self, keypair: Keypair, auction_id: int) -> dict | None:
         """Query a single auction by ID."""
         result = self._read(self.auction, keypair, "get_auction", args={"auction_id": auction_id})
         raw = unwrap_option(result)
@@ -470,7 +710,7 @@ class TUSDTClient:
         keypair: Keypair,
         auction_id: int,
         amount: int,
-        hot_key: Optional[str] = None,
+        hot_key: str | None = None,
     ) -> dict[str, Any]:
         """Place a bid on an auction."""
         args: dict[str, Any] = {
@@ -493,9 +733,11 @@ class TUSDTClient:
             self.auction, keypair, "withdraw_refund", args={"auction_id": auction_id, "bid_id": bid_id}
         )
 
-    def get_my_bid(self, keypair: Keypair, auction_id: int, bidder: str) -> Optional[dict]:
+    def get_my_bid(self, keypair: Keypair, auction_id: int, bidder: str) -> dict | None:
         """Get the caller's bid in an auction."""
-        result = self._read(self.auction, keypair, "get_auction_bid", args={"auction_id": auction_id, "bidder": bidder})
+        result = self._read(
+            self.auction, keypair, "get_auction_bid", args={"auction_id": auction_id, "bidder": bidder}
+        )
         raw = unwrap_option(result)
         if raw is None:
             return None
@@ -514,10 +756,12 @@ class TUSDTClient:
         result = self._read(self.auction, keypair, "get_total_auctions_count")
         return unwrap_plain(result)
 
-    def get_active_vault_auction(self, keypair: Keypair, vault_owner: str, vault_id: int) -> Optional[int]:
+    def get_active_vault_auction(self, keypair: Keypair, vault_owner: str, vault_id: int) -> int | None:
         """Return the active auction ID for a specific vault, or ``None``."""
         result = self._read(
-            self.auction, keypair, "get_active_vault_auction",
+            self.auction,
+            keypair,
+            "get_active_vault_auction",
             args={"vault_owner": vault_owner, "vault_id": vault_id},
         )
         return unwrap_option(result)
@@ -530,9 +774,11 @@ class TUSDTClient:
             return bids
         return []
 
-    def get_bid(self, keypair: Keypair, auction_id: int, bid_id: int) -> Optional[dict]:
+    def get_bid(self, keypair: Keypair, auction_id: int, bid_id: int) -> dict | None:
         """Get a specific bid by auction ID and bid ID."""
-        result = self._read(self.auction, keypair, "get_bid", args={"auction_id": auction_id, "bid_id": bid_id})
+        result = self._read(
+            self.auction, keypair, "get_bid", args={"auction_id": auction_id, "bid_id": bid_id}
+        )
         raw = unwrap_option(result)
         if raw is None:
             return None
@@ -542,7 +788,7 @@ class TUSDTClient:
     # ORACLE OPERATIONS
     # ==================================================================
 
-    def get_latest_price(self, keypair: Keypair) -> Optional[dict]:
+    def get_latest_price(self, keypair: Keypair) -> dict | None:
         """Return the latest committed oracle price data."""
         result = self._read(self.oracle, keypair, "get_latest_price")
         raw = unwrap_option(result)
@@ -555,7 +801,7 @@ class TUSDTClient:
         result = self._read(self.oracle, keypair, "current_round_id")
         return unwrap_plain(result)
 
-    def submit_price(self, keypair: Keypair, price: int, hot_key: Optional[str] = None) -> dict[str, Any]:
+    def submit_price(self, keypair: Keypair, price: int, hot_key: str | None = None) -> dict[str, Any]:
         """Submit a price to the oracle as a reporter."""
         args: dict[str, Any] = {"price": price}
         if hot_key:
@@ -564,12 +810,12 @@ class TUSDTClient:
             args["metadata"] = None
         return self._exec(self.oracle, keypair, "submit_price", args=args)
 
-    def commit_round(self, keypair: Keypair, override_price: Optional[int] = None) -> dict[str, Any]:
+    def commit_round(self, keypair: Keypair, override_price: int | None = None) -> dict[str, Any]:
         """Commit the current oracle round. Optionally override the median price."""
         args: dict[str, Any] = {"override_price": override_price}
         return self._exec(self.oracle, keypair, "commit_round", args=args)
 
-    def get_round_price(self, keypair: Keypair, round_id: int) -> Optional[dict]:
+    def get_round_price(self, keypair: Keypair, round_id: int) -> dict | None:
         """Return the price data for a specific round."""
         result = self._read(self.oracle, keypair, "get_round_price", args={"round_id": round_id})
         raw = unwrap_option(result)
@@ -614,7 +860,7 @@ class TUSDTClient:
         result = self._read(self.oracle, keypair, "controller")
         return unwrap_plain(result)
 
-    def get_oracle_validator(self, keypair: Keypair) -> Optional[str]:
+    def get_oracle_validator(self, keypair: Keypair) -> str | None:
         """Return the oracle validator account, or None if not set."""
         result = self._read(self.oracle, keypair, "validator")
         return unwrap_option(result)
@@ -635,19 +881,81 @@ class TUSDTClient:
 
     def set_reporter(self, keypair: Keypair, reporter: str, enabled: bool) -> dict[str, Any]:
         """Enable or disable an oracle reporter account (validator only)."""
-        return self._exec(self.oracle, keypair, "set_reporter", args={"reporter": reporter, "enabled": enabled})
+        return self._exec(
+            self.oracle, keypair, "set_reporter", args={"reporter": reporter, "enabled": enabled}
+        )
 
-    def set_validator(self, keypair: Keypair, validator: Optional[str]) -> dict[str, Any]:
+    def set_validator(self, keypair: Keypair, validator: str | None) -> dict[str, Any]:
         """Set the oracle validator account (governance only). Pass None to clear."""
         return self._exec(self.oracle, keypair, "set_validator", args={"validator": validator})
 
     def set_max_price_deviation(self, keypair: Keypair, max_price_deviation: int) -> dict[str, Any]:
         """Set the maximum allowed price deviation between rounds (governance only)."""
         return self._exec(
-            self.oracle, keypair, "set_max_price_deviation",
+            self.oracle,
+            keypair,
+            "set_max_price_deviation",
             args={"max_price_deviation": max_price_deviation},
         )
 
     def oracle_update_governance(self, keypair: Keypair, new_governance: str) -> dict[str, Any]:
         """Transfer oracle governance to a new account (controller only)."""
         return self._exec(self.oracle, keypair, "update_governance", args={"new_governance": new_governance})
+
+    # ==================================================================
+    # TREASURY OPERATIONS
+    # ==================================================================
+
+    def treasury_get_governance(self, keypair: Keypair) -> str:
+        """Return the governance address from the treasury contract."""
+        result = self._read(self.treasury, keypair, "governance")
+        return unwrap_plain(result)
+
+    def treasury_get_token(self, keypair: Keypair) -> str:
+        """Return the TUSDT token address from the treasury contract."""
+        result = self._read(self.treasury, keypair, "token")
+        return unwrap_plain(result)
+
+    def treasury_fund_balance_tusdt(self, keypair: Keypair, fund: dict) -> int:
+        """Return the TUSDT balance for a specific fund."""
+        result = self._read(self.treasury, keypair, "fund_balance_tusdt", args={"fund": fund})
+        return unwrap_plain(result)
+
+    def treasury_fund_balance_native(self, keypair: Keypair, fund: dict) -> int:
+        """Return the native balance for a specific fund."""
+        result = self._read(self.treasury, keypair, "fund_balance_native", args={"fund": fund})
+        return unwrap_plain(result)
+
+    def treasury_pending_tusdt(self, keypair: Keypair) -> int:
+        """Return the total pending TUSDT balance."""
+        result = self._read(self.treasury, keypair, "pending_tusdt")
+        return unwrap_plain(result)
+
+    def treasury_pending_native(self, keypair: Keypair) -> int:
+        """Return the total pending native balance."""
+        result = self._read(self.treasury, keypair, "pending_native")
+        return unwrap_plain(result)
+
+    def treasury_set_governance(self, keypair: Keypair, new_governance: str) -> dict[str, Any]:
+        """Set a new governance address for the treasury (governance only)."""
+        return self._exec(self.treasury, keypair, "set_governance", args={"new_governance": new_governance})
+
+    def treasury_distribute(self, keypair: Keypair) -> dict[str, Any]:
+        """Distribute pending funds to their respective fund balances."""
+        return self._exec(self.treasury, keypair, "distribute")
+
+    def treasury_release(
+        self,
+        keypair: Keypair,
+        fund: dict,
+        token_kind: dict,
+        amount: int,
+        recipient: str,
+    ) -> dict[str, Any]:
+        """Release funds from a specific fund to a recipient (governance only)."""
+        return self._exec(
+            self.treasury,
+            keypair,
+            "release",
+            args={"fund": fund, "token_kind": token_kind, "amount": amount, "recipient": recipient},
+        )

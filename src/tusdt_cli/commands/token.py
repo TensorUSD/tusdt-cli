@@ -3,7 +3,7 @@
 import click
 
 from tusdt_cli.client import TUSDTClient
-from tusdt_cli.config import load_config, NETWORKS
+from tusdt_cli.config import NETWORKS, load_config
 from tusdt_cli.utils import (
     HelpfulGroup,
     format_balance,
@@ -24,7 +24,8 @@ _network_option = click.option(
 )
 
 _wallet_option = click.option(
-    "--wallet-name", default=None,
+    "--wallet-name",
+    default=None,
     help="Bittensor wallet name for signing (prompts for coldkey password)",
 )
 
@@ -37,6 +38,7 @@ def token_group() -> None:
 # ------------------------------------------------------------------
 # balance
 # ------------------------------------------------------------------
+
 
 @token_group.command("balance")
 @click.option("--owner", default=None, help="Account SS58 address or wallet name (defaults to --wallet-name)")
@@ -75,16 +77,20 @@ def balance(ctx: click.Context, owner: str | None, wallet_name: str | None, netw
         print_error(str(exc))
         return
 
-    print_dict("Token Balance", {
-        "Account": account,
-        "Balance": format_balance(raw, decimals),
-        "Raw": raw,
-    })
+    print_dict(
+        "Token Balance",
+        {
+            "Account": account,
+            "Balance": format_balance(raw, decimals),
+            "Raw": raw,
+        },
+    )
 
 
 # ------------------------------------------------------------------
 # approve
 # ------------------------------------------------------------------
+
 
 @token_group.command("approve")
 @click.argument("spender", type=str, metavar="<spender>")
@@ -92,7 +98,9 @@ def balance(ctx: click.Context, owner: str | None, wallet_name: str | None, netw
 @_wallet_option
 @_network_option
 @click.pass_context
-def approve(ctx: click.Context, spender: str, amount: str, wallet_name: str | None, network: str | None) -> None:
+def approve(
+    ctx: click.Context, spender: str, amount: str, wallet_name: str | None, network: str | None
+) -> None:
     """Approve a spender to use your TUSDT tokens.
 
     \b
@@ -134,13 +142,16 @@ def approve(ctx: click.Context, spender: str, amount: str, wallet_name: str | No
 # allowance
 # ------------------------------------------------------------------
 
+
 @token_group.command("allowance")
 @click.argument("spender", type=str, metavar="<spender>")
 @click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
 @_wallet_option
 @_network_option
 @click.pass_context
-def allowance(ctx: click.Context, spender: str, owner: str | None, wallet_name: str | None, network: str | None) -> None:
+def allowance(
+    ctx: click.Context, spender: str, owner: str | None, wallet_name: str | None, network: str | None
+) -> None:
     """Show the allowance a spender has for an owner's tokens.
 
     \b
@@ -174,17 +185,21 @@ def allowance(ctx: click.Context, spender: str, owner: str | None, wallet_name: 
         print_error(str(exc))
         return
 
-    print_dict("Allowance", {
-        "Owner": owner,
-        "Spender": spender,
-        "Allowance": format_balance(raw, decimals),
-        "Raw": raw,
-    })
+    print_dict(
+        "Allowance",
+        {
+            "Owner": owner,
+            "Spender": spender,
+            "Allowance": format_balance(raw, decimals),
+            "Raw": raw,
+        },
+    )
 
 
 # ------------------------------------------------------------------
 # transfer
 # ------------------------------------------------------------------
+
 
 @token_group.command("transfer")
 @click.argument("to", type=str, metavar="<recipient>")

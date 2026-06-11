@@ -20,13 +20,17 @@ NETWORKS: dict[str, dict[str, str]] = {
         "token_address": "5CJ4HtCPdoMfdNUk6B7vZ348XryeXAnb5BmDNGejob1FziNH",
         "auction_address": "5HipAvNRiuh9mpTKztPLTvwyYkhzuSqxe1wsUy1fbRwbZUbQ",
         "oracle_address": "5Dfz8xgQoCsaWWrDxjeCuKB8R6AtYymWZDDDAe2q7NE8tL8A",
+        "governance_address": "5CEPPTnB2YtEv7Cf8TXrFkdr6BPkDAUhDJbiT38t1A1g83g5",
+        "treasury_address": "5FcjwHj8NkAMbPzkqzYweeC7KW4LffLW7KEKAR62Dx2cft2f",
     },
     "testnet": {
         "rpc": "wss://test.finney.opentensor.ai:443",
-        "vault_address": "5CQP45Ndo4ofYWpHMmhPP6qsLTaXL5juyGMakebhyCcthvt7",
-        "token_address": "5FMjrtVqE68ChqEK2Ngfe7JavgfXBfKjGgUWYP21PcBbghVu",
-        "auction_address": "5H1TgBrMtJr1Rw8ZvkHxNp5y23D28RbDggqAVgpgRGboBkD2",
-        "oracle_address": "5CSweFLJZff8cLEWEZxEafnMCKwxiWLrbPSM1ji3QLdFoMcd",
+        "vault_address": "5EjnJWrc9qUVtqjKNEttCzAWftfD9LWyXSaQmnG7U8HG3Z3S",
+        "token_address": "5FANwuM2QLccDePx734KVKPcnZ97H5GbiKDAYLGSAGUeTA8B",
+        "auction_address": "5HWSqEVpKGqV6uegiEepRbFmY7V5p4gAH8Xc1UAWYttY4vtf",
+        "oracle_address": "5FATY6cWddvkTVqqrovukoNAjYCDUutVJ9Aw1SM4WSWkaJny",
+        "governance_address": "5CEPPTnB2YtEv7Cf8TXrFkdr6BPkDAUhDJbiT38t1A1g83g5",
+        "treasury_address": "5FcjwHj8NkAMbPzkqzYweeC7KW4LffLW7KEKAR62Dx2cft2f",
     },
 }
 DEFAULT_CONFIG: dict[str, Any] = {
@@ -36,10 +40,14 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "token_address": NETWORKS["finney"]["token_address"],
     "auction_address": NETWORKS["finney"]["auction_address"],
     "oracle_address": NETWORKS["finney"]["oracle_address"],
+    "governance_address": NETWORKS["finney"]["governance_address"],
+    "treasury_address": NETWORKS["finney"]["treasury_address"],
     "vault_metadata": str(_ABI_DIR / "tusdt_vault.json"),
     "token_metadata": str(_ABI_DIR / "tusdt_erc20.json"),
     "auction_metadata": str(_ABI_DIR / "tusdt_auction.json"),
     "oracle_metadata": str(_ABI_DIR / "tusdt_oracle.json"),
+    "governance_metadata": str(_ABI_DIR / "tusdt_governance.json"),
+    "treasury_metadata": str(_ABI_DIR / "tusdt_treasury.json"),
     "signer": None,
     "wallet_name": None,
     "wallet_hotkey": "default",
@@ -85,7 +93,14 @@ def load_config(network: str | None = None) -> dict[str, Any]:
             with open(CONFIG_FILE) as f:
                 saved = json.load(f)
             # Strip stale ABI paths so new bundled defaults are used after upgrades.
-            for key in ("vault_metadata", "token_metadata", "auction_metadata", "oracle_metadata"):
+            for key in (
+                "vault_metadata",
+                "token_metadata",
+                "auction_metadata",
+                "oracle_metadata",
+                "governance_metadata",
+                "treasury_metadata",
+            ):
                 if key in saved and not Path(saved[key]).exists():
                     del saved[key]
             config.update(saved)

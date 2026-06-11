@@ -3,11 +3,9 @@
 import click
 
 from tusdt_cli.client import TUSDTClient
-from tusdt_cli.config import load_config, NETWORKS
+from tusdt_cli.config import NETWORKS, load_config
 from tusdt_cli.utils import (
-    HelpfulGroup,
     ModeAwareGroup,
-    format_balance,
     print_dict,
     print_error,
     print_info,
@@ -25,16 +23,30 @@ _network_option = click.option(
 )
 
 _wallet_option = click.option(
-    "--wallet-name", default=None,
+    "--wallet-name",
+    default=None,
     help="Bittensor wallet name for signing (prompts for coldkey password)",
 )
 
 
 _ORACLE_ADVANCED = {
-    "submit-price", "commit-round", "commit-round-gov", "round-price", "history",
-    "history-count", "submissions", "summary", "is-reporter",
-    "controller", "validator", "max-deviation", "max-submissions",
-    "set-reporter", "set-validator", "set-max-deviation", "update-governance",
+    "submit-price",
+    "commit-round",
+    "commit-round-gov",
+    "round-price",
+    "history",
+    "history-count",
+    "submissions",
+    "summary",
+    "is-reporter",
+    "controller",
+    "validator",
+    "max-deviation",
+    "max-submissions",
+    "set-reporter",
+    "set-validator",
+    "set-max-deviation",
+    "update-governance",
 }
 
 
@@ -72,14 +84,17 @@ def price(ctx: click.Context, network: str | None) -> None:
     price_val = int(raw_price) / 10**18 if raw_price else 0
     median_val = int(raw_median) / 10**18 if raw_median else 0
 
-    print_dict("Oracle Price", {
-        "Round ID": data.get("round_id", "?"),
-        "Price": price_val,
-        "Median price": median_val,
-        "Reporter count": data.get("reporter_count", "?"),
-        "Committed at": data.get("committed_at", "?"),
-        "Was overridden": data.get("was_overridden", "?"),
-    })
+    print_dict(
+        "Oracle Price",
+        {
+            "Round ID": data.get("round_id", "?"),
+            "Price": price_val,
+            "Median price": median_val,
+            "Reporter count": data.get("reporter_count", "?"),
+            "Committed at": data.get("committed_at", "?"),
+            "Was overridden": data.get("was_overridden", "?"),
+        },
+    )
 
 
 @oracle_group.command("round")
@@ -109,10 +124,12 @@ def round_info(ctx: click.Context, network: str | None) -> None:
 # submit-price
 # ------------------------------------------------------------------
 
+
 @oracle_group.command("submit-price")
 @click.argument("price_value", type=str, metavar="<price>")
-@click.option("--wallet-hotkey", default=None,
-              help="Hotkey name to resolve its SS58 address for submission metadata")
+@click.option(
+    "--wallet-hotkey", default=None, help="Hotkey name to resolve its SS58 address for submission metadata"
+)
 @_wallet_option
 @_network_option
 @click.pass_context
@@ -179,13 +196,20 @@ def submit_price(
 # commit-round
 # ------------------------------------------------------------------
 
+
 @oracle_group.command("commit-round")
-@click.option("--override-price", default=None, type=str,
-              help="Override price (decimal, e.g. 245.50). If omitted, uses median.")
+@click.option(
+    "--override-price",
+    default=None,
+    type=str,
+    help="Override price (decimal, e.g. 245.50). If omitted, uses median.",
+)
 @_wallet_option
 @_network_option
 @click.pass_context
-def commit_round(ctx: click.Context, override_price: str | None, wallet_name: str | None, network: str | None) -> None:
+def commit_round(
+    ctx: click.Context, override_price: str | None, wallet_name: str | None, network: str | None
+) -> None:
     """Commit the current oracle round (validator only).
 
     \b
@@ -231,6 +255,7 @@ def commit_round(ctx: click.Context, override_price: str | None, wallet_name: st
 # round-price
 # ------------------------------------------------------------------
 
+
 @oracle_group.command("round-price")
 @click.argument("round_id", type=int, metavar="<round-id>")
 @_network_option
@@ -262,19 +287,23 @@ def round_price(ctx: click.Context, round_id: int, network: str | None) -> None:
     price_val = int(raw_price) / 10**18 if raw_price else 0
     median_val = int(raw_median) / 10**18 if raw_median else 0
 
-    print_dict(f"Round #{round_id} Price", {
-        "Round ID": data.get("round_id", round_id),
-        "Price": price_val,
-        "Median price": median_val,
-        "Reporter count": data.get("reporter_count", "?"),
-        "Committed at": data.get("committed_at", "?"),
-        "Was overridden": data.get("was_overridden", "?"),
-    })
+    print_dict(
+        f"Round #{round_id} Price",
+        {
+            "Round ID": data.get("round_id", round_id),
+            "Price": price_val,
+            "Median price": median_val,
+            "Reporter count": data.get("reporter_count", "?"),
+            "Committed at": data.get("committed_at", "?"),
+            "Was overridden": data.get("was_overridden", "?"),
+        },
+    )
 
 
 # ------------------------------------------------------------------
 # history
 # ------------------------------------------------------------------
+
 
 @oracle_group.command("history")
 @click.option("--page", default=0, show_default=True, help="Page number (10 per page)")
@@ -307,13 +336,15 @@ def history(ctx: click.Context, page: int, network: str | None) -> None:
     for e in entries:
         raw_price = e.get("price", 0)
         price_val = int(raw_price) / 10**18 if raw_price else 0
-        rows.append([
-            str(e.get("round_id", "?")),
-            f"{price_val:.6f}",
-            str(e.get("reporter_count", "?")),
-            str(e.get("was_overridden", "?")),
-            str(e.get("committed_at", "?")),
-        ])
+        rows.append(
+            [
+                str(e.get("round_id", "?")),
+                f"{price_val:.6f}",
+                str(e.get("reporter_count", "?")),
+                str(e.get("was_overridden", "?")),
+                str(e.get("committed_at", "?")),
+            ]
+        )
 
     print_info(f"Total entries: {total}  |  Page: {page}")
     print_table(
@@ -326,6 +357,7 @@ def history(ctx: click.Context, page: int, network: str | None) -> None:
 # ------------------------------------------------------------------
 # history-count
 # ------------------------------------------------------------------
+
 
 @oracle_group.command("history-count")
 @_network_option
@@ -353,6 +385,7 @@ def history_count(ctx: click.Context, network: str | None) -> None:
 # ------------------------------------------------------------------
 # submissions
 # ------------------------------------------------------------------
+
 
 @oracle_group.command("submissions")
 @click.argument("round_id", type=int, metavar="<round-id>")
@@ -386,11 +419,13 @@ def submissions(ctx: click.Context, round_id: int, network: str | None) -> None:
         price_val = int(raw_price) / 10**18 if raw_price else 0
         metadata = s.get("metadata")
         hot_key = metadata.get("hot_key", "N/A") if isinstance(metadata, dict) else "N/A"
-        rows.append([
-            str(s.get("reporter", "?")),
-            f"{price_val:.6f}",
-            hot_key,
-        ])
+        rows.append(
+            [
+                str(s.get("reporter", "?")),
+                f"{price_val:.6f}",
+                hot_key,
+            ]
+        )
 
     print_info(f"Submissions for round {round_id}: {len(subs)}")
     print_table(
@@ -403,6 +438,7 @@ def submissions(ctx: click.Context, round_id: int, network: str | None) -> None:
 # ------------------------------------------------------------------
 # summary
 # ------------------------------------------------------------------
+
 
 @oracle_group.command("summary")
 @_network_option
@@ -433,16 +469,20 @@ def summary(ctx: click.Context, network: str | None) -> None:
     if raw_median is not None:
         median_val = f"{int(raw_median) / 10**18:.6f}"
 
-    print_dict("Current Round Summary", {
-        "Round ID": data.get("round_id", "?"),
-        "Reporter count": data.get("reporter_count", "?"),
-        "Median price": median_val,
-    })
+    print_dict(
+        "Current Round Summary",
+        {
+            "Round ID": data.get("round_id", "?"),
+            "Reporter count": data.get("reporter_count", "?"),
+            "Median price": median_val,
+        },
+    )
 
 
 # ------------------------------------------------------------------
 # is-reporter
 # ------------------------------------------------------------------
+
 
 @oracle_group.command("is-reporter")
 @click.argument("account", type=str, metavar="<account>")
@@ -472,15 +512,19 @@ def is_reporter(ctx: click.Context, account: str, network: str | None) -> None:
         print_error(str(exc))
         return
 
-    print_dict("Reporter Status", {
-        "Account": account,
-        "Is reporter": result,
-    })
+    print_dict(
+        "Reporter Status",
+        {
+            "Account": account,
+            "Is reporter": result,
+        },
+    )
 
 
 # ------------------------------------------------------------------
 # controller
 # ------------------------------------------------------------------
+
 
 @oracle_group.command("controller")
 @_network_option
@@ -509,6 +553,7 @@ def controller(ctx: click.Context, network: str | None) -> None:
 # validator
 # ------------------------------------------------------------------
 
+
 @oracle_group.command("validator")
 @_network_option
 @click.pass_context
@@ -536,6 +581,7 @@ def validator(ctx: click.Context, network: str | None) -> None:
 # max-deviation
 # ------------------------------------------------------------------
 
+
 @oracle_group.command("max-deviation")
 @_network_option
 @click.pass_context
@@ -557,15 +603,19 @@ def max_deviation(ctx: click.Context, network: str | None) -> None:
         return
 
     val = int(raw) / 10**18 if raw else 0
-    print_dict("Max Price Deviation", {
-        "Deviation": f"{val:.6f}",
-        "Raw": raw,
-    })
+    print_dict(
+        "Max Price Deviation",
+        {
+            "Deviation": f"{val:.6f}",
+            "Raw": raw,
+        },
+    )
 
 
 # ------------------------------------------------------------------
 # max-submissions
 # ------------------------------------------------------------------
+
 
 @oracle_group.command("max-submissions")
 @_network_option
@@ -593,6 +643,7 @@ def max_submissions(ctx: click.Context, network: str | None) -> None:
 # ------------------------------------------------------------------
 # commit-round-gov
 # ------------------------------------------------------------------
+
 
 @oracle_group.command("commit-round-gov")
 @click.argument("price_value", type=str, metavar="<price>")
@@ -646,10 +697,10 @@ def commit_round_gov(
 # set-reporter
 # ------------------------------------------------------------------
 
+
 @oracle_group.command("set-reporter")
 @click.argument("account", type=str, metavar="<account>")
-@click.option("--enable/--disable", default=None,
-              help="Enable or disable the reporter (one required)")
+@click.option("--enable/--disable", default=None, help="Enable or disable the reporter (one required)")
 @_wallet_option
 @_network_option
 @click.pass_context
@@ -705,10 +756,10 @@ def set_reporter_cmd(
 # set-validator
 # ------------------------------------------------------------------
 
+
 @oracle_group.command("set-validator")
 @click.argument("account", type=str, metavar="<account>", required=False, default=None)
-@click.option("--clear", is_flag=True, default=False,
-              help="Clear the validator (set to None)")
+@click.option("--clear", is_flag=True, default=False, help="Clear the validator (set to None)")
 @_wallet_option
 @_network_option
 @click.pass_context
@@ -768,6 +819,7 @@ def set_validator_cmd(
 # set-max-deviation
 # ------------------------------------------------------------------
 
+
 @oracle_group.command("set-max-deviation")
 @click.argument("deviation", type=str, metavar="<deviation>")
 @_wallet_option
@@ -818,6 +870,7 @@ def set_max_deviation(
 # ------------------------------------------------------------------
 # update-governance
 # ------------------------------------------------------------------
+
 
 @oracle_group.command("update-governance")
 @click.argument("address", type=str, metavar="<new-governance-address>")
