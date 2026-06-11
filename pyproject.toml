@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tusdt-cli"
-version = "0.2.1"
+version = "0.2.2"
 description = "CLI for interacting with the TUSDT ink! smart contract system on subtensor(bittensor)"
 readme = "README.md"
 license = "MIT"
