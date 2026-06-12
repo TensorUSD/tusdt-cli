@@ -19,17 +19,6 @@ from tusdt_cli.utils import (
     unwrap_result,
 )
 
-# ---------------------------------------------------------------------------
-# Patch: fix substrate-interface 1.8.1 V5 metadata loading bug
-#
-# `__parse_metadata` calls `__convert_to_latest_metadata` (which correctly
-# registers types), then at lines 163-179 DUPLICATES the same type-registration
-# logic using `portable_registry['types']` — a SCALE-decoded Vec instead of a
-# plain list, causing: "expected list, got Vec<PortableType>".
-#
-# Fix: replace the duplicate logic block with the correct extraction of
-# `.value_object` from the Vec.
-# ---------------------------------------------------------------------------
 _ContractMetadata__parse_metadata = ContractMetadata._ContractMetadata__parse_metadata
 
 
@@ -48,7 +37,6 @@ def _patched_parse_metadata(self: ContractMetadata) -> None:
     if "source" not in self.metadata_dict:
         raise ValueError("'source' directive not present in metadata file")
 
-    # -- type offset and prefix (lines 156-161) --
     if "V0" in self.metadata_dict and tuple(
         int(x) for x in self.metadata_dict["metadataVersion"].split(".")
     ) < (0, 7, 0):
@@ -56,7 +44,6 @@ def _patched_parse_metadata(self: ContractMetadata) -> None:
 
     self.type_string_prefix = f"ink::{self.metadata_dict['source']['hash']}"
 
-    # -- duplicate type registration (lines 163-179, FIXED) --
     if self.metadata_version == 0:
         for idx, _ in enumerate(self.metadata_dict["types"]):
             idx += self._ContractMetadata__type_offset
