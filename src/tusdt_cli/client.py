@@ -9,7 +9,6 @@ from typing import Any
 
 from substrateinterface import Keypair, SubstrateInterface
 from substrateinterface.contracts import ContractInstance, ContractMetadata
-from substrateinterface.contracts import ContractMetadata as _ContractMetadata
 from substrateinterface.exceptions import ContractReadFailedException
 
 from tusdt_cli.utils import (
@@ -20,67 +19,24 @@ from tusdt_cli.utils import (
     unwrap_result,
 )
 
+_ContractMetadata__parse_metadata = ContractMetadata._ContractMetadata__parse_metadata
 
-# ---------------------------------------------------------------------------
-# Patch: fix substrate-interface 1.8.1 V5 metadata loading bug
-#
-# In ink! V5 metadata, the `else` branch of __convert_to_latest_metadata()
-# passes `portable_registry['types']` (a SCALE-decoded Vec<PortableType>) to
-# `update_from_scale_info_types()`, which expects a plain Python `list`.
-# This replacement extracts `.value_object` to get the plain list.
-# ---------------------------------------------------------------------------
-def _fixed_convert(self: _ContractMetadata) -> None:
-    """Drop-in replacement for __convert_to_latest_metadata with V5 fix."""
-    # -- determine version (same as original) --
-    if "metadataVersion" in self.metadata_dict:
-        self.metadata_version = 0
-    elif "V1" in self.metadata_dict:
-        self.metadata_version = 1
-    elif "V2" in self.metadata_dict:
-        self.metadata_version = 2
-    elif "V3" in self.metadata_dict:
-        self.metadata_version = 3
-    elif "version" in self.metadata_dict:
-        self.metadata_version = int(self.metadata_dict["version"])
 
-    if self.metadata_version is None or self.metadata_version > 5:
-        raise ValueError("Unsupported metadata version")
+def _patched_parse_metadata(self: ContractMetadata) -> None:
+    self._ContractMetadata__convert_to_latest_metadata()
 
-    if 1 <= self.metadata_version <= 3:
-        version_key = f"V{self.metadata_version}"
-        self.metadata_dict["spec"] = self.metadata_dict[version_key]["spec"]
-        self.metadata_dict["storage"] = self.metadata_dict[version_key]["storage"]
-        self.metadata_dict["types"] = self.metadata_dict[version_key]["types"]
-        del self.metadata_dict[version_key]
+    # -- original checks (lines 140-154) --
+    if "types" not in self.metadata_dict:
+        raise ValueError("No 'types' directive present in metadata file")
+    if "spec" not in self.metadata_dict:
+        raise ValueError("'spec' directive not present in metadata file")
+    if "constructors" not in self.metadata_dict["spec"]:
+        raise ValueError("No constructors present in metadata file")
+    if "messages" not in self.metadata_dict["spec"]:
+        raise ValueError("No messages present in metadata file")
+    if "source" not in self.metadata_dict:
+        raise ValueError("'source' directive not present in metadata file")
 
-    # V1 -> V2: name -> label
-    if self.metadata_version <= 1:
-
-        def _replace_name(obj: dict) -> dict:
-            if "name" in obj:
-                obj["label"] = (
-                    "::".join(obj.pop("name")) if isinstance(obj["name"], list) else obj.pop("name")
-                )
-            return obj
-
-        for section in ("constructors", "events", "messages"):
-            for idx, c in enumerate(self.metadata_dict["spec"][section]):
-                self.metadata_dict["spec"][section][idx]["args"] = [_replace_name(a) for a in c["args"]]
-                _replace_name(c)
-
-    # V2 -> V3: default payable=True for constructors
-    if self.metadata_version <= 2:
-        for _idx, c in enumerate(self.metadata_dict["spec"]["constructors"]):
-            c["payable"] = True
-
-    # V4 -> V5: add module_path and signature_topic to events
-    if self.metadata_version <= 4:
-        for _idx, event in enumerate(self.metadata_dict["spec"]["events"]):
-            event["module_path"] = event.get("module_path", "")
-            event["signature_topic"] = event.get("signature_topic", "")
-
-    # Set type offset and prefix
-    self._ContractMetadata__type_offset = 0
     if "V0" in self.metadata_dict and tuple(
         int(x) for x in self.metadata_dict["metadataVersion"].split(".")
     ) < (0, 7, 0):
@@ -95,16 +51,15 @@ def _fixed_convert(self: _ContractMetadata) -> None:
                 self.type_registry[idx] = self.get_type_string_for_metadata_type(idx)
     else:
         self.substrate.init_runtime()
-        portable_registry = self.substrate.runtime_config.create_scale_object("PortableRegistry")
-        portable_registry.encode({"types": self.metadata_dict["types"]})
-        # --- FIX: extract plain Python list from SCALE-decoded Vec ---
-        raw_types = portable_registry["types"]
+        pr = self.substrate.runtime_config.create_scale_object("PortableRegistry")
+        pr.encode({"types": self.metadata_dict["types"]})
+        raw_types = pr["types"]
         if hasattr(raw_types, "value_object"):
             raw_types = raw_types.value_object
         self.substrate.runtime_config.update_from_scale_info_types(raw_types, prefix=self.type_string_prefix)
 
 
-_ContractMetadata._ContractMetadata__convert_to_latest_metadata = _fixed_convert
+ContractMetadata._ContractMetadata__parse_metadata = _patched_parse_metadata
 
 
 def _decode_dispatch_error(err: Any) -> str:
