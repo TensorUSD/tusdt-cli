@@ -1257,10 +1257,11 @@ def submit_proposal_cmd(
 )
 @click.option(
     "--proof",
-    type=str,
+    "proofs",
+    multiple=True,
     required=True,
     metavar="<hex-string>",
-    help="Merkle proof as hex-encoded bytes (e.g. 0x...)",
+    help="Merkle proof hash as hex-encoded 32 bytes (repeatable, e.g. --proof 0xabc... --proof 0xdef...)",
 )
 @_wallet_option
 @_network_option
@@ -1272,7 +1273,7 @@ def vote_cmd(
     support: bool,
     balance: str,
     multiplier_bps: int,
-    proof: str,
+    proofs: tuple[str, ...],
     wallet_name: str | None,
     network: str | None,
 ) -> None:
@@ -1280,9 +1281,10 @@ def vote_cmd(
 
     \b
     PROPOSAL_ID is the numeric proposal ID (integer).
+    Each --proof is a hex-encoded 32-byte Merkle proof hash; repeat for multiple proof nodes.
     Examples:
-      tusdt governance vote 0 --hotkey 5GrwvaEF... --support --balance 1000 --multiplier-bps 10000 --proof 0xabcdef --wallet-name MyWallet
-      tusdt governance vote 0 --hotkey 5GrwvaEF... --oppose --balance 500 --multiplier-bps 10000 --proof 0xabcdef --wallet-name MyWallet
+      tusdt governance vote 0 --hotkey 5GrwvaEF... --support --balance 1000 --multiplier-bps 10000 --proof 0x5637... --wallet-name MyWallet
+      tusdt governance vote 0 --hotkey 5GrwvaEF... --oppose --balance 500 --multiplier-bps 10000 --proof 0x5637... --proof 0x8087... --wallet-name MyWallet
     """
     config = load_config(network=network)
     if wallet_name:
@@ -1290,12 +1292,19 @@ def vote_cmd(
     decimals = config.get("decimals", 9)
     raw_balance = parse_balance(balance, decimals)
 
-    # Convert hex proof to list of ints
-    proof_hex = proof.strip()
-    if proof_hex.startswith("0x"):
-        proof_hex = proof_hex[2:]
-    proof_bytes = bytes.fromhex(proof_hex)
-    proof_list = list(proof_bytes)
+    # Convert each hex proof hash to a list of 32 bytes (MerkleHash = [u8; 32])
+    proof_list = []
+    for proof_hex in proofs:
+        ph = proof_hex.strip()
+        if ph.startswith("0x"):
+            ph = ph[2:]
+        proof_bytes = bytes.fromhex(ph)
+        if len(proof_bytes) != 32:
+            print_error(
+                f"Each --proof must be exactly 32 bytes (64 hex chars), got {len(proof_bytes)} bytes"
+            )
+            return
+        proof_list.append(list(proof_bytes))
 
     try:
         keypair = get_signer_keypair(config)
