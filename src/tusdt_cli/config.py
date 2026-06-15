@@ -25,12 +25,12 @@ NETWORKS: dict[str, dict[str, str]] = {
     },
     "testnet": {
         "rpc": "wss://test.finney.opentensor.ai:443",
-        "vault_address": "5FAACG9R4o2mcstDbqTkvm6MdqNdUgg2jtNbLkGsVrmcLnsf",
-        "token_address": "5CxK7Xzb7rPFJhpNrgrKGGPCJhUoqK5K5HXBzZvxSe33Aubc",
-        "auction_address": "5ELFbobLdXJymCeQAoy4mw78rHBjyzT9Z62K432vFtXkxhBc",
-        "oracle_address": "5G2SetMrYwiJHjDobgHVkMM2jcGsNsjABUWU2hxp8JFYQqaj",
-        "governance_address": "5EbtC6BFLSfwu9rLdRyjJ8KVuG8TdCeLXmmywqoVLYnTW9Tm",
-        "treasury_address": "5FAkjZdGRcpapaE9AYmdcLiBky7fYDFsRmHue6y33jiXaiMh",
+        "vault_address": "5H8nuGvHJdNXuSWtquddcGQDgAvK4vEvXmvKwU6o4cCmvfPu",
+        "token_address": "5DXy5zJ28txkfLQH8uUQSjQWJQQL5hrMVY5Wiv6BwLZX66Gi",
+        "auction_address": "5CqXrT8gkRx7EZrMRQjzAY6xUzPAk96GByM4N8wP889y5rju",
+        "oracle_address": "5FAwRfw6HcHFqrLEPbqy73UR1HGBxesS3oAtsFe6Z1P8ZKbS",
+        "governance_address": "5EvsJM6hkZruvVAAxnYLCtEkkBiWLWfA8fFC51kgwh5o2rYN",
+        "treasury_address": "5EhtUDuQnvNfWpjkakwr7prdZCgubQCgsCSSctZDFgtw1fNv",
     },
 }
 DEFAULT_CONFIG: dict[str, Any] = {

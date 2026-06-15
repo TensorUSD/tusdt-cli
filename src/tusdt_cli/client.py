@@ -722,6 +722,37 @@ class TUSDTClient:
         """Transfer *amount* TUSDT tokens to *to*."""
         return self._exec(self.token, keypair, "transfer", args={"to": to, "value": amount})
 
+    def token_controller(self, keypair: Keypair) -> str:
+        """Return the controller address of the TUSDT token contract."""
+        result = self._read(self.token, keypair, "controller")
+        return unwrap_plain(result)
+
+    def token_mint(self, keypair: Keypair, to: str, amount: int) -> dict[str, Any]:
+        """Mint *amount* TUSDT tokens to *to* (controller only)."""
+        return self._exec(self.token, keypair, "mint", args={"to": to, "value": amount})
+
+    def token_burn(self, keypair: Keypair, from_addr: str, amount: int) -> dict[str, Any]:
+        """Burn *amount* TUSDT tokens from *from_addr* (controller only)."""
+        return self._exec(self.token, keypair, "burn", args={"from": from_addr, "value": amount})
+
+    def token_increase_allowance(self, keypair: Keypair, spender: str, delta: int) -> dict[str, Any]:
+        """Increase *spender*'s allowance by *delta* TUSDT tokens."""
+        return self._exec(
+            self.token, keypair, "increase_allowance", args={"spender": spender, "delta_value": delta}
+        )
+
+    def token_decrease_allowance(self, keypair: Keypair, spender: str, delta: int) -> dict[str, Any]:
+        """Decrease *spender*'s allowance by *delta* TUSDT tokens."""
+        return self._exec(
+            self.token, keypair, "decrease_allowance", args={"spender": spender, "delta_value": delta}
+        )
+
+    def token_transfer_from(self, keypair: Keypair, from_addr: str, to: str, amount: int) -> dict[str, Any]:
+        """Transfer *amount* TUSDT tokens from *from_addr* to *to* (requires allowance)."""
+        return self._exec(
+            self.token, keypair, "transfer_from", args={"from": from_addr, "to": to, "value": amount}
+        )
+
     # ==================================================================
     # AUCTION OPERATIONS
     # ==================================================================
@@ -825,6 +856,70 @@ class TUSDTClient:
         if raw is None:
             return None
         return raw if isinstance(raw, dict) else raw
+
+    def get_auction_controller(self, keypair: Keypair) -> str:
+        """Return the auction controller address."""
+        result = self._read(self.auction, keypair, "controller")
+        return unwrap_plain(result)
+
+    def get_auction_governance(self, keypair: Keypair) -> str:
+        """Return the auction governance address."""
+        result = self._read(self.auction, keypair, "governance")
+        return unwrap_plain(result)
+
+    def get_auction_admin(self, keypair: Keypair) -> str | None:
+        """Return the auction admin address, or None if not set."""
+        result = self._read(self.auction, keypair, "admin")
+        return unwrap_option(result)
+
+    def create_auction(
+        self,
+        keypair: Keypair,
+        vault_owner: str,
+        vault_id: int,
+        collateral_balance: int,
+        debt_balance: int,
+        min_bid: int,
+        liquidation_price: int,
+        duration_ms: int,
+    ) -> dict[str, Any]:
+        """Create a new liquidation auction (controller only)."""
+        return self._exec(
+            self.auction,
+            keypair,
+            "create_auction",
+            args={
+                "vault_owner": vault_owner,
+                "vault_id": vault_id,
+                "collateral_balance": collateral_balance,
+                "debt_balance": debt_balance,
+                "min_bid": min_bid,
+                "liquidation_price": liquidation_price,
+                "duration_ms": duration_ms,
+            },
+        )
+
+    def auction_set_admin(self, keypair: Keypair, admin: str | None) -> dict[str, Any]:
+        """Set or clear the auction admin (governance only). Pass None to clear."""
+        return self._exec(self.auction, keypair, "set_admin", args={"admin": admin})
+
+    def auction_update_governance(self, keypair: Keypair, new_governance: str) -> dict[str, Any]:
+        """Transfer auction governance to a new account (controller only)."""
+        return self._exec(self.auction, keypair, "update_governance", args={"new_governance": new_governance})
+
+    def auction_transfer_winning_bid(
+        self,
+        keypair: Keypair,
+        auction_id: int,
+        recipient: str,
+    ) -> dict[str, Any]:
+        """Transfer the winning bid amount to a recipient (controller only)."""
+        return self._exec(
+            self.auction,
+            keypair,
+            "transfer_winning_bid",
+            args={"auction_id": auction_id, "recipient": recipient},
+        )
 
     # ==================================================================
     # ORACLE OPERATIONS
