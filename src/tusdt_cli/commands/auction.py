@@ -32,7 +32,18 @@ _wallet_option = click.option(
 )
 
 
-_AUCTION_ADVANCED = {"list-all", "total-count", "vault-auction", "bids", "bid-info"}
+_AUCTION_ADVANCED = {
+    "list-all",
+    "total-count",
+    "vault-auction",
+    "bids",
+    "bid-info",
+    "create",
+    "set-admin",
+    "update-governance",
+    "transfer-winning-bid",
+}
+_AUCTION_BASIC_READS = {"controller", "governance", "admin-address"}
 
 
 @click.group("auction", cls=ModeAwareGroup, advanced_commands=_AUCTION_ADVANCED)
@@ -605,3 +616,331 @@ def bid_info(ctx: click.Context, auction_id: int, bid_id: int, network: str | No
             "Withdrawn": data.get("is_withdrawn", False),
         },
     )
+
+
+# ------------------------------------------------------------------
+# controller
+# ------------------------------------------------------------------
+
+
+@auction_group.command("controller")
+@_network_option
+@click.pass_context
+def auction_controller_cmd(ctx: click.Context, network: str | None) -> None:
+    """Show the controller address of the auction contract.
+
+    \b
+    Examples:
+      tusdt auction controller
+      tusdt auction controller --network testnet
+    """
+    config = load_config(network=network)
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        addr = client.get_auction_controller(keypair)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_dict("Auction Controller", {"Address": addr})
+
+
+# ------------------------------------------------------------------
+# governance
+# ------------------------------------------------------------------
+
+
+@auction_group.command("governance")
+@_network_option
+@click.pass_context
+def auction_governance_cmd(ctx: click.Context, network: str | None) -> None:
+    """Show the governance address of the auction contract.
+
+    \b
+    Examples:
+      tusdt auction governance
+      tusdt auction governance --network testnet
+    """
+    config = load_config(network=network)
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        addr = client.get_auction_governance(keypair)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_dict("Auction Governance", {"Address": addr})
+
+
+# ------------------------------------------------------------------
+# admin-address
+# ------------------------------------------------------------------
+
+
+@auction_group.command("admin-address")
+@_network_option
+@click.pass_context
+def auction_admin_cmd(ctx: click.Context, network: str | None) -> None:
+    """Show the admin address of the auction contract, if set.
+
+    \b
+    Examples:
+      tusdt auction admin-address
+      tusdt auction admin-address --network testnet
+    """
+    config = load_config(network=network)
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        admin = client.get_auction_admin(keypair)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    if admin is None:
+        print_info("No admin set")
+    else:
+        print_dict("Auction Admin", {"Address": admin})
+
+
+# ------------------------------------------------------------------
+# create
+# ------------------------------------------------------------------
+
+
+@auction_group.command("create")
+@click.argument("vault_owner", type=str, metavar="<ss58-address>")
+@click.argument("vault_id", type=int, metavar="<vault-id>")
+@click.option(
+    "--collateral-balance",
+    type=str,
+    required=True,
+    help="Collateral balance in human-readable units (e.g. 10.0)",
+)
+@click.option(
+    "--debt-balance", type=str, required=True, help="Debt balance in human-readable units (e.g. 100.0)"
+)
+@click.option("--min-bid", type=str, required=True, help="Minimum bid in human-readable units (e.g. 10.0)")
+@click.option(
+    "--liquidation-price", type=int, required=True, help="Liquidation price as raw integer (10^18 scale)"
+)
+@click.option("--duration-ms", type=int, required=True, help="Auction duration in milliseconds (integer)")
+@_wallet_option
+@_network_option
+@click.pass_context
+def create_auction_cmd(
+    ctx: click.Context,
+    vault_owner: str,
+    vault_id: int,
+    collateral_balance: str,
+    debt_balance: str,
+    min_bid: str,
+    liquidation_price: int,
+    duration_ms: int,
+    wallet_name: str | None,
+    network: str | None,
+) -> None:
+    """Create a new liquidation auction (controller only).
+
+    \b
+    VAULT_OWNER is the SS58 address of the vault owner.
+    VAULT_ID    is the numeric vault ID (integer).
+    Examples:
+      tusdt auction create 5GrwvaEF... 0 --collateral-balance 10 --debt-balance 100 --min-bid 10 --liquidation-price 1500000000000000000 --duration-ms 86400000 --wallet-name MyWallet
+    """
+    config = load_config(network=network)
+    if wallet_name:
+        config["wallet_name"] = wallet_name
+    decimals = config.get("decimals", 9)
+
+    raw_collateral = parse_balance(collateral_balance, decimals)
+    raw_debt = parse_balance(debt_balance, decimals)
+    raw_min_bid = parse_balance(min_bid, decimals)
+
+    try:
+        vault_owner = resolve_ss58(vault_owner, config.get("wallet_path"))
+    except Exception as exc:
+        print_error(str(exc))
+
+    try:
+        keypair = get_signer_keypair(config)
+    except Exception as exc:
+        print_error(str(exc))
+
+    print_info(f"Signer: {keypair.ss58_address}")
+    print_info(f"Creating auction for vault {vault_id} (owner: {vault_owner})...")
+
+    try:
+        client = TUSDTClient(config)
+        result = client.create_auction(
+            keypair,
+            vault_owner,
+            vault_id,
+            raw_collateral,
+            raw_debt,
+            raw_min_bid,
+            liquidation_price,
+            duration_ms,
+        )
+        print_success("Auction created!")
+        print_tx_result(result, config.get("network", "finney"))
+    except Exception as exc:
+        print_error(str(exc))
+
+
+# ------------------------------------------------------------------
+# set-admin
+# ------------------------------------------------------------------
+
+
+@auction_group.command("set-admin")
+@click.argument("address", type=str, metavar="<ss58-address>", required=False)
+@click.option("--clear", is_flag=True, default=False, help="Clear the admin (set to None)")
+@_wallet_option
+@_network_option
+@click.pass_context
+def auction_set_admin_cmd(
+    ctx: click.Context,
+    address: str | None,
+    clear: bool,
+    wallet_name: str | None,
+    network: str | None,
+) -> None:
+    """Set or clear the auction admin (governance only).
+
+    \b
+    ADDRESS is the SS58 address of the admin, or omit and use --clear to remove.
+    Examples:
+      tusdt auction set-admin 5GrwvaEF... --wallet-name MyWallet
+      tusdt auction set-admin --clear --wallet-name MyWallet
+    """
+    config = load_config(network=network)
+    if wallet_name:
+        config["wallet_name"] = wallet_name
+
+    admin = None if clear else address
+    if not clear and not address:
+        print_error("Provide an SS58 address or use --clear to remove the admin")
+        return
+
+    try:
+        keypair = get_signer_keypair(config)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    action = "Clearing" if clear else f"Setting to {address}"
+    print_info(f"Signer: {keypair.ss58_address}")
+    print_info(f"{action} auction admin...")
+
+    try:
+        client = TUSDTClient(config)
+        result = client.auction_set_admin(keypair, admin)
+        print_success("Auction admin updated!")
+        print_tx_result(result, config.get("network", "finney"))
+    except Exception as exc:
+        print_error(str(exc))
+
+
+# ------------------------------------------------------------------
+# update-governance
+# ------------------------------------------------------------------
+
+
+@auction_group.command("update-governance")
+@click.argument("address", type=str, metavar="<ss58-address>")
+@_wallet_option
+@_network_option
+@click.pass_context
+def auction_update_governance_cmd(
+    ctx: click.Context,
+    address: str,
+    wallet_name: str | None,
+    network: str | None,
+) -> None:
+    """Transfer auction governance to a new account (controller only).
+
+    \b
+    ADDRESS is the SS58 address of the new governance account.
+    Examples:
+      tusdt auction update-governance 5GrwvaEF... --wallet-name MyWallet
+      tusdt auction update-governance 5GrwvaEF... --wallet-name MyWallet --network testnet
+    """
+    config = load_config(network=network)
+    if wallet_name:
+        config["wallet_name"] = wallet_name
+
+    try:
+        keypair = get_signer_keypair(config)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_info(f"Signer: {keypair.ss58_address}")
+    print_info(f"Updating auction governance to {address}...")
+
+    try:
+        client = TUSDTClient(config)
+        result = client.auction_update_governance(keypair, address)
+        print_success("Auction governance updated!")
+        print_tx_result(result, config.get("network", "finney"))
+    except Exception as exc:
+        print_error(str(exc))
+
+
+# ------------------------------------------------------------------
+# transfer-winning-bid
+# ------------------------------------------------------------------
+
+
+@auction_group.command("transfer-winning-bid")
+@click.argument("auction_id", type=int, metavar="<auction-id>")
+@click.argument("recipient", type=str, metavar="<ss58-address>")
+@_wallet_option
+@_network_option
+@click.pass_context
+def transfer_winning_bid_cmd(
+    ctx: click.Context,
+    auction_id: int,
+    recipient: str,
+    wallet_name: str | None,
+    network: str | None,
+) -> None:
+    """Transfer the winning bid amount to a recipient (controller only).
+
+    \b
+    AUCTION_ID is the numeric auction ID (integer).
+    RECIPIENT  is the SS58 address to receive the winning bid tokens.
+    Examples:
+      tusdt auction transfer-winning-bid 0 5GrwvaEF... --wallet-name MyWallet
+      tusdt auction transfer-winning-bid 5 5GrwvaEF... --wallet-name MyWallet --network testnet
+    """
+    config = load_config(network=network)
+    if wallet_name:
+        config["wallet_name"] = wallet_name
+
+    try:
+        recipient = resolve_ss58(recipient, config.get("wallet_path"))
+    except Exception as exc:
+        print_error(str(exc))
+
+    try:
+        keypair = get_signer_keypair(config)
+    except Exception as exc:
+        print_error(str(exc))
+
+    print_info(f"Signer: {keypair.ss58_address}")
+    print_info(f"Transferring winning bid for auction {auction_id} to {recipient}...")
+
+    try:
+        client = TUSDTClient(config)
+        result = client.auction_transfer_winning_bid(keypair, auction_id, recipient)
+        print_success("Winning bid transferred!")
+        print_tx_result(result, config.get("network", "finney"))
+    except Exception as exc:
+        print_error(str(exc))

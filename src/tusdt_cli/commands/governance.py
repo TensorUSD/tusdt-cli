@@ -1300,9 +1300,7 @@ def vote_cmd(
             ph = ph[2:]
         proof_bytes = bytes.fromhex(ph)
         if len(proof_bytes) != 32:
-            print_error(
-                f"Each --proof must be exactly 32 bytes (64 hex chars), got {len(proof_bytes)} bytes"
-            )
+            print_error(f"Each --proof must be exactly 32 bytes (64 hex chars), got {len(proof_bytes)} bytes")
             return
         proof_list.append(list(proof_bytes))
 
