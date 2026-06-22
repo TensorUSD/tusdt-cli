@@ -88,6 +88,7 @@ class TUSDTClient:
         self._oracle: ContractInstance | None = None
         self._governance: ContractInstance | None = None
         self._treasury: ContractInstance | None = None
+        self._election: ContractInstance | None = None
 
     # ------------------------------------------------------------------
     # Connection management
@@ -198,6 +199,19 @@ class TUSDTClient:
                 )
             self._treasury = self._load_contract(addr, meta)
         return self._treasury
+
+    @property
+    def election(self) -> ContractInstance:
+        if self._election is None:
+            addr = self.config.get("election_address")
+            meta = self.config.get("election_metadata")
+            if not addr or not meta:
+                raise ValueError(
+                    "Election contract not configured. Run:\n"
+                    "  tusdt config set --election <address> --election-metadata <path>"
+                )
+            self._election = self._load_contract(addr, meta)
+        return self._election
 
     # ------------------------------------------------------------------
     # Generic helpers
@@ -575,10 +589,6 @@ class TUSDTClient:
 
     # --- Mutating methods ---
 
-    def set_maintainer(self, keypair: Keypair, new_maintainer: str) -> dict[str, Any]:
-        """Set a new maintainer (maintainer only)."""
-        return self._exec(self.governance, keypair, "set_maintainer", args={"new_maintainer": new_maintainer})
-
     def set_council(self, keypair: Keypair, members: list) -> dict[str, Any]:
         """Set the council member list (maintainer only)."""
         return self._exec(self.governance, keypair, "set_council", args={"members": members})
@@ -634,9 +644,28 @@ class TUSDTClient:
         """Set the auction admin via governance (pass None to clear)."""
         return self._exec(self.governance, keypair, "auction_set_admin", args={"admin": admin})
 
-    def update_governance_params(self, keypair: Keypair, new_params: dict) -> dict[str, Any]:
-        """Update governance contract parameters (maintainer only)."""
-        return self._exec(self.governance, keypair, "update_params", args={"new_params": new_params})
+    def update_governance_params(
+        self,
+        keypair: Keypair,
+        voting_period_ms: int,
+        quorum_bps: int,
+        approval_bps: int,
+        min_proposer_stake: int,
+        submission_open_day: int,
+        submission_close_day: int,
+    ) -> dict[str, Any]:
+        """Update governance parameters (maintainer only)."""
+        args = {
+            "new_params": {
+                "voting_period_ms": voting_period_ms,
+                "quorum_bps": quorum_bps,
+                "approval_bps": approval_bps,
+                "min_proposer_stake": min_proposer_stake,
+                "submission_open_day": submission_open_day,
+                "submission_close_day": submission_close_day,
+            }
+        }
+        return self._exec(self.governance, keypair, "update_params", args)
 
     def submit_proposal(self, keypair: Keypair, cid: str, kind: dict, hotkey: str) -> dict[str, Any]:
         """Submit a new governance proposal."""
@@ -694,6 +723,25 @@ class TUSDTClient:
             "submit_snapshot",
             args={"root": root, "circulating_supply": circulating_supply, "snapshot_block": snapshot_block},
         )
+
+    def get_netuid(self, keypair: Keypair) -> int:
+        """Return the governing subnet netuid."""
+        result = self._read(self.governance, keypair, "netuid")
+        return unwrap_plain(result)
+
+    def get_election_address(self, keypair: Keypair) -> str:
+        """Return the election contract address registered in governance."""
+        result = self._read(self.governance, keypair, "election")
+        return unwrap_plain(result)
+
+    def get_election_snapshot(self, keypair: Keypair):
+        """Return the latest election snapshot, or None.
+
+        Returns a 4-element list ``[merkle_root, circulating_supply, netuid,
+        snapshot_block]`` when a snapshot exists, or ``None``.
+        """
+        result = self._read(self.governance, keypair, "election_snapshot")
+        return unwrap_option(result)
 
     # ==================================================================
     # TOKEN (ERC-20) OPERATIONS
@@ -894,8 +942,10 @@ class TUSDTClient:
                 "collateral_balance": collateral_balance,
                 "debt_balance": debt_balance,
                 "min_bid": min_bid,
-                "liquidation_price": liquidation_price,
-                "duration_ms": duration_ms,
+                # Ratio is a composite struct with a single inner u128 field
+                "liquidation_price": {"inner": liquidation_price},
+                # Option<u64> — must be explicitly wrapped in Some
+                "duration_ms": {"Some": duration_ms},
             },
         )
 
@@ -997,6 +1047,11 @@ class TUSDTClient:
         result = self._read(self.oracle, keypair, "controller")
         return unwrap_plain(result)
 
+    def get_oracle_governance(self, keypair: Keypair) -> str:
+        """Return the oracle contract's governance address."""
+        result = self._read(self.oracle, keypair, "governance")
+        return str(unwrap_plain(result))
+
     def get_oracle_validator(self, keypair: Keypair) -> str | None:
         """Return the oracle validator account, or None if not set."""
         result = self._read(self.oracle, keypair, "validator")
@@ -1096,3 +1151,172 @@ class TUSDTClient:
             "release",
             args={"fund": fund, "token_kind": token_kind, "amount": amount, "recipient": recipient},
         )
+
+    # ==================================================================
+    # ELECTION OPERATIONS
+    # ==================================================================
+
+    # --- Read methods ---
+
+    def get_election_governance(self, keypair: Keypair) -> str:
+        """Return the governance address from the election contract."""
+        result = self._read(self.election, keypair, "governance")
+        return unwrap_plain(result)
+
+    def get_min_candidate_stake(self, keypair: Keypair) -> int:
+        """Return the minimum candidate stake (alpha)."""
+        result = self._read(self.election, keypair, "min_candidate_stake")
+        return unwrap_plain(result)
+
+    def get_incumbent(self, keypair: Keypair) -> str:
+        """Return the current incumbent maintainer address."""
+        result = self._read(self.election, keypair, "incumbent")
+        return unwrap_plain(result)
+
+    def get_active_netuid(self, keypair: Keypair) -> int:
+        """Return the active governing subnet netuid."""
+        result = self._read(self.election, keypair, "active_netuid")
+        return unwrap_plain(result)
+
+    def get_phase(self, keypair: Keypair):
+        """Return the current election phase.
+
+        Returns a dict e.g. ``{"Idle": null}`` or a string ``"Idle"``.
+        """
+        result = self._read(self.election, keypair, "phase")
+        return unwrap_plain(result)
+
+    def get_cycle_id(self, keypair: Keypair) -> int:
+        """Return the current election cycle ID."""
+        result = self._read(self.election, keypair, "cycle_id")
+        return unwrap_plain(result)
+
+    def get_next_election_ts(self, keypair: Keypair) -> int:
+        """Return the earliest timestamp when the next election may be scheduled."""
+        result = self._read(self.election, keypair, "next_election_ts")
+        return unwrap_plain(result)
+
+    def get_terms_served(self, keypair: Keypair, who: str) -> int:
+        """Return the number of terms served by an account."""
+        result = self._read(self.election, keypair, "terms_served", args={"who": who})
+        return unwrap_plain(result)
+
+    def get_candidate(self, keypair: Keypair, candidate: str) -> dict | None:
+        """Return a candidate's registration info, or None."""
+        result = self._read(self.election, keypair, "get_candidate", args={"candidate": candidate})
+        raw = unwrap_option(result)
+        if raw is None:
+            return None
+        return raw if isinstance(raw, dict) else raw
+
+    def get_candidate_list(self, keypair: Keypair) -> list:
+        """Return the ordered list of registered candidate addresses."""
+        result = self._read(self.election, keypair, "candidate_list")
+        raw = unwrap_plain(result)
+        return raw if isinstance(raw, list) else []
+
+    def get_approval_weight(self, keypair: Keypair, candidate: str) -> int:
+        """Return the accumulated approval weight for a candidate."""
+        result = self._read(self.election, keypair, "approval_weight", args={"candidate": candidate})
+        return unwrap_plain(result)
+
+    def get_total_participating_power(self, keypair: Keypair) -> int:
+        """Return the total summed voting power of all participants."""
+        result = self._read(self.election, keypair, "total_participating_power")
+        return unwrap_plain(result)
+
+    def get_total_voted_balance(self, keypair: Keypair) -> int:
+        """Return the total raw alpha balance of all participants."""
+        result = self._read(self.election, keypair, "total_voted_balance")
+        return unwrap_plain(result)
+
+    def get_quorum_election(self, keypair: Keypair) -> int:
+        """Return the quorum threshold for the current election cycle."""
+        result = self._read(self.election, keypair, "quorum")
+        return unwrap_plain(result)
+
+    def get_leading_candidate(self, keypair: Keypair):
+        """Return the leading candidate as ``(address, weight)``, or None."""
+        result = self._read(self.election, keypair, "leading_candidate")
+        return unwrap_option(result)
+
+    def get_maintainer_elect(self, keypair: Keypair) -> dict | None:
+        """Return the maintainer-elect info, or None."""
+        result = self._read(self.election, keypair, "maintainer_elect")
+        raw = unwrap_option(result)
+        if raw is None:
+            return None
+        return raw if isinstance(raw, dict) else raw
+
+    def get_transition(self, keypair: Keypair) -> dict | None:
+        """Return the active subnet transition info, or None."""
+        result = self._read(self.election, keypair, "transition")
+        raw = unwrap_option(result)
+        if raw is None:
+            return None
+        return raw if isinstance(raw, dict) else raw
+
+    def is_in_transition(self, keypair: Keypair) -> bool:
+        """Return whether a subnet transition is active."""
+        result = self._read(self.election, keypair, "is_in_transition")
+        return unwrap_plain(result)
+
+    def get_voting_window(self, keypair: Keypair):
+        """Return the voting window as ``(opens_at, ends_at)``."""
+        result = self._read(self.election, keypair, "voting_window")
+        return unwrap_plain(result)
+
+    # --- Write (mutating) methods ---
+
+    def schedule_election(self, keypair: Keypair) -> dict[str, Any]:
+        """Schedule a new election cycle (permissionless)."""
+        return self._exec(self.election, keypair, "schedule_election")
+
+    def register_candidate(self, keypair: Keypair, netuid: int, hotkey: str) -> dict[str, Any]:
+        """Register as a candidate for the current election cycle."""
+        return self._exec(
+            self.election, keypair, "register_candidate", args={"netuid": netuid, "hotkey": hotkey}
+        )
+
+    def cast_approval(
+        self,
+        keypair: Keypair,
+        candidate: str,
+        hotkey: str,
+        balance: int,
+        multiplier_bps: int,
+        proof: list,
+    ) -> dict[str, Any]:
+        """Cast an approval vote for a candidate."""
+        return self._exec(
+            self.election,
+            keypair,
+            "cast_approval",
+            args={
+                "candidate": candidate,
+                "hotkey": hotkey,
+                "balance": balance,
+                "multiplier_bps": multiplier_bps,
+                "proof": proof,
+            },
+        )
+
+    def finalize_election(self, keypair: Keypair) -> dict[str, Any]:
+        """Finalize the current election cycle (permissionless)."""
+        return self._exec(self.election, keypair, "finalize")
+
+    def activate_election(self, keypair: Keypair) -> dict[str, Any]:
+        """Activate the elected maintainer (permissionless)."""
+        return self._exec(self.election, keypair, "activate")
+
+    def end_transition(self, keypair: Keypair) -> dict[str, Any]:
+        """End the active subnet transition (permissionless)."""
+        return self._exec(self.election, keypair, "end_transition")
+
+    def trigger_emergency_election(self, keypair: Keypair) -> dict[str, Any]:
+        """Trigger an emergency election (incumbent only)."""
+        return self._exec(self.election, keypair, "trigger_emergency_election")
+
+    def cancel_cycle(self, keypair: Keypair) -> dict[str, Any]:
+        """Cancel the current election cycle (incumbent only)."""
+        return self._exec(self.election, keypair, "cancel_cycle")

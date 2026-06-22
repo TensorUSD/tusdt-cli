@@ -5,6 +5,7 @@ import click
 from tusdt_cli.client import TUSDTClient
 from tusdt_cli.config import NETWORKS, load_config
 from tusdt_cli.utils import (
+    HelpfulCommand,
     ModeAwareGroup,
     format_balance,
     parse_balance,
@@ -275,6 +276,36 @@ def token_controller_cmd(ctx: click.Context, network: str | None) -> None:
         return
 
     print_dict("Token Controller", {"Address": addr})
+
+
+# ------------------------------------------------------------------
+# total-supply
+# ------------------------------------------------------------------
+
+
+@token_group.command("total-supply", cls=HelpfulCommand)
+@_network_option
+@click.pass_context
+def total_supply(ctx: click.Context, network: str | None) -> None:
+    """View the total TUSDT token supply.
+
+    \b
+    Examples:
+      tusdt token total-supply --network testnet
+    """
+    config = load_config(network=network)
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        raw_supply = client.total_supply(keypair)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    decimals = config.get("decimals", 9)
+    supply = format_balance(raw_supply, decimals)
+    print_dict("Total Supply", {"total_supply": supply, "raw": str(raw_supply)})
 
 
 # ------------------------------------------------------------------
