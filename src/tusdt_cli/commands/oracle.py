@@ -5,6 +5,7 @@ import click
 from tusdt_cli.client import TUSDTClient
 from tusdt_cli.config import NETWORKS, load_config
 from tusdt_cli.utils import (
+    HelpfulCommand,
     ModeAwareGroup,
     print_dict,
     print_error,
@@ -40,6 +41,7 @@ _ORACLE_ADVANCED = {
     "summary",
     "is-reporter",
     "controller",
+    "governance",
     "validator",
     "max-deviation",
     "max-submissions",
@@ -547,6 +549,34 @@ def controller(ctx: click.Context, network: str | None) -> None:
         return
 
     print_dict("Oracle Controller", {"Address": addr})
+
+
+# ------------------------------------------------------------------
+# governance
+# ------------------------------------------------------------------
+
+
+@oracle_group.command("governance", cls=HelpfulCommand)
+@_network_option
+@click.pass_context
+def oracle_governance(ctx: click.Context, network: str | None) -> None:
+    """View the oracle contract's governance address.
+
+    \b
+    Examples:
+      tusdt oracle governance --network testnet
+    """
+    config = load_config(network=network)
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        governance_addr = client.get_oracle_governance(keypair)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    print_dict("Oracle Governance", {"governance": governance_addr})
 
 
 # ------------------------------------------------------------------

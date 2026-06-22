@@ -5,6 +5,7 @@ import click
 from tusdt_cli.client import TUSDTClient
 from tusdt_cli.config import NETWORKS, load_config
 from tusdt_cli.utils import (
+    HelpfulCommand,
     ModeAwareGroup,
     format_balance,
     parse_balance,
@@ -31,7 +32,6 @@ _wallet_option = click.option(
 )
 
 _GOVERNANCE_ADVANCED = {
-    "set-maintainer",
     "set-council",
     "vault-set-params",
     "vault-cancel-update",
@@ -435,55 +435,113 @@ def has_voted_cmd(
     )
 
 
-# ======================================================================
-# Advanced (write) commands
-# ======================================================================
-
 # ------------------------------------------------------------------
-# set-maintainer
+# netuid
 # ------------------------------------------------------------------
 
 
-@governance_group.command("set-maintainer")
-@click.argument("address", type=str, metavar="<ss58-address>")
-@_wallet_option
+@governance_group.command("netuid")
 @_network_option
 @click.pass_context
-def set_maintainer_cmd(
-    ctx: click.Context,
-    address: str,
-    wallet_name: str | None,
-    network: str | None,
-) -> None:
-    """Set a new maintainer (maintainer only).
+def governance_netuid(ctx: click.Context, network: str | None) -> None:
+    """Show the governing subnet netuid.
 
     \b
-    ADDRESS is the SS58 address of the new maintainer.
     Examples:
-      tusdt governance set-maintainer 5GrwvaEF... --wallet-name MyWallet
-      tusdt governance set-maintainer 5GrwvaEF... --wallet-name MyWallet --network testnet
+      tusdt governance netuid
+      tusdt governance netuid --network testnet
     """
     config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
 
     try:
-        keypair = get_signer_keypair(config)
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        netuid = client.get_netuid(keypair)
     except Exception as exc:
         print_error(str(exc))
         return
 
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Setting maintainer to {address}...")
+    print_dict("Governing Netuid", {"Netuid": netuid})
+
+
+# ------------------------------------------------------------------
+# election
+# ------------------------------------------------------------------
+
+
+@governance_group.command("election")
+@_network_option
+@click.pass_context
+def governance_election(ctx: click.Context, network: str | None) -> None:
+    """Show the election contract address registered in governance.
+
+    \b
+    Examples:
+      tusdt governance election
+      tusdt governance election --network testnet
+    """
+    config = load_config(network=network)
 
     try:
+        keypair = get_reader_keypair(config)
         client = TUSDTClient(config)
-        result = client.set_maintainer(keypair, address)
-        print_success("Maintainer updated!")
-        print_tx_result(result, config.get("network", "finney"))
+        addr = client.get_election_address(keypair)
     except Exception as exc:
         print_error(str(exc))
+        return
 
+    print_dict("Election Contract", {"Address": addr})
+
+
+# ------------------------------------------------------------------
+# election-snapshot
+# ------------------------------------------------------------------
+
+
+@governance_group.command("election-snapshot")
+@_network_option
+@click.pass_context
+def governance_election_snapshot(ctx: click.Context, network: str | None) -> None:
+    """Show the latest election snapshot used by the election contract.
+
+    \b
+    Examples:
+      tusdt governance election-snapshot
+      tusdt governance election-snapshot --network testnet
+    """
+    config = load_config(network=network)
+
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        snapshot = client.get_election_snapshot(keypair)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+
+    if snapshot is None:
+        print_info("No election snapshot available")
+        return
+
+    if isinstance(snapshot, (list, tuple)) and len(snapshot) >= 4:
+        merkle_root = snapshot[0]
+        root_hex = "0x" + bytes(merkle_root).hex() if merkle_root else "N/A"
+        print_dict(
+            "Election Snapshot",
+            {
+                "Merkle Root": root_hex,
+                "Circulating Supply": snapshot[1],
+                "Netuid": snapshot[2],
+                "Snapshot Block": snapshot[3],
+            },
+        )
+    else:
+        print_dict("Election Snapshot", {"Raw": snapshot})
+
+
+# ======================================================================
+# Advanced (write) commands
+# ======================================================================
 
 # ------------------------------------------------------------------
 # set-council
@@ -826,7 +884,7 @@ def gov_vault_pause_cmd(
     wallet_name: str | None,
     network: str | None,
 ) -> None:
-    """Pause the vault contract via governance.
+    """Pause the vault contract via governance (council only).
 
     \b
     Examples:
@@ -1060,53 +1118,55 @@ def gov_auction_set_admin_cmd(
 # ------------------------------------------------------------------
 
 
-@governance_group.command("update-params")
-@click.option("--netuid", type=int, default=None, help="Subnet UID (integer)")
-@click.option("--voting-period-ms", type=int, default=None, help="Voting period in milliseconds (integer)")
-@click.option(
-    "--execution-delay-ms", type=int, default=None, help="Execution delay in milliseconds (integer)"
-)
-@click.option(
-    "--minimum-quorum", type=str, default=None, help="Minimum quorum in human-readable units (e.g. 100000.0)"
-)
+@governance_group.command("update-params", cls=HelpfulCommand)
 @_wallet_option
 @_network_option
+@click.option(
+    "--voting-period-ms",
+    type=int,
+    required=True,
+    help="Voting period in milliseconds (e.g., 172800000 for 48h)",
+)
+@click.option(
+    "--quorum-bps", type=int, required=True, help="Quorum threshold in basis points (e.g., 2000 for 20%)"
+)
+@click.option(
+    "--approval-bps", type=int, required=True, help="Approval threshold in basis points (e.g., 5001 for >50%)"
+)
+@click.option(
+    "--min-proposer-stake", type=int, required=True, help="Minimum subnet alpha stake to submit a proposal"
+)
+@click.option(
+    "--submission-open-day", type=int, required=True, help="First day of month proposals are accepted (1-28)"
+)
+@click.option(
+    "--submission-close-day",
+    type=int,
+    required=True,
+    help="Last day of month proposals are accepted (1-28, >= open day)",
+)
 @click.pass_context
 def update_params_cmd(
     ctx: click.Context,
-    netuid: int | None,
-    voting_period_ms: int | None,
-    execution_delay_ms: int | None,
-    minimum_quorum: str | None,
     wallet_name: str | None,
     network: str | None,
+    voting_period_ms: int,
+    quorum_bps: int,
+    approval_bps: int,
+    min_proposer_stake: int,
+    submission_open_day: int,
+    submission_close_day: int,
 ) -> None:
-    """Update governance contract parameters (maintainer only).
+    """Update governance parameters (maintainer only).
 
     \b
-    All parameters are optional; only supplied values will be updated.
+    All six parameters are required.
     Examples:
-      tusdt governance update-params --minimum-quorum 50000 --wallet-name MyWallet
-      tusdt governance update-params --voting-period-ms 86400000 --wallet-name MyWallet
+      tusdt governance update-params --voting-period-ms 172800000 --quorum-bps 2000 --approval-bps 5001 --min-proposer-stake 1000000000000000000 --submission-open-day 1 --submission-close-day 7 --wallet-name MyWallet
     """
     config = load_config(network=network)
     if wallet_name:
         config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
-
-    new_params: dict = {}
-    if netuid is not None:
-        new_params["netuid"] = netuid
-    if voting_period_ms is not None:
-        new_params["voting_period_ms"] = voting_period_ms
-    if execution_delay_ms is not None:
-        new_params["execution_delay_ms"] = execution_delay_ms
-    if minimum_quorum is not None:
-        new_params["minimum_quorum"] = parse_balance(minimum_quorum, decimals)
-
-    if not new_params:
-        print_error("Provide at least one parameter to update")
-        return
 
     try:
         keypair = get_signer_keypair(config)
@@ -1115,11 +1175,21 @@ def update_params_cmd(
         return
 
     print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Updating governance parameters: {new_params}")
+    print_info(
+        f"Updating governance parameters: voting_period_ms={voting_period_ms}, quorum_bps={quorum_bps}, approval_bps={approval_bps}, min_proposer_stake={min_proposer_stake}, submission_open_day={submission_open_day}, submission_close_day={submission_close_day}"
+    )
 
     try:
         client = TUSDTClient(config)
-        result = client.update_governance_params(keypair, new_params)
+        result = client.update_governance_params(
+            keypair,
+            voting_period_ms,
+            quorum_bps,
+            approval_bps,
+            min_proposer_stake,
+            submission_open_day,
+            submission_close_day,
+        )
         print_success("Governance parameters updated!")
         print_tx_result(result, config.get("network", "finney"))
     except Exception as exc:
@@ -1437,7 +1507,7 @@ def submit_snapshot_cmd(
     wallet_name: str | None,
     network: str | None,
 ) -> None:
-    """Submit a Merkle snapshot for circulating supply verification.
+    """Submit a Merkle snapshot for circulating supply verification (council only).
 
     \b
     Examples:

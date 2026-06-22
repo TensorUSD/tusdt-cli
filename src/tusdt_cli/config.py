@@ -22,15 +22,17 @@ NETWORKS: dict[str, dict[str, str]] = {
         "oracle_address": "5Dfz8xgQoCsaWWrDxjeCuKB8R6AtYymWZDDDAe2q7NE8tL8A",
         "governance_address": "5CEPPTnB2YtEv7Cf8TXrFkdr6BPkDAUhDJbiT38t1A1g83g5",
         "treasury_address": "5FcjwHj8NkAMbPzkqzYweeC7KW4LffLW7KEKAR62Dx2cft2f",
+        "election_address": "5DZY93jJTHnCncQHNVc54h2ehYKsjyDLAUyYbBaiHCVdqVfV",
     },
     "testnet": {
         "rpc": "wss://test.finney.opentensor.ai:443",
-        "vault_address": "5H8nuGvHJdNXuSWtquddcGQDgAvK4vEvXmvKwU6o4cCmvfPu",
-        "token_address": "5DXy5zJ28txkfLQH8uUQSjQWJQQL5hrMVY5Wiv6BwLZX66Gi",
-        "auction_address": "5CqXrT8gkRx7EZrMRQjzAY6xUzPAk96GByM4N8wP889y5rju",
-        "oracle_address": "5FAwRfw6HcHFqrLEPbqy73UR1HGBxesS3oAtsFe6Z1P8ZKbS",
-        "governance_address": "5EvsJM6hkZruvVAAxnYLCtEkkBiWLWfA8fFC51kgwh5o2rYN",
-        "treasury_address": "5EhtUDuQnvNfWpjkakwr7prdZCgubQCgsCSSctZDFgtw1fNv",
+        "vault_address": "5FALBC2s6jJV5QLkTL8U4vHALDebbwRe7d49Sp3GTWvWPUmP",
+        "token_address": "5Fi4ddEtVJEbP8rTaJmsreJh8Mb24Sym8M3EWgnTZgxcpb7j",
+        "auction_address": "5FYy6S6WTgNPd1gdKA5XaEmjGvmevCracftTjczY3jq3bAxD",
+        "oracle_address": "5Gg3N28rCbbhxdoXe5x6imycai17kz8mK92QZkaP4Q4zunSf",
+        "governance_address": "5CrdAxPmdNBYqSsu4xHLrEV5yqNQjgiaMcFDGB1qPCveWzPQ",
+        "treasury_address": "5FjLtDGo2QMftrTomZ8fhRswdQCv5QUNGHeM8yg7QkEVL4B8",
+        "election_address": "5HQCuVL4VFFXYUxNiF6EAzwyozLFqfXaTDLob1azFn9r1xS3",
     },
 }
 DEFAULT_CONFIG: dict[str, Any] = {
@@ -42,12 +44,14 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "oracle_address": NETWORKS["finney"]["oracle_address"],
     "governance_address": NETWORKS["finney"]["governance_address"],
     "treasury_address": NETWORKS["finney"]["treasury_address"],
+    "election_address": NETWORKS["finney"]["election_address"],
     "vault_metadata": str(_ABI_DIR / "tusdt_vault.json"),
     "token_metadata": str(_ABI_DIR / "tusdt_erc20.json"),
     "auction_metadata": str(_ABI_DIR / "tusdt_auction.json"),
     "oracle_metadata": str(_ABI_DIR / "tusdt_oracle.json"),
     "governance_metadata": str(_ABI_DIR / "tusdt_governance.json"),
     "treasury_metadata": str(_ABI_DIR / "tusdt_treasury.json"),
+    "election_metadata": str(_ABI_DIR / "tusdt_election.json"),
     "signer": None,
     "wallet_name": None,
     "wallet_hotkey": "default",
@@ -100,6 +104,7 @@ def load_config(network: str | None = None) -> dict[str, Any]:
                 "oracle_metadata",
                 "governance_metadata",
                 "treasury_metadata",
+                "election_metadata",
             ):
                 if key in saved and not Path(saved[key]).exists():
                     del saved[key]

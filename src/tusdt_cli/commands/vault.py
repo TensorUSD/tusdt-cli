@@ -1346,7 +1346,7 @@ def cancel_update(ctx: click.Context, wallet_name: str | None, network: str | No
 @_network_option
 @click.pass_context
 def claim_surplus(ctx: click.Context, amount: str, wallet_name: str | None, network: str | None) -> None:
-    """Claim surplus TUSDT from the vault contract (governance only).
+    """Claim surplus TUSDT from the vault contract (permissionless — anyone may call).
 
     \b
     AMOUNT is the human-readable token amount to claim.
