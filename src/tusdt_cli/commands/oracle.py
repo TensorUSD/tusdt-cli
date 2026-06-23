@@ -7,6 +7,8 @@ from tusdt_cli.config import NETWORKS, load_config
 from tusdt_cli.utils import (
     HelpfulCommand,
     ModeAwareGroup,
+    format_balance,
+    parse_balance,
     print_dict,
     print_error,
     print_info,
@@ -39,13 +41,15 @@ _ORACLE_ADVANCED = {
     "history-count",
     "submissions",
     "summary",
-    "is-reporter",
+    "get-netuid",
+    "get-min-submitter-stake",
     "controller",
     "governance",
     "validator",
     "max-deviation",
     "max-submissions",
-    "set-reporter",
+    "set-netuid",
+    "set-min-submitter-stake",
     "set-validator",
     "set-max-deviation",
     "update-governance",
@@ -129,26 +133,26 @@ def round_info(ctx: click.Context, network: str | None) -> None:
 
 @oracle_group.command("submit-price")
 @click.argument("price_value", type=str, metavar="<price>")
-@click.option(
-    "--wallet-hotkey", default=None, help="Hotkey name to resolve its SS58 address for submission metadata"
-)
+@click.option("--wallet-hotkey", required=True, help="Hotkey name to resolve its SS58 address (required)")
+@click.option("--provider", default=None, help="Data provider name (e.g. coinmarketcap, coingecko)")
 @_wallet_option
 @_network_option
 @click.pass_context
 def submit_price(
     ctx: click.Context,
     price_value: str,
-    wallet_hotkey: str | None,
+    wallet_hotkey: str,
     wallet_name: str | None,
+    provider: str | None,
     network: str | None,
 ) -> None:
-    """Submit a price to the oracle as a reporter.
+    """Submit a price to the oracle. Caller must be a registered subnet neuron.
 
     \b
     PRICE is a decimal value (e.g. 245.50) which will be scaled by 10^18.
     Examples:
-      tusdt oracle submit-price 245.50 --wallet-name MyWallet --network testnet
       tusdt oracle submit-price 245.50 --wallet-name MyWallet --wallet-hotkey myhotkey
+      tusdt oracle submit-price 245.50 --wallet-name MyWallet --wallet-hotkey myhotkey --provider coingecko
     """
     config = load_config(network=network)
     if wallet_name:
@@ -166,28 +170,30 @@ def submit_price(
         keypair = get_signer_keypair(config)
     except Exception as exc:
         print_error(str(exc))
+        return
 
-    # Resolve hotkey SS58 address for metadata
-    hot_key_address: str | None = None
-    if wallet_hotkey:
-        wname = wallet_name or config.get("wallet_name")
-        if not wname:
-            print_error("--wallet-hotkey requires --wallet-name (or wallet_name in config)")
-            return
-        try:
-            hk_keypair = load_hotkey(wname, wallet_hotkey, config.get("wallet_path"))
-            hot_key_address = hk_keypair.ss58_address
-            print_info(f"Hotkey: {hot_key_address}")
-        except Exception as exc:
-            print_error(f"Failed to load hotkey '{wallet_hotkey}': {exc}")
-            return
+    # Resolve hotkey SS58 address for metadata (required)
+    wname = wallet_name or config.get("wallet_name")
+    if not wname:
+        print_error("--wallet-name (or wallet_name in config) is required")
+        return
+    try:
+        hk_keypair = load_hotkey(wname, wallet_hotkey, config.get("wallet_path"))
+        hot_key_address = hk_keypair.ss58_address
+        print_info(f"Hotkey: {hot_key_address}")
+    except Exception as exc:
+        print_error(f"Failed to load hotkey '{wallet_hotkey}': {exc}")
+        return
+
+    if provider:
+        print_info(f"Provider: {provider}")
 
     print_info(f"Signer: {keypair.ss58_address}")
     print_info(f"Submitting price {price_value} (raw: {raw_price})...")
 
     try:
         client = TUSDTClient(config)
-        result = client.submit_price(keypair, raw_price, hot_key_address)
+        result = client.submit_price(keypair, raw_price, hot_key_address, provider)
         print_success("Price submitted!")
         print_tx_result(result, config.get("network", "finney"))
     except Exception as exc:
@@ -486,41 +492,36 @@ def summary(ctx: click.Context, network: str | None) -> None:
 # ------------------------------------------------------------------
 
 
-@oracle_group.command("is-reporter")
-@click.argument("account", type=str, metavar="<account>")
+@oracle_group.command("get-netuid")
 @_network_option
 @click.pass_context
-def is_reporter(ctx: click.Context, account: str, network: str | None) -> None:
-    """Check if an account is a registered oracle reporter.
-
-    \b
-    ACCOUNT is an SS58 address or wallet name.
-    Examples:
-      tusdt oracle is-reporter 5GrwvaEF... --network testnet
-    """
+def get_netuid(ctx: click.Context, network: str | None) -> None:
+    """Return the oracle's governing subnet netuid."""
     config = load_config(network=network)
-
-    try:
-        account = resolve_ss58(account, config.get("wallet_path"))
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
     try:
         keypair = get_reader_keypair(config)
         client = TUSDTClient(config)
-        result = client.is_reporter(keypair, account)
+        result = client.oracle_get_netuid(keypair)
     except Exception as exc:
         print_error(str(exc))
         return
+    print_dict("Oracle Netuid", {"Netuid": result})
 
-    print_dict(
-        "Reporter Status",
-        {
-            "Account": account,
-            "Is reporter": result,
-        },
-    )
+
+@oracle_group.command("get-min-submitter-stake")
+@_network_option
+@click.pass_context
+def get_min_submitter_stake(ctx: click.Context, network: str | None) -> None:
+    """Return the oracle's minimum required submitter stake."""
+    config = load_config(network=network)
+    try:
+        keypair = get_reader_keypair(config)
+        client = TUSDTClient(config)
+        result = client.oracle_get_min_submitter_stake(keypair)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+    print_dict("Min Submitter Stake", {"Raw": result, "Human": format_balance(result, 9)})
 
 
 # ------------------------------------------------------------------
@@ -728,55 +729,58 @@ def commit_round_gov(
 # ------------------------------------------------------------------
 
 
-@oracle_group.command("set-reporter")
-@click.argument("account", type=str, metavar="<account>")
-@click.option("--enable/--disable", default=None, help="Enable or disable the reporter (one required)")
+@oracle_group.command("set-netuid")
+@click.argument("netuid", type=int, metavar="<netuid>")
 @_wallet_option
 @_network_option
 @click.pass_context
-def set_reporter_cmd(
-    ctx: click.Context,
-    account: str,
-    enable: bool | None,
-    wallet_name: str | None,
-    network: str | None,
-) -> None:
-    """Enable or disable an oracle reporter account (validator only).
-
-    \b
-    ACCOUNT is an SS58 address or wallet name.
-    Examples:
-      tusdt oracle set-reporter 5GrwvaEF... --enable --wallet-name MyWallet
-      tusdt oracle set-reporter 5GrwvaEF... --disable --wallet-name MyWallet
-    """
-    if enable is None:
-        print_error("Specify --enable or --disable")
-        return
-
+def set_netuid(ctx: click.Context, netuid: int, wallet_name: str | None, network: str | None) -> None:
+    """Set the oracle's governing subnet netuid (governance only)."""
     config = load_config(network=network)
     if wallet_name:
         config["wallet_name"] = wallet_name
-
-    try:
-        account = resolve_ss58(account, config.get("wallet_path"))
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
     try:
         keypair = get_signer_keypair(config)
     except Exception as exc:
         print_error(str(exc))
         return
-
-    action = "Enabling" if enable else "Disabling"
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"{action} reporter {account}...")
-
+    print_info(f"Setting netuid to {netuid}...")
     try:
         client = TUSDTClient(config)
-        result = client.set_reporter(keypair, account, enable)
-        print_success(f"Reporter {'enabled' if enable else 'disabled'}!")
+        result = client.oracle_set_netuid(keypair, netuid)
+        print_success("Netuid updated!")
+        print_tx_result(result, config.get("network", "finney"))
+    except Exception as exc:
+        print_error(str(exc))
+
+
+@oracle_group.command("set-min-submitter-stake")
+@click.argument("amount", type=str, metavar="<amount>")
+@_wallet_option
+@_network_option
+@click.pass_context
+def set_min_submitter_stake(
+    ctx: click.Context, amount: str, wallet_name: str | None, network: str | None
+) -> None:
+    """Set the oracle's minimum required submitter stake (governance only)."""
+    config = load_config(network=network)
+    if wallet_name:
+        config["wallet_name"] = wallet_name
+    try:
+        raw_amount = parse_balance(amount, config.get("decimals", 9))
+    except ValueError:
+        print_error(f"Invalid amount: {amount}")
+        return
+    try:
+        keypair = get_signer_keypair(config)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+    print_info(f"Setting min submitter stake to {amount} (raw: {raw_amount})...")
+    try:
+        client = TUSDTClient(config)
+        result = client.oracle_set_min_submitter_stake(keypair, raw_amount)
+        print_success("Min submitter stake updated!")
         print_tx_result(result, config.get("network", "finney"))
     except Exception as exc:
         print_error(str(exc))

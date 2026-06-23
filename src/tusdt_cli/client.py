@@ -640,6 +640,16 @@ class TUSDTClient:
         """Commit the oracle round with an explicit price via governance."""
         return self._exec(self.governance, keypair, "oracle_commit_round", args={"price": price})
 
+    def gov_oracle_set_netuid(self, keypair: Keypair, netuid: int) -> dict[str, Any]:
+        """Set the oracle's governing subnet netuid via governance."""
+        return self._exec(self.governance, keypair, "oracle_set_netuid", args={"netuid": netuid})
+
+    def gov_oracle_set_min_submitter_stake(self, keypair: Keypair, min_stake: int) -> dict[str, Any]:
+        """Set the oracle's minimum submitter stake via governance."""
+        return self._exec(
+            self.governance, keypair, "oracle_set_min_submitter_stake", args={"min_stake": min_stake}
+        )
+
     def gov_auction_set_admin(self, keypair: Keypair, admin: str | None) -> dict[str, Any]:
         """Set the auction admin via governance (pass None to clear)."""
         return self._exec(self.governance, keypair, "auction_set_admin", args={"admin": admin})
@@ -667,13 +677,13 @@ class TUSDTClient:
         }
         return self._exec(self.governance, keypair, "update_params", args)
 
-    def submit_proposal(self, keypair: Keypair, cid: str, kind: dict, hotkey: str) -> dict[str, Any]:
-        """Submit a new governance proposal."""
+    def submit_proposal(self, keypair: Keypair, cid: str, kind: dict) -> dict[str, Any]:
+        """Submit a new governance proposal (council only)."""
         return self._exec(
             self.governance,
             keypair,
             "submit_proposal",
-            args={"cid": cid, "kind": kind, "hotkey": hotkey},
+            args={"cid": cid, "kind": kind},
         )
 
     def vote(
@@ -988,13 +998,15 @@ class TUSDTClient:
         result = self._read(self.oracle, keypair, "current_round_id")
         return unwrap_plain(result)
 
-    def submit_price(self, keypair: Keypair, price: int, hot_key: str | None = None) -> dict[str, Any]:
-        """Submit a price to the oracle as a reporter."""
-        args: dict[str, Any] = {"price": price}
-        if hot_key:
-            args["metadata"] = {"hot_key": hot_key}
-        else:
-            args["metadata"] = None
+    def submit_price(
+        self, keypair: Keypair, price: int, hot_key: str, provider: str | None = None
+    ) -> dict[str, Any]:
+        """Submit a price to the oracle. The caller must be a registered subnet neuron."""
+        provider_bytes = provider.encode() if provider else None
+        args: dict[str, Any] = {
+            "price": price,
+            "metadata": {"hot_key": hot_key, "provider": provider_bytes},
+        }
         return self._exec(self.oracle, keypair, "submit_price", args=args)
 
     def commit_round(self, keypair: Keypair, override_price: int | None = None) -> dict[str, Any]:
@@ -1037,11 +1049,6 @@ class TUSDTClient:
         raw = unwrap_plain(result)
         return raw if isinstance(raw, dict) else raw
 
-    def is_reporter(self, keypair: Keypair, account: str) -> bool:
-        """Check if an account is a registered oracle reporter."""
-        result = self._read(self.oracle, keypair, "is_reporter", args={"account": account})
-        return unwrap_plain(result)
-
     def get_oracle_controller(self, keypair: Keypair) -> str:
         """Return the oracle controller account address."""
         result = self._read(self.oracle, keypair, "controller")
@@ -1071,11 +1078,23 @@ class TUSDTClient:
         """Governance commits the current oracle round with an explicit price."""
         return self._exec(self.oracle, keypair, "commit_round_governance", args={"price": price})
 
-    def set_reporter(self, keypair: Keypair, reporter: str, enabled: bool) -> dict[str, Any]:
-        """Enable or disable an oracle reporter account (validator only)."""
-        return self._exec(
-            self.oracle, keypair, "set_reporter", args={"reporter": reporter, "enabled": enabled}
-        )
+    def oracle_get_netuid(self, keypair: Keypair) -> int:
+        """Return the oracle's governing subnet netuid."""
+        result = self._read(self.oracle, keypair, "get_netuid")
+        return unwrap_plain(result)
+
+    def oracle_set_netuid(self, keypair: Keypair, netuid: int) -> dict[str, Any]:
+        """Set the oracle's governing subnet netuid (governance only)."""
+        return self._exec(self.oracle, keypair, "set_netuid", args={"netuid": netuid})
+
+    def oracle_get_min_submitter_stake(self, keypair: Keypair) -> int:
+        """Return the oracle's minimum required submitter stake."""
+        result = self._read(self.oracle, keypair, "min_submitter_stake")
+        return unwrap_plain(result)
+
+    def oracle_set_min_submitter_stake(self, keypair: Keypair, min_stake: int) -> dict[str, Any]:
+        """Set the oracle's minimum submitter stake (governance only)."""
+        return self._exec(self.oracle, keypair, "set_min_submitter_stake", args={"min_stake": min_stake})
 
     def set_validator(self, keypair: Keypair, validator: str | None) -> dict[str, Any]:
         """Set the oracle validator account (governance only). Pass None to clear."""
