@@ -42,6 +42,8 @@ _GOVERNANCE_ADVANCED = {
     "oracle-set-validator",
     "oracle-set-deviation",
     "oracle-commit-round",
+    "oracle-set-netuid",
+    "oracle-set-min-submitter-stake",
     "auction-set-admin",
     "update-params",
     "submit-proposal",
@@ -1060,6 +1062,73 @@ def gov_oracle_commit_round_cmd(
 
 
 # ------------------------------------------------------------------
+# oracle-set-netuid
+# ------------------------------------------------------------------
+
+
+@governance_group.command("oracle-set-netuid")
+@click.argument("netuid", type=int, metavar="<netuid>")
+@_wallet_option
+@_network_option
+@click.pass_context
+def oracle_set_netuid(ctx: click.Context, netuid: int, wallet_name: str | None, network: str | None) -> None:
+    """Set the oracle's governing subnet netuid via governance (maintainer only)."""
+    config = load_config(network=network)
+    if wallet_name:
+        config["wallet_name"] = wallet_name
+    try:
+        keypair = get_signer_keypair(config)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+    print_info(f"Setting oracle netuid to {netuid}...")
+    try:
+        client = TUSDTClient(config)
+        result = client.gov_oracle_set_netuid(keypair, netuid)
+        print_success("Oracle netuid updated!")
+        print_tx_result(result, config.get("network", "finney"))
+    except Exception as exc:
+        print_error(str(exc))
+
+
+# ------------------------------------------------------------------
+# oracle-set-min-submitter-stake
+# ------------------------------------------------------------------
+
+
+@governance_group.command("oracle-set-min-submitter-stake")
+@click.argument("amount", type=str, metavar="<amount>")
+@_wallet_option
+@_network_option
+@click.pass_context
+def oracle_set_min_submitter_stake(
+    ctx: click.Context, amount: str, wallet_name: str | None, network: str | None
+) -> None:
+    """Set the oracle's minimum submitter stake via governance (maintainer only)."""
+    config = load_config(network=network)
+    if wallet_name:
+        config["wallet_name"] = wallet_name
+    try:
+        raw_amount = parse_balance(amount, config.get("decimals", 9))
+    except ValueError:
+        print_error(f"Invalid amount: {amount}")
+        return
+    try:
+        keypair = get_signer_keypair(config)
+    except Exception as exc:
+        print_error(str(exc))
+        return
+    print_info(f"Setting oracle min submitter stake to {amount} (raw: {raw_amount})...")
+    try:
+        client = TUSDTClient(config)
+        result = client.gov_oracle_set_min_submitter_stake(keypair, raw_amount)
+        print_success("Oracle min submitter stake updated!")
+        print_tx_result(result, config.get("network", "finney"))
+    except Exception as exc:
+        print_error(str(exc))
+
+
+# ------------------------------------------------------------------
 # auction-set-admin
 # ------------------------------------------------------------------
 
@@ -1237,7 +1306,6 @@ def update_params_cmd(
     metavar="<ss58-address>",
     help="Recipient SS58 address (required if kind=funding)",
 )
-@click.option("--hotkey", required=True, help="Hotkey SS58 address of the proposer (e.g. 5GrwvaEF...)")
 @_wallet_option
 @_network_option
 @click.pass_context
@@ -1249,18 +1317,17 @@ def submit_proposal_cmd(
     token_kind_opt: str | None,
     funding_amount: str | None,
     funding_recipient: str | None,
-    hotkey: str,
     wallet_name: str | None,
     network: str | None,
 ) -> None:
-    """Submit a new governance proposal.
+    """Submit a new governance proposal (council only).
 
     \b
-    For non-funding proposals, only --cid, --kind non-funding, and --hotkey are required.
+    For non-funding proposals, only --cid and --kind non-funding are required.
     For funding proposals, also provide --fund, --token-kind, --funding-amount, and --funding-recipient.
     Examples:
-      tusdt governance submit-proposal --cid "QmXyz..." --kind non-funding --hotkey 5GrwvaEF... --wallet-name MyWallet
-      tusdt governance submit-proposal --cid "QmXyz..." --kind funding --fund emergency --token-kind tusdt --funding-amount 5000 --funding-recipient 5GrwvaEF... --hotkey 5GrwvaEF... --wallet-name MyWallet
+      tusdt governance submit-proposal --cid "QmXyz..." --kind non-funding --wallet-name MyWallet
+      tusdt governance submit-proposal --cid "QmXyz..." --kind funding --fund emergency --token-kind tusdt --funding-amount 5000 --funding-recipient 5GrwvaEF... --wallet-name MyWallet
     """
     config = load_config(network=network)
     if wallet_name:
@@ -1301,7 +1368,7 @@ def submit_proposal_cmd(
 
     try:
         client = TUSDTClient(config)
-        result = client.submit_proposal(keypair, cid, kind_dict, hotkey)
+        result = client.submit_proposal(keypair, cid, kind_dict)
         print_success("Proposal submitted!")
         print_tx_result(result, config.get("network", "finney"))
     except Exception as exc:
