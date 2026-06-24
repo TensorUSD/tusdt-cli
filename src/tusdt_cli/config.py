@@ -16,13 +16,13 @@ _ABI_DIR = Path(__file__).resolve().parent / "abi"
 NETWORKS: dict[str, dict[str, str]] = {
     "finney": {
         "rpc": "wss://entrypoint-finney.opentensor.ai:443",
-        "vault_address": "5GxJw8kTpapdHRW5KUXQLVDpXMMnA61mbzS6nF6jWsEeWExV",
-        "token_address": "5CJ4HtCPdoMfdNUk6B7vZ348XryeXAnb5BmDNGejob1FziNH",
-        "auction_address": "5HipAvNRiuh9mpTKztPLTvwyYkhzuSqxe1wsUy1fbRwbZUbQ",
-        "oracle_address": "5Dfz8xgQoCsaWWrDxjeCuKB8R6AtYymWZDDDAe2q7NE8tL8A",
-        "governance_address": "5CEPPTnB2YtEv7Cf8TXrFkdr6BPkDAUhDJbiT38t1A1g83g5",
-        "treasury_address": "5FcjwHj8NkAMbPzkqzYweeC7KW4LffLW7KEKAR62Dx2cft2f",
-        "election_address": "5DZY93jJTHnCncQHNVc54h2ehYKsjyDLAUyYbBaiHCVdqVfV",
+        "vault_address": "5F8ykW4bse6kUHi65XqAzSfrrgKHDXXEBoReUZmUVc7r8q3A",
+        "token_address": "5GjL2MKErF9ocXZBZZFueoWgf8wAnY1gcgLkDMj2bTsAsg6g",
+        "auction_address": "5Djyz3DAsL6HyZGBFKNK7fdaMP2Q21hn5sdPhigpHdcfGZ1a",
+        "oracle_address": "5GcaftCj1psi5489Dp8RiL5UmMsbRMf9XsfNrDMMsfM5hFoB",
+        "governance_address": "5Dg67UzxqncU4UVGtviQhuQ12Dy23oBGd9TCNF9YWy2t6KFR",
+        "treasury_address": "5FBcioi6uRMNPMyVZDQSb6BD3JwGjaZs8mkPeSp6JLxNfLgq",
+        "election_address": "5CYCj8LcCpZqQ9dgBpwQZsVWsmcstBu1TWqyg68N2kU6TWtr",
     },
     "testnet": {
         "rpc": "wss://test.finney.opentensor.ai:443",
