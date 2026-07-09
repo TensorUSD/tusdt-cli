@@ -729,7 +729,12 @@ def auction_admin_cmd(ctx: click.Context, network: str | None) -> None:
 @click.option(
     "--liquidation-price", type=int, required=True, help="Liquidation price as raw integer (10^18 scale)"
 )
-@click.option("--duration-ms", type=int, required=True, help="Auction duration in milliseconds (integer)")
+@click.option(
+    "--duration-ms",
+    type=int,
+    default=None,
+    help="Auction duration in milliseconds (uses contract default if omitted)",
+)
 @_wallet_option
 @_network_option
 @click.pass_context
@@ -741,7 +746,7 @@ def create_auction_cmd(
     debt_balance: str,
     min_bid: str,
     liquidation_price: int,
-    duration_ms: int,
+    duration_ms: int | None,
     wallet_name: str | None,
     network: str | None,
 ) -> None:
@@ -766,11 +771,13 @@ def create_auction_cmd(
         vault_owner = resolve_ss58(vault_owner, config.get("wallet_path"))
     except Exception as exc:
         print_error(str(exc))
+        return
 
     try:
         keypair = get_signer_keypair(config)
     except Exception as exc:
         print_error(str(exc))
+        return
 
     print_info(f"Signer: {keypair.ss58_address}")
     print_info(f"Creating auction for vault {vault_id} (owner: {vault_owner})...")

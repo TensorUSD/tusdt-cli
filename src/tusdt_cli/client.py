@@ -488,8 +488,17 @@ class TUSDTClient:
         keypair: Keypair,
         params: dict[str, Any],
     ) -> dict[str, Any]:
-        """Schedule a contract parameter update with timelock."""
-        return self._exec(self.vault, keypair, "set_contract_params", args={"params": params})
+        """Schedule a contract parameter update with timelock.
+
+        Reads current on-chain params, merges with user-supplied changes,
+        and sends the complete 11-field VaultContractParamsConfig struct.
+        """
+        current = unwrap_plain(self._read(self.vault, keypair, "get_contract_params"))
+        if not isinstance(current, dict):
+            raise ContractError(f"Expected dict from get_contract_params, got {type(current).__name__}")
+        merged = dict(current)
+        merged.update(params)
+        return self._exec(self.vault, keypair, "set_contract_params", args={"params": merged})
 
     def execute_params_update(self, keypair: Keypair) -> dict[str, Any]:
         """Execute the pending contract parameter update after timelock."""
@@ -594,8 +603,17 @@ class TUSDTClient:
         return self._exec(self.governance, keypair, "set_council", args={"members": members})
 
     def gov_vault_set_contract_params(self, keypair: Keypair, params: dict) -> dict[str, Any]:
-        """Schedule a vault contract parameter update via governance."""
-        return self._exec(self.governance, keypair, "vault_set_contract_params", args={"params": params})
+        """Schedule a vault contract parameter update via governance.
+
+        Reads current on-chain params from the vault, merges with user-supplied
+        changes, and sends the complete 11-field struct via governance forwarder.
+        """
+        current = unwrap_plain(self._read(self.vault, keypair, "get_contract_params"))
+        if not isinstance(current, dict):
+            raise ContractError(f"Expected dict from get_contract_params, got {type(current).__name__}")
+        merged = dict(current)
+        merged.update(params)
+        return self._exec(self.governance, keypair, "vault_set_contract_params", args={"params": merged})
 
     def gov_vault_cancel_update(self, keypair: Keypair) -> dict[str, Any]:
         """Cancel a pending vault contract parameter update via governance."""
@@ -939,7 +957,7 @@ class TUSDTClient:
         debt_balance: int,
         min_bid: int,
         liquidation_price: int,
-        duration_ms: int,
+        duration_ms: int | None = None,
     ) -> dict[str, Any]:
         """Create a new liquidation auction (controller only)."""
         return self._exec(
@@ -952,10 +970,8 @@ class TUSDTClient:
                 "collateral_balance": collateral_balance,
                 "debt_balance": debt_balance,
                 "min_bid": min_bid,
-                # Ratio is a composite struct with a single inner u128 field
-                "liquidation_price": {"inner": liquidation_price},
-                # Option<u64> — must be explicitly wrapped in Some
-                "duration_ms": {"Some": duration_ms},
+                "liquidation_price": liquidation_price,
+                "duration_ms": duration_ms,
             },
         )
 

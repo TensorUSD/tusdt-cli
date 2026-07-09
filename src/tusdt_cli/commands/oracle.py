@@ -243,6 +243,7 @@ def commit_round(
         keypair = get_signer_keypair(config)
     except Exception as exc:
         print_error(str(exc))
+        return
 
     print_info(f"Signer: {keypair.ss58_address}")
     if raw_override is not None:
@@ -488,7 +489,7 @@ def summary(ctx: click.Context, network: str | None) -> None:
 
 
 # ------------------------------------------------------------------
-# is-reporter
+# get-netuid
 # ------------------------------------------------------------------
 
 
@@ -730,7 +731,7 @@ def commit_round_gov(
 
 
 @oracle_group.command("set-netuid")
-@click.argument("netuid", type=int, metavar="<netuid>")
+@click.argument("netuid", type=click.IntRange(min=0, max=65535), metavar="<netuid>")
 @_wallet_option
 @_network_option
 @click.pass_context

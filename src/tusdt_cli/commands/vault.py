@@ -1190,6 +1190,21 @@ def unpause_contract(ctx: click.Context, wallet_name: str | None, network: str |
 @click.option(
     "--transaction-fee", type=int, default=None, help="Transaction fee in basis points (e.g. 3 for 0.03%%)"
 )
+@click.option(
+    "--min-vault-collateral", type=str, default=None, help="Minimum vault collateral in human-readable units"
+)
+@click.option(
+    "--max-vault-collateral",
+    type=str,
+    default=None,
+    help="Maximum per-vault collateral in human-readable units",
+)
+@click.option(
+    "--max-total-collateral",
+    type=str,
+    default=None,
+    help="Maximum total collateral across all vaults in human-readable units",
+)
 @_wallet_option
 @_network_option
 @click.pass_context
@@ -1203,6 +1218,9 @@ def set_params(
     auction_duration_ms: int | None,
     max_oracle_age_ms: int | None,
     transaction_fee: int | None,
+    min_vault_collateral: str | None,
+    max_vault_collateral: str | None,
+    max_total_collateral: str | None,
     wallet_name: str | None,
     network: str | None,
 ) -> None:
@@ -1236,6 +1254,12 @@ def set_params(
         params["max_oracle_age_ms"] = max_oracle_age_ms
     if transaction_fee is not None:
         params["transaction_fee"] = transaction_fee
+    if min_vault_collateral is not None:
+        params["min_vault_collateral"] = parse_balance(min_vault_collateral, decimals)
+    if max_vault_collateral is not None:
+        params["max_vault_collateral"] = parse_balance(max_vault_collateral, decimals)
+    if max_total_collateral is not None:
+        params["max_total_collateral"] = parse_balance(max_total_collateral, decimals)
 
     if not params:
         print_error("Provide at least one parameter to update")
