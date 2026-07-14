@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tusdt-cli"
-version = "0.4.0"
+version = "0.5.0"
 description = "CLI for interacting with the TUSDT ink! smart contract system on subtensor(bittensor)"
 readme = "README.md"
 license = "MIT"
@@ -46,6 +46,8 @@ dev = [
     "pre-commit",
     "build",
 ]
+
+ledger = ["hid>=1.0.0"]
 
 [tool.ruff]
 target-version = "py310"
@@ -108,3 +110,8 @@ not-iterable = "warn"
 unknown-argument = "warn"
 invalid-type-form = "warn"
 invalid-attribute-access = "warn"
+
+[dependency-groups]
+dev = [
+    "hid>=1.0.9",
+]

@@ -45,7 +45,12 @@ class CLIContext:
     quiet: bool = False
     assume_yes: bool = False
     verbosity: int = 0
+    dry_run: bool = False
+    signer_backend: str | None = None
+    ledger_account: int = 0
+    ledger_index: int = 0
     output: Output = field(default_factory=Output)
+    _ledger_signer: Any | None = field(default=None, repr=False)
 
     def __post_init__(self) -> None:
         setup_logging(verbosity=self.verbosity, quiet=self.quiet)
@@ -53,6 +58,24 @@ class CLIContext:
     # ------------------------------------------------------------------
     # Config
     # ------------------------------------------------------------------
+
+    def uses_ledger(self) -> bool:
+        """Return True if the signer backend is set to 'ledger'."""
+        return (self.signer_backend or "").strip().lower() == "ledger"
+
+    def ledger_signer(self):
+        """Return the singleton LedgerSigner for this invocation (lazy, cached)."""
+        if self._ledger_signer is None:
+            from tusdt_cli.ledger import LedgerSigner, find_ledger_device
+
+            device = find_ledger_device()
+            self._ledger_signer = LedgerSigner(device, account=self.ledger_account, index=self.ledger_index)
+            if not self.output.quiet and not self.output.json_mode:
+                self.output.info(
+                    f"using ledger account {self._ledger_signer.ss58_address} "
+                    f"({self._ledger_signer.derivation_path})"
+                )
+        return self._ledger_signer
 
     def make_config(self) -> dict[str, Any]:
         """Resolve the full config for this invocation.
@@ -98,26 +121,48 @@ class CLIContext:
     # Submit (mutation)
     # ------------------------------------------------------------------
 
-    def submit(self, fn: Callable[[TUSDTClient, Keypair], dict[str, Any]]) -> dict[str, Any]:
+    def submit(self, fn: Callable[[TUSDTClient, Keypair], Any]) -> dict[str, Any] | None:
         """Resolve the signer, open a client, call *fn*, and render the result.
 
         Usage from a write command::
 
             state.submit(lambda client, kp: client.create_vault(kp, amount))
+
+        When ``self.dry_run`` is True, the client is flagged for dry-run mode,
+        the result is rendered via :meth:`Output.dry_run_result`, and ``None``
+        is returned.
         """
         config = self.make_config()
-        try:
-            keypair = get_signer_keypair(config)
-        except Exception as exc:
-            err = TUSDTError(str(exc), code=ErrorCode.WALLET_NOT_FOUND)
-            self.output.error(err.message, help=REMEDIATION.get(err.code))
-            sys.exit(1)
+
+        # --- resolve signer: hardware wallet or software keypair ---
+        if self.uses_ledger():
+            from tusdt_cli.ledger import LedgerKeypair
+
+            signer = self.ledger_signer()
+            keypair = LedgerKeypair(signer, signer.ss58_address, signer.get_public_key())
+        else:
+            try:
+                keypair = get_signer_keypair(config)
+            except Exception as exc:
+                err = TUSDTError(str(exc), code=ErrorCode.WALLET_NOT_FOUND)
+                self.output.error(err.message, help=REMEDIATION.get(err.code))
+                sys.exit(1)
 
         self.output.info(f"Signer: {keypair.ss58_address}")
 
         try:
             client = TUSDTClient(config)
+            if self.dry_run:
+                client.dry_run = True
             result = fn(client, keypair)
+
+            if self.dry_run:
+                from tusdt_cli.client import DryRunResult
+
+                if isinstance(result, DryRunResult):
+                    self.output.dry_run_result(result)
+                sys.exit(0)
+
             self.output.tx_result(result)
             return result
         except TUSDTError as exc:

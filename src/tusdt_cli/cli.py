@@ -19,7 +19,17 @@ from tusdt_cli.commands.treasury import treasury_group
 from tusdt_cli.commands.vault import vault_group
 from tusdt_cli.config import CONFIG_FILE, NETWORKS, load_config, save_config
 from tusdt_cli.context import CLIContext
-from tusdt_cli.globals import json_option, network_option, quiet_option, verbose_option
+from tusdt_cli.globals import (
+    dry_run_option,
+    json_option,
+    ledger_account_option,
+    ledger_index_option,
+    ledger_option,
+    network_option,
+    quiet_option,
+    signer_backend_option,
+    verbose_option,
+)
 from tusdt_cli.utils import HelpfulGroup, console, print_dict, print_info, print_success
 from tusdt_cli.wallet import get_default_wallet_path, list_wallets
 
@@ -33,15 +43,37 @@ from tusdt_cli.wallet import get_default_wallet_path, list_wallets
 @json_option
 @quiet_option
 @verbose_option
+@dry_run_option
+@signer_backend_option
+@ledger_option
+@ledger_account_option
+@ledger_index_option
 @click.pass_context
 def cli(
     ctx: click.Context,
     use_json: bool = False,
     quiet: bool = False,
     verbosity: int = 0,
+    dry_run: bool = False,
+    signer_backend: str | None = None,
+    ledger: bool = False,
+    ledger_account: int = 0,
+    ledger_index: int = 0,
 ) -> None:
     """TUSDT CLI – interact with the TUSDT ink! smart-contract system."""
-    ctx.obj = CLIContext(use_json=use_json, quiet=quiet, verbosity=verbosity)
+    # --ledger is shorthand for --signer-backend ledger (mirrors btcli pattern)
+    backend = signer_backend
+    if ledger:
+        backend = "ledger"
+    ctx.obj = CLIContext(
+        use_json=use_json,
+        quiet=quiet,
+        verbosity=verbosity,
+        dry_run=dry_run,
+        signer_backend=backend,
+        ledger_account=ledger_account,
+        ledger_index=ledger_index,
+    )
 
 
 # ======================================================================
