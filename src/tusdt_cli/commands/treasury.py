@@ -2,32 +2,14 @@
 
 import click
 
-from tusdt_cli.client import TUSDTClient
-from tusdt_cli.config import NETWORKS, load_config
+from tusdt_cli.context import CLIContext
+from tusdt_cli.globals import network_option, wallet_option
 from tusdt_cli.utils import (
     ModeAwareGroup,
     format_balance,
     parse_balance,
-    print_dict,
-    print_error,
-    print_info,
-    print_success,
-    print_tx_result,
 )
-from tusdt_cli.wallet import get_reader_keypair, get_signer_keypair
-
-_network_option = click.option(
-    "--network",
-    type=click.Choice(list(NETWORKS.keys()), case_sensitive=False),
-    default=None,
-    help="Network preset (overrides rpc & contract addresses)",
-)
-
-_wallet_option = click.option(
-    "--wallet-name",
-    default=None,
-    help="Bittensor wallet name for signing (prompts for coldkey password)",
-)
+from tusdt_cli.wallet import get_reader_keypair
 
 _TREASURY_ADVANCED = {"set-governance", "distribute", "release"}
 
@@ -54,7 +36,7 @@ def treasury_group() -> None:
 
 
 @treasury_group.command("governance")
-@_network_option
+@network_option
 @click.pass_context
 def treasury_governance(ctx: click.Context, network: str | None) -> None:
     """Show the governance address registered in the treasury contract.
@@ -64,17 +46,12 @@ def treasury_governance(ctx: click.Context, network: str | None) -> None:
       tusdt treasury governance
       tusdt treasury governance --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        addr = client.treasury_get_governance(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Treasury Governance", {"Address": addr})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    addr = state.run_read(lambda c: c.treasury_get_governance(kp))
+    state.output.detail("Treasury Governance", {"Address": addr})
 
 
 # ------------------------------------------------------------------
@@ -83,7 +60,7 @@ def treasury_governance(ctx: click.Context, network: str | None) -> None:
 
 
 @treasury_group.command("token")
-@_network_option
+@network_option
 @click.pass_context
 def treasury_token(ctx: click.Context, network: str | None) -> None:
     """Show the TUSDT token address registered in the treasury contract.
@@ -93,17 +70,12 @@ def treasury_token(ctx: click.Context, network: str | None) -> None:
       tusdt treasury token
       tusdt treasury token --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        addr = client.treasury_get_token(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Treasury Token", {"Address": addr})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    addr = state.run_read(lambda c: c.treasury_get_token(kp))
+    state.output.detail("Treasury Token", {"Address": addr})
 
 
 # ------------------------------------------------------------------
@@ -113,7 +85,7 @@ def treasury_token(ctx: click.Context, network: str | None) -> None:
 
 @treasury_group.command("fund-balance-tusdt")
 @click.argument("fund", type=_FUND_CHOICE, metavar="<fund>")
-@_network_option
+@network_option
 @click.pass_context
 def fund_balance_tusdt(ctx: click.Context, fund: str, network: str | None) -> None:
     """Show the TUSDT balance for a specific fund.
@@ -124,25 +96,16 @@ def fund_balance_tusdt(ctx: click.Context, fund: str, network: str | None) -> No
       tusdt treasury fund-balance-tusdt emergency
       tusdt treasury fund-balance-tusdt insurance --network testnet
     """
-    config = load_config(network=network)
-    decimals = config.get("decimals", 9)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        fund_dict = {fund.capitalize(): None}
-        balance = client.treasury_fund_balance_tusdt(keypair, fund_dict)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict(
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
+    kp = get_reader_keypair(cfg)
+    fund_dict = {fund.capitalize(): None}
+    balance = state.run_read(lambda c: c.treasury_fund_balance_tusdt(kp, fund_dict))
+    state.output.detail(
         f"Fund Balance – {fund.capitalize()} (TUSDT)",
-        {
-            "Fund": fund.capitalize(),
-            "Balance": format_balance(balance, decimals),
-            "Raw": balance,
-        },
+        {"Fund": fund.capitalize(), "Balance": format_balance(balance, decimals), "Raw": balance},
     )
 
 
@@ -153,7 +116,7 @@ def fund_balance_tusdt(ctx: click.Context, fund: str, network: str | None) -> No
 
 @treasury_group.command("fund-balance-native")
 @click.argument("fund", type=_FUND_CHOICE, metavar="<fund>")
-@_network_option
+@network_option
 @click.pass_context
 def fund_balance_native(ctx: click.Context, fund: str, network: str | None) -> None:
     """Show the native balance for a specific fund.
@@ -164,25 +127,16 @@ def fund_balance_native(ctx: click.Context, fund: str, network: str | None) -> N
       tusdt treasury fund-balance-native emergency
       tusdt treasury fund-balance-native insurance --network testnet
     """
-    config = load_config(network=network)
-    decimals = config.get("decimals", 9)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        fund_dict = {fund.capitalize(): None}
-        balance = client.treasury_fund_balance_native(keypair, fund_dict)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict(
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
+    kp = get_reader_keypair(cfg)
+    fund_dict = {fund.capitalize(): None}
+    balance = state.run_read(lambda c: c.treasury_fund_balance_native(kp, fund_dict))
+    state.output.detail(
         f"Fund Balance – {fund.capitalize()} (Native)",
-        {
-            "Fund": fund.capitalize(),
-            "Balance": format_balance(balance, decimals),
-            "Raw": balance,
-        },
+        {"Fund": fund.capitalize(), "Balance": format_balance(balance, decimals), "Raw": balance},
     )
 
 
@@ -192,7 +146,7 @@ def fund_balance_native(ctx: click.Context, fund: str, network: str | None) -> N
 
 
 @treasury_group.command("pending-tusdt")
-@_network_option
+@network_option
 @click.pass_context
 def pending_tusdt(ctx: click.Context, network: str | None) -> None:
     """Show the total pending TUSDT balance awaiting distribution.
@@ -202,24 +156,13 @@ def pending_tusdt(ctx: click.Context, network: str | None) -> None:
       tusdt treasury pending-tusdt
       tusdt treasury pending-tusdt --network testnet
     """
-    config = load_config(network=network)
-    decimals = config.get("decimals", 9)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        balance = client.treasury_pending_tusdt(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict(
-        "Pending TUSDT",
-        {
-            "Balance": format_balance(balance, decimals),
-            "Raw": balance,
-        },
-    )
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
+    kp = get_reader_keypair(cfg)
+    balance = state.run_read(lambda c: c.treasury_pending_tusdt(kp))
+    state.output.detail("Pending TUSDT", {"Balance": format_balance(balance, decimals), "Raw": balance})
 
 
 # ------------------------------------------------------------------
@@ -228,7 +171,7 @@ def pending_tusdt(ctx: click.Context, network: str | None) -> None:
 
 
 @treasury_group.command("pending-native")
-@_network_option
+@network_option
 @click.pass_context
 def pending_native(ctx: click.Context, network: str | None) -> None:
     """Show the total pending native balance awaiting distribution.
@@ -238,24 +181,13 @@ def pending_native(ctx: click.Context, network: str | None) -> None:
       tusdt treasury pending-native
       tusdt treasury pending-native --network testnet
     """
-    config = load_config(network=network)
-    decimals = config.get("decimals", 9)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        balance = client.treasury_pending_native(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict(
-        "Pending Native",
-        {
-            "Balance": format_balance(balance, decimals),
-            "Raw": balance,
-        },
-    )
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
+    kp = get_reader_keypair(cfg)
+    balance = state.run_read(lambda c: c.treasury_pending_native(kp))
+    state.output.detail("Pending Native", {"Balance": format_balance(balance, decimals), "Raw": balance})
 
 
 # ======================================================================
@@ -269,14 +201,11 @@ def pending_native(ctx: click.Context, network: str | None) -> None:
 
 @treasury_group.command("set-governance")
 @click.argument("address", type=str, metavar="<ss58-address>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def treasury_set_governance_cmd(
-    ctx: click.Context,
-    address: str,
-    wallet_name: str | None,
-    network: str | None,
+    ctx: click.Context, address: str, wallet_name: str | None, network: str | None
 ) -> None:
     """Set a new governance address for the treasury (governance only).
 
@@ -286,26 +215,12 @@ def treasury_set_governance_cmd(
       tusdt treasury set-governance 5GrwvaEF... --wallet-name MyWallet
       tusdt treasury set-governance 5GrwvaEF... --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Setting treasury governance to {address}...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.treasury_set_governance(keypair, address)
-        print_success("Treasury governance updated!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Setting treasury governance to {address}...")
+    state.submit(lambda c, kp: c.treasury_set_governance(kp, address))
+    state.output.success("Treasury governance updated!")
 
 
 # ------------------------------------------------------------------
@@ -314,14 +229,10 @@ def treasury_set_governance_cmd(
 
 
 @treasury_group.command("distribute")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
-def treasury_distribute_cmd(
-    ctx: click.Context,
-    wallet_name: str | None,
-    network: str | None,
-) -> None:
+def treasury_distribute_cmd(ctx: click.Context, wallet_name: str | None, network: str | None) -> None:
     """Distribute pending TUSDT and native funds to their respective fund balances.
 
     \b
@@ -329,26 +240,12 @@ def treasury_distribute_cmd(
       tusdt treasury distribute --wallet-name MyWallet
       tusdt treasury distribute --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info("Distributing pending funds to fund balances...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.treasury_distribute(keypair)
-        print_success("Funds distributed!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info("Distributing pending funds to fund balances...")
+    state.submit(lambda c, kp: c.treasury_distribute(kp))
+    state.output.success("Funds distributed!")
 
 
 # ------------------------------------------------------------------
@@ -369,8 +266,8 @@ def treasury_distribute_cmd(
     metavar="<ss58-address>",
     help="Recipient SS58 address (e.g. 5GrwvaEF...)",
 )
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def treasury_release_cmd(
     ctx: click.Context,
@@ -389,29 +286,16 @@ def treasury_release_cmd(
       tusdt treasury release emergency --token-kind tusdt --amount 5000 --recipient 5GrwvaEF... --wallet-name MyWallet
       tusdt treasury release insurance --token-kind native --amount 10 --recipient 5GrwvaEF... --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
 
-    # Build Fund and TokenKind dicts
     fund_dict = {fund.capitalize(): None}
     token_kind_dict = {"Tusdt": None} if token_kind.lower() == "tusdt" else {"Native": None}
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Releasing {amount} {token_kind.upper()} from {fund} fund to {recipient}...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.treasury_release(keypair, fund_dict, token_kind_dict, raw_amount, recipient)
-        print_success("Funds released!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info(f"Releasing {amount} {token_kind.upper()} from {fund} fund to {recipient}...")
+    state.submit(lambda c, kp: c.treasury_release(kp, fund_dict, token_kind_dict, raw_amount, recipient))
+    state.output.success("Funds released!")

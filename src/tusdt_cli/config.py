@@ -4,6 +4,7 @@ Stores and loads settings from ~/.tusdt-cli/config.json.
 """
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -35,6 +36,11 @@ NETWORKS: dict[str, dict[str, str]] = {
         "election_address": "5DkJErFks6frQifg28dVbd2pqd8NdhD7ycUKhpVJQbj5u2ik",
     },
 }
+EXPLORER_URLS: dict[str, str] = {
+    "finney": "https://viewpallet.com/explorer/transactions/{hash}",
+    "testnet": "https://dev.viewpallet.com/explorer/transactions/{hash}",
+}
+
 DEFAULT_CONFIG: dict[str, Any] = {
     "network": "finney",
     "rpc": NETWORKS["finney"]["rpc"],
@@ -91,6 +97,10 @@ def load_config(network: str | None = None) -> dict[str, Any]:
     network's preset (RPC + contract addresses).
     """
     config = dict(DEFAULT_CONFIG)
+
+    # Apply environment variable overrides (before saved config).
+    _apply_env_overrides(config)
+
     saved: dict[str, Any] = {}
     if CONFIG_FILE.exists():
         try:
@@ -129,11 +139,20 @@ def save_config(config: dict[str, Any]) -> None:
         json.dump(config, f, indent=2)
 
 
-def update_config(**kwargs: Any) -> dict[str, Any]:
-    """Update specific configuration values and save."""
-    config = load_config()
-    for key, value in kwargs.items():
-        if value is not None:
-            config[key] = value
-    save_config(config)
-    return config
+def _apply_env_overrides(config: dict[str, Any]) -> None:
+    """Apply environment variable overrides to *config* in place.
+
+    Environment variables take precedence over built-in defaults but are
+    overridden by saved config file values and explicit CLI flags.
+    """
+    _env_map = {
+        "TUSDT_RPC": "rpc",
+        "TUSDT_NETWORK": "network",
+        "TUSDT_WALLET": "wallet_name",
+        "TUSDT_WALLET_PATH": "wallet_path",
+        "TUSDT_WALLET_HOTKEY": "wallet_hotkey",
+    }
+    for env_var, config_key in _env_map.items():
+        value = os.environ.get(env_var)
+        if value:
+            config[config_key] = value

@@ -2,35 +2,14 @@
 
 import click
 
-from tusdt_cli.client import TUSDTClient
-from tusdt_cli.config import NETWORKS, load_config
+from tusdt_cli.context import CLIContext
+from tusdt_cli.globals import network_option, wallet_option
 from tusdt_cli.utils import (
     ModeAwareGroup,
     format_balance,
     parse_balance,
-    print_dict,
-    print_error,
-    print_info,
-    print_success,
-    print_table,
-    print_tx_result,
-    print_warning,
 )
-from tusdt_cli.wallet import get_reader_keypair, get_signer_keypair, resolve_ss58
-
-_network_option = click.option(
-    "--network",
-    type=click.Choice(list(NETWORKS.keys()), case_sensitive=False),
-    default=None,
-    help="Network preset (overrides rpc & contract addresses)",
-)
-
-_wallet_option = click.option(
-    "--wallet-name",
-    default=None,
-    help="Bittensor wallet name for signing (prompts for coldkey password)",
-)
-
+from tusdt_cli.wallet import get_reader_keypair, resolve_ss58
 
 _VAULT_ADVANCED = {
     "total-debt",
@@ -76,8 +55,8 @@ def vault_group() -> None:
 
 @vault_group.command("create")
 @click.option("--amount", required=True, help="Collateral amount in human-readable units (e.g. 1.5)")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def create_vault(ctx: click.Context, amount: str, wallet_name: str | None, network: str | None) -> None:
     """Create a new vault with native-token collateral.
@@ -87,27 +66,16 @@ def create_vault(ctx: click.Context, amount: str, wallet_name: str | None, netwo
       tusdt vault create --amount 1.5 --wallet-name MyWallet
       tusdt vault create --amount 10 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Depositing {amount} (raw {raw_amount}) as collateral...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.create_vault(keypair, raw_amount)
-        print_success("Vault created successfully!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info(f"Depositing {amount} (raw {raw_amount}) as collateral...")
+    state.submit(lambda c, kp: c.create_vault(kp, raw_amount))
+    state.output.success("Vault created successfully!")
 
 
 # ------------------------------------------------------------------
@@ -118,8 +86,8 @@ def create_vault(ctx: click.Context, amount: str, wallet_name: str | None, netwo
 @vault_group.command("add-collateral")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.option("--amount", required=True, help="Collateral amount to add (e.g. 2.5)")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def add_collateral(
     ctx: click.Context, vault_id: int, amount: str, wallet_name: str | None, network: str | None
@@ -132,27 +100,16 @@ def add_collateral(
       tusdt vault add-collateral 0 --amount 2.5 --wallet-name MyWallet
       tusdt vault add-collateral 3 --amount 1.0 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Adding {amount} collateral to vault {vault_id}...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.add_collateral(keypair, vault_id, raw_amount)
-        print_success("Collateral added!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info(f"Adding {amount} collateral to vault {vault_id}...")
+    state.submit(lambda c, kp: c.add_collateral(kp, vault_id, raw_amount))
+    state.output.success("Collateral added!")
 
 
 # ------------------------------------------------------------------
@@ -163,8 +120,8 @@ def add_collateral(
 @vault_group.command("borrow")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.argument("amount", type=str, metavar="<amount>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def borrow(
     ctx: click.Context, vault_id: int, amount: str, wallet_name: str | None, network: str | None
@@ -178,27 +135,16 @@ def borrow(
       tusdt vault borrow 0 100 --wallet-name MyWallet
       tusdt vault borrow 2 50.5 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Borrowing {amount} from vault {vault_id}...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.borrow(keypair, vault_id, raw_amount)
-        print_success("Tokens borrowed!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info(f"Borrowing {amount} from vault {vault_id}...")
+    state.submit(lambda c, kp: c.borrow(kp, vault_id, raw_amount))
+    state.output.success("Tokens borrowed!")
 
 
 # ------------------------------------------------------------------
@@ -209,8 +155,8 @@ def borrow(
 @vault_group.command("repay")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.argument("amount", type=str, metavar="<amount>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def repay(
     ctx: click.Context, vault_id: int, amount: str, wallet_name: str | None, network: str | None
@@ -224,27 +170,16 @@ def repay(
       tusdt vault repay 0 50 --wallet-name MyWallet
       tusdt vault repay 2 25.5 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Repaying {amount} to vault {vault_id}...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.repay(keypair, vault_id, raw_amount)
-        print_success("Tokens repaid!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info(f"Repaying {amount} to vault {vault_id}...")
+    state.submit(lambda c, kp: c.repay(kp, vault_id, raw_amount))
+    state.output.success("Tokens repaid!")
 
 
 # ------------------------------------------------------------------
@@ -255,8 +190,8 @@ def repay(
 @vault_group.command("release-collateral")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.argument("amount", type=str, metavar="<amount>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def release_collateral(
     ctx: click.Context, vault_id: int, amount: str, wallet_name: str | None, network: str | None
@@ -270,27 +205,16 @@ def release_collateral(
       tusdt vault release-collateral 0 1.0 --wallet-name MyWallet
       tusdt vault release-collateral 2 0.5 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Releasing {amount} collateral from vault {vault_id}...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.release_collateral(keypair, vault_id, raw_amount)
-        print_success("Collateral released!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info(f"Releasing {amount} collateral from vault {vault_id}...")
+    state.submit(lambda c, kp: c.release_collateral(kp, vault_id, raw_amount))
+    state.output.success("Collateral released!")
 
 
 # ------------------------------------------------------------------
@@ -301,8 +225,8 @@ def release_collateral(
 @vault_group.command("info")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def vault_info(
     ctx: click.Context, vault_id: int, owner: str | None, wallet_name: str | None, network: str | None
@@ -316,34 +240,28 @@ def vault_info(
       tusdt vault info 0 --wallet-name MyWallet
       tusdt vault info 3 --owner 5GrwvaEF... --network testnet
     """
-    config = load_config(network=network)
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
 
-    try:
-        if owner:
-            owner = resolve_ss58(owner, config.get("wallet_path"))
-        elif wallet_name:
-            owner = resolve_ss58(wallet_name, config.get("wallet_path"))
-        else:
-            print_error("Provide --owner (address or wallet name) or --wallet-name")
-            return
-    except Exception as exc:
-        print_error(str(exc))
+    if owner:
+        owner = resolve_ss58(owner, cfg.get("wallet_path"))
+    elif state.wallet_name:
+        owner = resolve_ss58(state.wallet_name, cfg.get("wallet_path"))
+    else:
+        state.output.error("Provide --owner (address or wallet name) or --wallet-name")
         return
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        vault_data = client.get_vault(keypair, owner, vault_id)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    kp = get_reader_keypair(cfg)
+    vault_data = state.run_read(lambda c: c.get_vault(kp, owner, vault_id))
 
     if vault_data is None:
-        print_error(f"Vault {vault_id} not found for owner {owner}")
+        state.output.error(f"Vault {vault_id} not found for owner {owner}")
         return
 
-    print_dict(
+    state.output.detail(
         f"Vault #{vault_id}",
         {
             "ID": vault_data.get("id", vault_id),
@@ -366,8 +284,8 @@ def vault_info(
 @vault_group.command("list")
 @click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
 @click.option("--page", default=0, show_default=True, help="Page number (10 per page)")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def list_vaults(
     ctx: click.Context, owner: str | None, page: int, wallet_name: str | None, network: str | None
@@ -380,32 +298,26 @@ def list_vaults(
       tusdt vault list --wallet-name MyWallet
       tusdt vault list --owner 5GrwvaEF... --page 2 --network testnet
     """
-    config = load_config(network=network)
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
 
-    try:
-        if owner:
-            owner = resolve_ss58(owner, config.get("wallet_path"))
-        elif wallet_name:
-            owner = resolve_ss58(wallet_name, config.get("wallet_path"))
-        else:
-            print_error("Provide --owner (address or wallet name) or --wallet-name")
-            return
-    except Exception as exc:
-        print_error(str(exc))
+    if owner:
+        owner = resolve_ss58(owner, cfg.get("wallet_path"))
+    elif state.wallet_name:
+        owner = resolve_ss58(state.wallet_name, cfg.get("wallet_path"))
+    else:
+        state.output.error("Provide --owner (address or wallet name) or --wallet-name")
         return
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        total = client.get_vaults_count(keypair, owner)
-        vaults = client.list_vaults(keypair, owner, page)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    kp = get_reader_keypair(cfg)
+    total = state.run_read(lambda c: c.get_vaults_count(kp, owner))
+    vaults = state.run_read(lambda c: c.list_vaults(kp, owner, page))
 
     if not vaults:
-        print_info(f"No vaults found for {owner} (page {page})")
+        state.output.info(f"No vaults found for {owner} (page {page})")
         return
 
     rows = []
@@ -420,8 +332,8 @@ def list_vaults(
             ]
         )
 
-    print_info(f"Total vaults: {total}  |  Page: {page}")
-    print_table(
+    state.output.info(f"Total vaults: {total}  |  Page: {page}")
+    state.output.table(
         f"Vaults for {owner[:12]}...{owner[-6:]}",
         ["ID", "Collateral", "Borrowed", "Debt", "Created"],
         rows,
@@ -436,8 +348,8 @@ def list_vaults(
 @vault_group.command("max-borrow")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def max_borrow(
     ctx: click.Context, vault_id: int, owner: str | None, wallet_name: str | None, network: str | None
@@ -451,30 +363,24 @@ def max_borrow(
       tusdt vault max-borrow 0 --wallet-name MyWallet
       tusdt vault max-borrow 3 --owner 5GrwvaEF... --network testnet
     """
-    config = load_config(network=network)
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
 
-    try:
-        if owner:
-            owner = resolve_ss58(owner, config.get("wallet_path"))
-        elif wallet_name:
-            owner = resolve_ss58(wallet_name, config.get("wallet_path"))
-        else:
-            print_error("Provide --owner (address or wallet name) or --wallet-name")
-            return
-    except Exception as exc:
-        print_error(str(exc))
+    if owner:
+        owner = resolve_ss58(owner, cfg.get("wallet_path"))
+    elif state.wallet_name:
+        owner = resolve_ss58(state.wallet_name, cfg.get("wallet_path"))
+    else:
+        state.output.error("Provide --owner (address or wallet name) or --wallet-name")
         return
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        value = client.get_max_borrow(keypair, owner, vault_id)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    kp = get_reader_keypair(cfg)
+    value = state.run_read(lambda c: c.get_max_borrow(kp, owner, vault_id))
 
-    print_dict(
+    state.output.detail(
         f"Max Borrow – Vault #{vault_id}",
         {
             "Owner": owner,
@@ -491,8 +397,8 @@ def max_borrow(
 @vault_group.command("collateral-value")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def collateral_value(
     ctx: click.Context, vault_id: int, owner: str | None, wallet_name: str | None, network: str | None
@@ -506,30 +412,24 @@ def collateral_value(
       tusdt vault collateral-value 0 --wallet-name MyWallet
       tusdt vault collateral-value 3 --owner 5GrwvaEF... --network testnet
     """
-    config = load_config(network=network)
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
 
-    try:
-        if owner:
-            owner = resolve_ss58(owner, config.get("wallet_path"))
-        elif wallet_name:
-            owner = resolve_ss58(wallet_name, config.get("wallet_path"))
-        else:
-            print_error("Provide --owner (address or wallet name) or --wallet-name")
-            return
-    except Exception as exc:
-        print_error(str(exc))
+    if owner:
+        owner = resolve_ss58(owner, cfg.get("wallet_path"))
+    elif state.wallet_name:
+        owner = resolve_ss58(state.wallet_name, cfg.get("wallet_path"))
+    else:
+        state.output.error("Provide --owner (address or wallet name) or --wallet-name")
         return
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        value = client.get_collateral_value(keypair, owner, vault_id)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    kp = get_reader_keypair(cfg)
+    value = state.run_read(lambda c: c.get_collateral_value(kp, owner, vault_id))
 
-    print_dict(
+    state.output.detail(
         f"Collateral Value – Vault #{vault_id}",
         {
             "Owner": owner,
@@ -545,8 +445,8 @@ def collateral_value(
 
 @vault_group.command("total-debt")
 @click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def total_debt(ctx: click.Context, owner: str | None, wallet_name: str | None, network: str | None) -> None:
     """Show total debt for an owner across all vaults.
@@ -556,30 +456,24 @@ def total_debt(ctx: click.Context, owner: str | None, wallet_name: str | None, n
       tusdt vault total-debt --wallet-name MyWallet
       tusdt vault total-debt --owner 5GrwvaEF... --network testnet
     """
-    config = load_config(network=network)
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
 
-    try:
-        if owner:
-            owner = resolve_ss58(owner, config.get("wallet_path"))
-        elif wallet_name:
-            owner = resolve_ss58(wallet_name, config.get("wallet_path"))
-        else:
-            print_error("Provide --owner (address or wallet name) or --wallet-name")
-            return
-    except Exception as exc:
-        print_error(str(exc))
+    if owner:
+        owner = resolve_ss58(owner, cfg.get("wallet_path"))
+    elif state.wallet_name:
+        owner = resolve_ss58(state.wallet_name, cfg.get("wallet_path"))
+    else:
+        state.output.error("Provide --owner (address or wallet name) or --wallet-name")
         return
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        value = client.get_total_debt(keypair, owner)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    kp = get_reader_keypair(cfg)
+    value = state.run_read(lambda c: c.get_total_debt(kp, owner))
 
-    print_dict(
+    state.output.detail(
         "Total Debt",
         {
             "Owner": owner,
@@ -597,8 +491,8 @@ def total_debt(ctx: click.Context, owner: str | None, wallet_name: str | None, n
 @vault_group.command("liquidation-auction")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def liquidation_auction(
     ctx: click.Context, vault_id: int, owner: str | None, wallet_name: str | None, network: str | None
@@ -611,32 +505,26 @@ def liquidation_auction(
       tusdt vault liquidation-auction 0 --wallet-name MyWallet
       tusdt vault liquidation-auction 3 --owner 5GrwvaEF... --network testnet
     """
-    config = load_config(network=network)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
 
-    try:
-        if owner:
-            owner = resolve_ss58(owner, config.get("wallet_path"))
-        elif wallet_name:
-            owner = resolve_ss58(wallet_name, config.get("wallet_path"))
-        else:
-            print_error("Provide --owner (address or wallet name) or --wallet-name")
-            return
-    except Exception as exc:
-        print_error(str(exc))
+    if owner:
+        owner = resolve_ss58(owner, cfg.get("wallet_path"))
+    elif state.wallet_name:
+        owner = resolve_ss58(state.wallet_name, cfg.get("wallet_path"))
+    else:
+        state.output.error("Provide --owner (address or wallet name) or --wallet-name")
         return
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        auction_id = client.get_liquidation_auction_id(keypair, owner, vault_id)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    kp = get_reader_keypair(cfg)
+    auction_id = state.run_read(lambda c: c.get_liquidation_auction_id(kp, owner, vault_id))
 
     if auction_id is None:
-        print_info(f"No active liquidation auction for vault {vault_id} (owner: {owner})")
+        state.output.info(f"No active liquidation auction for vault {vault_id} (owner: {owner})")
     else:
-        print_dict(
+        state.output.detail(
             f"Liquidation Auction – Vault #{vault_id}",
             {
                 "Owner": owner,
@@ -652,7 +540,7 @@ def liquidation_auction(
 
 @vault_group.command("list-all")
 @click.option("--page", default=0, show_default=True, help="Page number (10 per page)")
-@_network_option
+@network_option
 @click.pass_context
 def list_all_vaults(ctx: click.Context, page: int, network: str | None) -> None:
     """List all vaults across all owners (paginated).
@@ -662,20 +550,17 @@ def list_all_vaults(ctx: click.Context, page: int, network: str | None) -> None:
       tusdt vault list-all --network testnet
       tusdt vault list-all --page 2 --network testnet
     """
-    config = load_config(network=network)
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        total = client.get_total_vaults_count(keypair)
-        vaults = client.get_all_vaults(keypair, page)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    kp = get_reader_keypair(cfg)
+    total = state.run_read(lambda c: c.get_total_vaults_count(kp))
+    vaults = state.run_read(lambda c: c.get_all_vaults(kp, page))
 
     if not vaults:
-        print_info(f"No vaults found (page {page})")
+        state.output.info(f"No vaults found (page {page})")
         return
 
     rows = []
@@ -691,8 +576,8 @@ def list_all_vaults(ctx: click.Context, page: int, network: str | None) -> None:
             ]
         )
 
-    print_info(f"Total vaults: {total}  |  Page: {page}")
-    print_table(
+    state.output.info(f"Total vaults: {total}  |  Page: {page}")
+    state.output.table(
         "All Vaults",
         ["ID", "Owner", "Collateral", "Borrowed", "Debt", "Created"],
         rows,
@@ -705,7 +590,7 @@ def list_all_vaults(ctx: click.Context, page: int, network: str | None) -> None:
 
 
 @vault_group.command("params")
-@_network_option
+@network_option
 @click.pass_context
 def vault_params(ctx: click.Context, network: str | None) -> None:
     """Show vault contract parameters.
@@ -714,23 +599,20 @@ def vault_params(ctx: click.Context, network: str | None) -> None:
     Examples:
       tusdt vault params --network testnet
     """
-    config = load_config(network=network)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        params = client.get_contract_params(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    kp = get_reader_keypair(cfg)
+    params = state.run_read(lambda c: c.get_contract_params(kp))
 
     if isinstance(params, dict):
         display = {}
         for key, value in params.items():
             display[key] = value
-        print_dict("Vault Contract Parameters", display)
+        state.output.detail("Vault Contract Parameters", display)
     else:
-        print_dict("Vault Contract Parameters", {"Raw": params})
+        state.output.detail("Vault Contract Parameters", {"Raw": params})
 
 
 # ------------------------------------------------------------------
@@ -739,7 +621,7 @@ def vault_params(ctx: click.Context, network: str | None) -> None:
 
 
 @vault_group.command("total-collateral")
-@_network_option
+@network_option
 @click.pass_context
 def total_collateral(ctx: click.Context, network: str | None) -> None:
     """Show total collateral balance across all vaults.
@@ -748,18 +630,15 @@ def total_collateral(ctx: click.Context, network: str | None) -> None:
     Examples:
       tusdt vault total-collateral --network testnet
     """
-    config = load_config(network=network)
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        value = client.get_total_collateral_balance(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    kp = get_reader_keypair(cfg)
+    value = state.run_read(lambda c: c.get_total_collateral_balance(kp))
 
-    print_dict(
+    state.output.detail(
         "Total Collateral",
         {
             "Total collateral": format_balance(value, decimals),
@@ -774,7 +653,7 @@ def total_collateral(ctx: click.Context, network: str | None) -> None:
 
 
 @vault_group.command("total-count")
-@_network_option
+@network_option
 @click.pass_context
 def total_count(ctx: click.Context, network: str | None) -> None:
     """Show total vault count across all owners.
@@ -783,17 +662,14 @@ def total_count(ctx: click.Context, network: str | None) -> None:
     Examples:
       tusdt vault total-count --network testnet
     """
-    config = load_config(network=network)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        count = client.get_total_vaults_count(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    kp = get_reader_keypair(cfg)
+    count = state.run_read(lambda c: c.get_total_vaults_count(kp))
 
-    print_dict("Total Vaults", {"Count": count})
+    state.output.detail("Total Vaults", {"Count": count})
 
 
 # ------------------------------------------------------------------
@@ -804,8 +680,8 @@ def total_count(ctx: click.Context, network: str | None) -> None:
 @vault_group.command("accrue-interest")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.option("--owner", required=True, help="Vault owner SS58 address or wallet name")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def accrue_interest(
     ctx: click.Context, vault_id: int, owner: str, wallet_name: str | None, network: str | None
@@ -817,26 +693,15 @@ def accrue_interest(
     Examples:
       tusdt vault accrue-interest 0 --owner 5GrwvaEF... --wallet-name MyWallet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
 
-    try:
-        owner = resolve_ss58(owner, config.get("wallet_path"))
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Accruing interest on vault {vault_id} (owner: {owner})...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.accrue_interest(keypair, owner, vault_id)
-        print_success("Interest accrued!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    owner = resolve_ss58(owner, cfg.get("wallet_path"))
+    state.output.info(f"Accruing interest on vault {vault_id} (owner: {owner})...")
+    state.submit(lambda c, kp: c.accrue_interest(kp, owner, vault_id))
+    state.output.success("Interest accrued!")
 
 
 # ------------------------------------------------------------------
@@ -847,8 +712,8 @@ def accrue_interest(
 @vault_group.command("trigger-liquidation")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.option("--owner", required=True, help="Vault owner SS58 address or wallet name")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def trigger_liquidation(
     ctx: click.Context, vault_id: int, owner: str, wallet_name: str | None, network: str | None
@@ -860,26 +725,15 @@ def trigger_liquidation(
     Examples:
       tusdt vault trigger-liquidation 0 --owner 5GrwvaEF... --wallet-name MyWallet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
 
-    try:
-        owner = resolve_ss58(owner, config.get("wallet_path"))
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Triggering liquidation for vault {vault_id} (owner: {owner})...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.trigger_liquidation(keypair, owner, vault_id)
-        print_success("Liquidation auction triggered!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    owner = resolve_ss58(owner, cfg.get("wallet_path"))
+    state.output.info(f"Triggering liquidation for vault {vault_id} (owner: {owner})...")
+    state.submit(lambda c, kp: c.trigger_liquidation(kp, owner, vault_id))
+    state.output.success("Liquidation auction triggered!")
 
 
 # ------------------------------------------------------------------
@@ -890,8 +744,8 @@ def trigger_liquidation(
 @vault_group.command("settle-liquidation")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.option("--owner", required=True, help="Vault owner SS58 address or wallet name")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def settle_liquidation(
     ctx: click.Context, vault_id: int, owner: str, wallet_name: str | None, network: str | None
@@ -903,26 +757,15 @@ def settle_liquidation(
     Examples:
       tusdt vault settle-liquidation 0 --owner 5GrwvaEF... --wallet-name MyWallet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
 
-    try:
-        owner = resolve_ss58(owner, config.get("wallet_path"))
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Settling liquidation for vault {vault_id} (owner: {owner})...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.settle_liquidation(keypair, owner, vault_id)
-        print_success("Liquidation settled!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    owner = resolve_ss58(owner, cfg.get("wallet_path"))
+    state.output.info(f"Settling liquidation for vault {vault_id} (owner: {owner})...")
+    state.submit(lambda c, kp: c.settle_liquidation(kp, owner, vault_id))
+    state.output.success("Liquidation settled!")
 
 
 # ------------------------------------------------------------------
@@ -931,21 +774,16 @@ def settle_liquidation(
 
 
 @vault_group.command("governance")
-@_network_option
+@network_option
 @click.pass_context
 def governance(ctx: click.Context, network: str | None) -> None:
     """Show the current governance address."""
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        addr = client.get_governance(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Governance", {"Address": addr})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    addr = state.run_read(lambda c: c.get_governance(kp))
+    state.output.detail("Governance", {"Address": addr})
 
 
 # ------------------------------------------------------------------
@@ -954,21 +792,16 @@ def governance(ctx: click.Context, network: str | None) -> None:
 
 
 @vault_group.command("platform")
-@_network_option
+@network_option
 @click.pass_context
 def platform(ctx: click.Context, network: str | None) -> None:
     """Show the current platform address."""
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        addr = client.get_platform(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Platform", {"Address": addr})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    addr = state.run_read(lambda c: c.get_platform(kp))
+    state.output.detail("Platform", {"Address": addr})
 
 
 # ------------------------------------------------------------------
@@ -977,21 +810,16 @@ def platform(ctx: click.Context, network: str | None) -> None:
 
 
 @vault_group.command("paused")
-@_network_option
+@network_option
 @click.pass_context
 def paused(ctx: click.Context, network: str | None) -> None:
     """Show whether the vault contract is paused."""
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        is_paused = client.is_paused(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Contract Status", {"Paused": is_paused})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    is_paused = state.run_read(lambda c: c.is_paused(kp))
+    state.output.detail("Contract Status", {"Paused": is_paused})
 
 
 # ------------------------------------------------------------------
@@ -1000,24 +828,20 @@ def paused(ctx: click.Context, network: str | None) -> None:
 
 
 @vault_group.command("pending-update")
-@_network_option
+@network_option
 @click.pass_context
 def pending_update(ctx: click.Context, network: str | None) -> None:
     """Show pending contract parameter update details."""
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        update = client.get_pending_params_update(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    update = state.run_read(lambda c: c.get_pending_params_update(kp))
 
     if update is None:
-        print_info("No pending parameter update")
+        state.output.info("No pending parameter update")
     else:
-        print_dict("Pending Parameter Update", update)
+        state.output.detail("Pending Parameter Update", update)
 
 
 # ------------------------------------------------------------------
@@ -1027,8 +851,8 @@ def pending_update(ctx: click.Context, network: str | None) -> None:
 
 @vault_group.command("update-governance")
 @click.argument("address", type=str, metavar="<new-governance-address>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def update_governance(ctx: click.Context, address: str, wallet_name: str | None, network: str | None) -> None:
     """Transfer governance to a new address.
@@ -1037,26 +861,12 @@ def update_governance(ctx: click.Context, address: str, wallet_name: str | None,
     Examples:
       tusdt vault update-governance 5GrwvaEF... --wallet-name MyWallet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Updating governance to {address}...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.update_governance(keypair, address)
-        print_success("Governance updated!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Updating governance to {address}...")
+    state.submit(lambda c, kp: c.update_governance(kp, address))
+    state.output.success("Governance updated!")
 
 
 # ------------------------------------------------------------------
@@ -1066,8 +876,8 @@ def update_governance(ctx: click.Context, address: str, wallet_name: str | None,
 
 @vault_group.command("update-platform")
 @click.argument("address", type=str, metavar="<new-platform-address>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def update_platform(ctx: click.Context, address: str, wallet_name: str | None, network: str | None) -> None:
     """Update the platform address.
@@ -1076,26 +886,12 @@ def update_platform(ctx: click.Context, address: str, wallet_name: str | None, n
     Examples:
       tusdt vault update-platform 5GrwvaEF... --wallet-name MyWallet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Updating platform to {address}...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.update_platform(keypair, address)
-        print_success("Platform updated!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Updating platform to {address}...")
+    state.submit(lambda c, kp: c.update_platform(kp, address))
+    state.output.success("Platform updated!")
 
 
 # ------------------------------------------------------------------
@@ -1104,8 +900,8 @@ def update_platform(ctx: click.Context, address: str, wallet_name: str | None, n
 
 
 @vault_group.command("pause")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def pause_contract(ctx: click.Context, wallet_name: str | None, network: str | None) -> None:
     """Pause the vault contract (governance only).
@@ -1114,26 +910,12 @@ def pause_contract(ctx: click.Context, wallet_name: str | None, network: str | N
     Examples:
       tusdt vault pause --wallet-name MyWallet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info("Pausing vault contract...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.pause_contract(keypair)
-        print_success("Contract paused!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info("Pausing vault contract...")
+    state.submit(lambda c, kp: c.pause_contract(kp))
+    state.output.success("Contract paused!")
 
 
 # ------------------------------------------------------------------
@@ -1142,8 +924,8 @@ def pause_contract(ctx: click.Context, wallet_name: str | None, network: str | N
 
 
 @vault_group.command("unpause")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def unpause_contract(ctx: click.Context, wallet_name: str | None, network: str | None) -> None:
     """Unpause the vault contract (governance only).
@@ -1152,26 +934,12 @@ def unpause_contract(ctx: click.Context, wallet_name: str | None, network: str |
     Examples:
       tusdt vault unpause --wallet-name MyWallet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info("Unpausing vault contract...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.unpause_contract(keypair)
-        print_success("Contract unpaused!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info("Unpausing vault contract...")
+    state.submit(lambda c, kp: c.unpause_contract(kp))
+    state.output.success("Contract unpaused!")
 
 
 # ------------------------------------------------------------------
@@ -1205,8 +973,8 @@ def unpause_contract(ctx: click.Context, wallet_name: str | None, network: str |
     default=None,
     help="Maximum total collateral across all vaults in human-readable units",
 )
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def set_params(
     ctx: click.Context,
@@ -1232,10 +1000,11 @@ def set_params(
       tusdt vault set-params --collateral-ratio 150 --liquidation-ratio 120 --wallet-name MyWallet
       tusdt vault set-params --interest-rate 5 --borrow-cap 1000000 --wallet-name MyWallet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
 
     params: dict = {}
     if collateral_ratio is not None:
@@ -1262,25 +1031,12 @@ def set_params(
         params["max_total_collateral"] = parse_balance(max_total_collateral, decimals)
 
     if not params:
-        print_error("Provide at least one parameter to update")
+        state.output.error("Provide at least one parameter to update")
         return
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Scheduling parameter update: {params}")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.set_contract_params(keypair, params)
-        print_success("Parameter update scheduled (24h timelock)!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info(f"Scheduling parameter update: {params}")
+    state.submit(lambda c, kp: c.set_contract_params(kp, params))
+    state.output.success("Parameter update scheduled (24h timelock)!")
 
 
 # ------------------------------------------------------------------
@@ -1289,8 +1045,8 @@ def set_params(
 
 
 @vault_group.command("execute-update")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def execute_update(ctx: click.Context, wallet_name: str | None, network: str | None) -> None:
     """Execute a pending contract parameter update (after timelock expires).
@@ -1299,26 +1055,12 @@ def execute_update(ctx: click.Context, wallet_name: str | None, network: str | N
     Examples:
       tusdt vault execute-update --wallet-name MyWallet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info("Executing pending parameter update...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.execute_params_update(keypair)
-        print_success("Parameter update executed!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info("Executing pending parameter update...")
+    state.submit(lambda c, kp: c.execute_params_update(kp))
+    state.output.success("Parameter update executed!")
 
 
 # ------------------------------------------------------------------
@@ -1327,8 +1069,8 @@ def execute_update(ctx: click.Context, wallet_name: str | None, network: str | N
 
 
 @vault_group.command("cancel-update")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def cancel_update(ctx: click.Context, wallet_name: str | None, network: str | None) -> None:
     """Cancel a pending contract parameter update.
@@ -1337,26 +1079,12 @@ def cancel_update(ctx: click.Context, wallet_name: str | None, network: str | No
     Examples:
       tusdt vault cancel-update --wallet-name MyWallet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info("Cancelling pending parameter update...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.cancel_params_update(keypair)
-        print_success("Parameter update cancelled!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info("Cancelling pending parameter update...")
+    state.submit(lambda c, kp: c.cancel_params_update(kp))
+    state.output.success("Parameter update cancelled!")
 
 
 # ------------------------------------------------------------------
@@ -1366,8 +1094,8 @@ def cancel_update(ctx: click.Context, wallet_name: str | None, network: str | No
 
 @vault_group.command("claim-surplus")
 @click.argument("amount", type=str, metavar="<amount>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def claim_surplus(ctx: click.Context, amount: str, wallet_name: str | None, network: str | None) -> None:
     """Claim surplus TUSDT from the vault contract (permissionless — anyone may call).
@@ -1377,28 +1105,16 @@ def claim_surplus(ctx: click.Context, amount: str, wallet_name: str | None, netw
     Examples:
       tusdt vault claim-surplus 1000 --wallet-name MyWallet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Claiming {amount} surplus TUSDT...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.claim_surplus_tusdt(keypair, raw_amount)
-        print_success("Surplus TUSDT claimed!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info(f"Claiming {amount} surplus TUSDT...")
+    state.submit(lambda c, kp: c.claim_surplus_tusdt(kp, raw_amount))
+    state.output.success("Surplus TUSDT claimed!")
 
 
 # ------------------------------------------------------------------
@@ -1407,7 +1123,7 @@ def claim_surplus(ctx: click.Context, amount: str, wallet_name: str | None, netw
 
 
 @vault_group.command("token-address")
-@_network_option
+@network_option
 @click.pass_context
 def token_address(ctx: click.Context, network: str | None) -> None:
     """Show the token contract address registered in the vault.
@@ -1416,17 +1132,12 @@ def token_address(ctx: click.Context, network: str | None) -> None:
     Examples:
       tusdt vault token-address --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        addr = client.get_token_address(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Token Contract", {"Address": addr})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    addr = state.run_read(lambda c: c.get_token_address(kp))
+    state.output.detail("Token Contract", {"Address": addr})
 
 
 # ------------------------------------------------------------------
@@ -1435,7 +1146,7 @@ def token_address(ctx: click.Context, network: str | None) -> None:
 
 
 @vault_group.command("auction-address")
-@_network_option
+@network_option
 @click.pass_context
 def auction_address(ctx: click.Context, network: str | None) -> None:
     """Show the auction contract address registered in the vault.
@@ -1444,17 +1155,12 @@ def auction_address(ctx: click.Context, network: str | None) -> None:
     Examples:
       tusdt vault auction-address --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        addr = client.get_auction_address(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Auction Contract", {"Address": addr})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    addr = state.run_read(lambda c: c.get_auction_address(kp))
+    state.output.detail("Auction Contract", {"Address": addr})
 
 
 # ------------------------------------------------------------------
@@ -1463,7 +1169,7 @@ def auction_address(ctx: click.Context, network: str | None) -> None:
 
 
 @vault_group.command("oracle-address")
-@_network_option
+@network_option
 @click.pass_context
 def oracle_address(ctx: click.Context, network: str | None) -> None:
     """Show the oracle contract address registered in the vault.
@@ -1472,17 +1178,12 @@ def oracle_address(ctx: click.Context, network: str | None) -> None:
     Examples:
       tusdt vault oracle-address --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        addr = client.get_oracle_address(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Oracle Contract", {"Address": addr})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    addr = state.run_read(lambda c: c.get_oracle_address(kp))
+    state.output.detail("Oracle Contract", {"Address": addr})
 
 
 # ------------------------------------------------------------------
@@ -1493,8 +1194,8 @@ def oracle_address(ctx: click.Context, network: str | None) -> None:
 @vault_group.command("collateral-balance")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def collateral_balance(
     ctx: click.Context,
@@ -1512,34 +1213,28 @@ def collateral_balance(
       tusdt vault collateral-balance 0 --wallet-name MyWallet
       tusdt vault collateral-balance 3 --owner 5GrwvaEF... --network testnet
     """
-    config = load_config(network=network)
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
 
-    try:
-        if owner:
-            owner = resolve_ss58(owner, config.get("wallet_path"))
-        elif wallet_name:
-            owner = resolve_ss58(wallet_name, config.get("wallet_path"))
-        else:
-            print_error("Provide --owner (address or wallet name) or --wallet-name")
-            return
-    except Exception as exc:
-        print_error(str(exc))
+    if owner:
+        owner = resolve_ss58(owner, cfg.get("wallet_path"))
+    elif state.wallet_name:
+        owner = resolve_ss58(state.wallet_name, cfg.get("wallet_path"))
+    else:
+        state.output.error("Provide --owner (address or wallet name) or --wallet-name")
         return
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        value = client.get_vault_collateral_balance(keypair, owner, vault_id)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    kp = get_reader_keypair(cfg)
+    value = state.run_read(lambda c: c.get_vault_collateral_balance(kp, owner, vault_id))
 
     if value is None:
-        print_error(f"Vault {vault_id} not found for owner {owner}")
+        state.output.error(f"Vault {vault_id} not found for owner {owner}")
         return
 
-    print_dict(
+    state.output.detail(
         f"Collateral Balance – Vault #{vault_id}",
         {
             "Owner": owner,
@@ -1555,7 +1250,7 @@ def collateral_balance(
 
 
 @vault_group.command("treasury-address")
-@_network_option
+@network_option
 @click.pass_context
 def vault_treasury_address(ctx: click.Context, network: str | None) -> None:
     """Show the treasury address registered in the vault contract.
@@ -1565,17 +1260,12 @@ def vault_treasury_address(ctx: click.Context, network: str | None) -> None:
       tusdt vault treasury-address
       tusdt vault treasury-address --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        addr = client.vault_get_treasury(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Vault Treasury", {"Address": addr})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    addr = state.run_read(lambda c: c.vault_get_treasury(kp))
+    state.output.detail("Vault Treasury", {"Address": addr})
 
 
 # ------------------------------------------------------------------
@@ -1585,8 +1275,8 @@ def vault_treasury_address(ctx: click.Context, network: str | None) -> None:
 
 @vault_group.command("update-treasury")
 @click.argument("address", type=str, metavar="<ss58-address>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def vault_update_treasury_cmd(
     ctx: click.Context,
@@ -1602,26 +1292,12 @@ def vault_update_treasury_cmd(
       tusdt vault update-treasury 5GrwvaEF... --wallet-name MyWallet
       tusdt vault update-treasury 5GrwvaEF... --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Updating vault treasury address to {address}...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.vault_update_treasury(keypair, address)
-        print_success("Treasury address updated!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Updating vault treasury address to {address}...")
+    state.submit(lambda c, kp: c.vault_update_treasury(kp, address))
+    state.output.success("Treasury address updated!")
 
 
 # ------------------------------------------------------------------
@@ -1631,8 +1307,8 @@ def vault_update_treasury_cmd(
 
 @vault_group.command("emergency-drain")
 @click.argument("recipient", type=str, metavar="<ss58-address>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def vault_emergency_drain_cmd(
     ctx: click.Context,
@@ -1648,31 +1324,19 @@ def vault_emergency_drain_cmd(
     Examples:
       tusdt vault emergency-drain 5GrwvaEF... --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
 
     # TESTNET-ONLY guard
-    if config.get("network") != "testnet":
-        print_error("emergency-drain is only available on testnet")
+    if cfg.get("network") != "testnet":
+        state.output.error("emergency-drain is only available on testnet")
         return
 
-    print_warning("DESTRUCTIVE OPERATION: This drains the vault's native balance. Only use on testnet.")
-
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Emergency draining vault native balance to {recipient}...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.vault_emergency_drain(keypair, recipient)
-        print_success("Emergency drain completed!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.warning(
+        "DESTRUCTIVE OPERATION: This drains the vault's native balance. Only use on testnet."
+    )
+    state.output.info(f"Emergency draining vault native balance to {recipient}...")
+    state.submit(lambda c, kp: c.vault_emergency_drain(kp, recipient))
+    state.output.success("Emergency drain completed!")

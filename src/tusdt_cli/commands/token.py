@@ -2,34 +2,15 @@
 
 import click
 
-from tusdt_cli.client import TUSDTClient
-from tusdt_cli.config import NETWORKS, load_config
+from tusdt_cli.context import CLIContext
+from tusdt_cli.globals import network_option, wallet_option
 from tusdt_cli.utils import (
     HelpfulCommand,
     ModeAwareGroup,
     format_balance,
     parse_balance,
-    print_dict,
-    print_error,
-    print_info,
-    print_success,
-    print_tx_result,
 )
-from tusdt_cli.wallet import get_reader_keypair, get_signer_keypair, resolve_ss58
-
-_network_option = click.option(
-    "--network",
-    type=click.Choice(list(NETWORKS.keys()), case_sensitive=False),
-    default=None,
-    help="Network preset (overrides rpc & contract addresses)",
-)
-
-_wallet_option = click.option(
-    "--wallet-name",
-    default=None,
-    help="Bittensor wallet name for signing (prompts for coldkey password)",
-)
-
+from tusdt_cli.wallet import get_reader_keypair, resolve_ss58
 
 _TOKEN_ADVANCED = {"mint", "burn", "increase-allowance", "decrease-allowance", "transfer-from"}
 
@@ -46,8 +27,8 @@ def token_group() -> None:
 
 @token_group.command("balance")
 @click.option("--owner", default=None, help="Account SS58 address or wallet name (defaults to --wallet-name)")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def balance(ctx: click.Context, owner: str | None, wallet_name: str | None, network: str | None) -> None:
     """Show the TUSDT token balance for an account.
@@ -58,36 +39,19 @@ def balance(ctx: click.Context, owner: str | None, wallet_name: str | None, netw
       tusdt token balance --wallet-name MyWallet
       tusdt token balance --owner 5GrwvaEF... --network testnet
     """
-    config = load_config(network=network)
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
 
-    try:
-        if owner:
-            account = resolve_ss58(owner, config.get("wallet_path"))
-        elif wallet_name:
-            account = resolve_ss58(wallet_name, config.get("wallet_path"))
-        else:
-            print_error("Provide --owner (address or wallet name) or --wallet-name")
-            return
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    account = resolve_ss58((owner or state.wallet_name) or "", cfg.get("wallet_path"))
+    kp = get_reader_keypair(cfg)
+    raw = state.run_read(lambda c: c.balance_of(kp, account))
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        raw = client.balance_of(keypair, account)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict(
+    state.output.detail(
         "Token Balance",
-        {
-            "Account": account,
-            "Balance": format_balance(raw, decimals),
-            "Raw": raw,
-        },
+        {"Account": account, "Balance": format_balance(raw, decimals), "Raw": raw},
     )
 
 
@@ -99,8 +63,8 @@ def balance(ctx: click.Context, owner: str | None, wallet_name: str | None, netw
 @token_group.command("approve")
 @click.argument("spender", type=str, metavar="<spender>")
 @click.argument("amount", type=str, metavar="<amount>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def approve(
     ctx: click.Context, spender: str, amount: str, wallet_name: str | None, network: str | None
@@ -114,32 +78,18 @@ def approve(
       tusdt token approve 5GrwvaEF... 1000 --wallet-name MyWallet
       tusdt token approve SpenderWallet 500.5 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
 
-    try:
-        spender = resolve_ss58(spender, config.get("wallet_path"))
-    except Exception as exc:
-        print_error(str(exc))
+    spender = resolve_ss58(spender, cfg.get("wallet_path"))
+    state.output.info(f"Approving {spender} to spend {amount} tokens...")
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Approving {spender} to spend {amount} tokens...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.approve(keypair, spender, raw_amount)
-        print_success("Approval successful!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.submit(lambda c, kp: c.approve(kp, spender, raw_amount))
+    state.output.success("Approval successful!")
 
 
 # ------------------------------------------------------------------
@@ -150,8 +100,8 @@ def approve(
 @token_group.command("allowance")
 @click.argument("spender", type=str, metavar="<spender>")
 @click.option("--owner", default=None, help="Owner SS58 address or wallet name (defaults to --wallet-name)")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def allowance(
     ctx: click.Context, spender: str, owner: str | None, wallet_name: str | None, network: str | None
@@ -165,35 +115,22 @@ def allowance(
       tusdt token allowance 5GrwvaEF... --wallet-name MyWallet
       tusdt token allowance SpenderWallet --owner 5Abc123... --network testnet
     """
-    config = load_config(network=network)
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
 
-    try:
-        if owner:
-            owner = resolve_ss58(owner, config.get("wallet_path"))
-        elif wallet_name:
-            owner = resolve_ss58(wallet_name, config.get("wallet_path"))
-        else:
-            print_error("Provide --owner (address or wallet name) or --wallet-name")
-            return
-        spender = resolve_ss58(spender, config.get("wallet_path"))
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    owner_addr = resolve_ss58((owner or state.wallet_name) or "", cfg.get("wallet_path"))
+    spender_addr = resolve_ss58(spender, cfg.get("wallet_path"))
+    kp = get_reader_keypair(cfg)
+    raw = state.run_read(lambda c: c.allowance(kp, owner_addr, spender_addr))
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        raw = client.allowance(keypair, owner, spender)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict(
+    state.output.detail(
         "Allowance",
         {
-            "Owner": owner,
-            "Spender": spender,
+            "Owner": owner_addr,
+            "Spender": spender_addr,
             "Allowance": format_balance(raw, decimals),
             "Raw": raw,
         },
@@ -208,8 +145,8 @@ def allowance(
 @token_group.command("transfer")
 @click.argument("to", type=str, metavar="<recipient>")
 @click.argument("amount", type=str, metavar="<amount>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def transfer(ctx: click.Context, to: str, amount: str, wallet_name: str | None, network: str | None) -> None:
     """Transfer TUSDT tokens to another account.
@@ -221,32 +158,18 @@ def transfer(ctx: click.Context, to: str, amount: str, wallet_name: str | None, 
       tusdt token transfer 5GrwvaEF... 50 --wallet-name MyWallet
       tusdt token transfer RecipientWallet 100.5 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
 
-    try:
-        to = resolve_ss58(to, config.get("wallet_path"))
-    except Exception as exc:
-        print_error(str(exc))
+    to_addr = resolve_ss58(to, cfg.get("wallet_path"))
+    state.output.info(f"Transferring {amount} tokens to {to_addr}...")
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Transferring {amount} tokens to {to}...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.transfer(keypair, to, raw_amount)
-        print_success("Transfer successful!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.submit(lambda c, kp: c.transfer(kp, to_addr, raw_amount))
+    state.output.success("Transfer successful!")
 
 
 # ------------------------------------------------------------------
@@ -255,7 +178,7 @@ def transfer(ctx: click.Context, to: str, amount: str, wallet_name: str | None, 
 
 
 @token_group.command("controller")
-@_network_option
+@network_option
 @click.pass_context
 def token_controller_cmd(ctx: click.Context, network: str | None) -> None:
     """Show the controller address of the TUSDT token contract.
@@ -265,17 +188,12 @@ def token_controller_cmd(ctx: click.Context, network: str | None) -> None:
       tusdt token controller
       tusdt token controller --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        addr = client.token_controller(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Token Controller", {"Address": addr})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    addr = state.run_read(lambda c: c.token_controller(kp))
+    state.output.detail("Token Controller", {"Address": addr})
 
 
 # ------------------------------------------------------------------
@@ -284,7 +202,7 @@ def token_controller_cmd(ctx: click.Context, network: str | None) -> None:
 
 
 @token_group.command("total-supply", cls=HelpfulCommand)
-@_network_option
+@network_option
 @click.pass_context
 def total_supply(ctx: click.Context, network: str | None) -> None:
     """View the total TUSDT token supply.
@@ -293,19 +211,15 @@ def total_supply(ctx: click.Context, network: str | None) -> None:
     Examples:
       tusdt token total-supply --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        raw_supply = client.total_supply(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    decimals = config.get("decimals", 9)
-    supply = format_balance(raw_supply, decimals)
-    print_dict("Total Supply", {"total_supply": supply, "raw": str(raw_supply)})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
+    kp = get_reader_keypair(cfg)
+    raw_supply = state.run_read(lambda c: c.total_supply(kp))
+    state.output.detail(
+        "Total Supply", {"total_supply": format_balance(raw_supply, decimals), "raw": str(raw_supply)}
+    )
 
 
 # ------------------------------------------------------------------
@@ -316,8 +230,8 @@ def total_supply(ctx: click.Context, network: str | None) -> None:
 @token_group.command("mint")
 @click.argument("to", type=str, metavar="<ss58-address>")
 @click.argument("amount", type=str, metavar="<amount>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def mint(ctx: click.Context, to: str, amount: str, wallet_name: str | None, network: str | None) -> None:
     """Mint TUSDT tokens to an account (controller only).
@@ -329,32 +243,18 @@ def mint(ctx: click.Context, to: str, amount: str, wallet_name: str | None, netw
       tusdt token mint 5GrwvaEF... 1000 --wallet-name MyWallet
       tusdt token mint 5GrwvaEF... 500.5 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
 
-    try:
-        to = resolve_ss58(to, config.get("wallet_path"))
-    except Exception as exc:
-        print_error(str(exc))
+    to_addr = resolve_ss58(to, cfg.get("wallet_path"))
+    state.output.info(f"Minting {amount} tokens to {to_addr}...")
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Minting {amount} tokens to {to}...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.token_mint(keypair, to, raw_amount)
-        print_success("Mint successful!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.submit(lambda c, kp: c.token_mint(kp, to_addr, raw_amount))
+    state.output.success("Mint successful!")
 
 
 # ------------------------------------------------------------------
@@ -365,8 +265,8 @@ def mint(ctx: click.Context, to: str, amount: str, wallet_name: str | None, netw
 @token_group.command("burn")
 @click.argument("from_addr", type=str, metavar="<ss58-address>")
 @click.argument("amount", type=str, metavar="<amount>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def burn(
     ctx: click.Context, from_addr: str, amount: str, wallet_name: str | None, network: str | None
@@ -380,32 +280,18 @@ def burn(
       tusdt token burn 5GrwvaEF... 1000 --wallet-name MyWallet
       tusdt token burn 5GrwvaEF... 500.5 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
 
-    try:
-        from_addr = resolve_ss58(from_addr, config.get("wallet_path"))
-    except Exception as exc:
-        print_error(str(exc))
+    from_addr = resolve_ss58(from_addr, cfg.get("wallet_path"))
+    state.output.info(f"Burning {amount} tokens from {from_addr}...")
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Burning {amount} tokens from {from_addr}...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.token_burn(keypair, from_addr, raw_amount)
-        print_success("Burn successful!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.submit(lambda c, kp: c.token_burn(kp, from_addr, raw_amount))
+    state.output.success("Burn successful!")
 
 
 # ------------------------------------------------------------------
@@ -416,8 +302,8 @@ def burn(
 @token_group.command("increase-allowance")
 @click.argument("spender", type=str, metavar="<ss58-address>")
 @click.argument("amount", type=str, metavar="<amount>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def increase_allowance_cmd(
     ctx: click.Context, spender: str, amount: str, wallet_name: str | None, network: str | None
@@ -431,32 +317,18 @@ def increase_allowance_cmd(
       tusdt token increase-allowance 5GrwvaEF... 1000 --wallet-name MyWallet
       tusdt token increase-allowance 5GrwvaEF... 500.5 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
     raw_delta = parse_balance(amount, decimals)
 
-    try:
-        spender = resolve_ss58(spender, config.get("wallet_path"))
-    except Exception as exc:
-        print_error(str(exc))
+    spender = resolve_ss58(spender, cfg.get("wallet_path"))
+    state.output.info(f"Increasing {spender}'s allowance by {amount} tokens...")
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Increasing {spender}'s allowance by {amount} tokens...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.token_increase_allowance(keypair, spender, raw_delta)
-        print_success("Allowance increased!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.submit(lambda c, kp: c.token_increase_allowance(kp, spender, raw_delta))
+    state.output.success("Allowance increased!")
 
 
 # ------------------------------------------------------------------
@@ -467,8 +339,8 @@ def increase_allowance_cmd(
 @token_group.command("decrease-allowance")
 @click.argument("spender", type=str, metavar="<ss58-address>")
 @click.argument("amount", type=str, metavar="<amount>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def decrease_allowance_cmd(
     ctx: click.Context, spender: str, amount: str, wallet_name: str | None, network: str | None
@@ -482,32 +354,18 @@ def decrease_allowance_cmd(
       tusdt token decrease-allowance 5GrwvaEF... 1000 --wallet-name MyWallet
       tusdt token decrease-allowance 5GrwvaEF... 500.5 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
     raw_delta = parse_balance(amount, decimals)
 
-    try:
-        spender = resolve_ss58(spender, config.get("wallet_path"))
-    except Exception as exc:
-        print_error(str(exc))
+    spender = resolve_ss58(spender, cfg.get("wallet_path"))
+    state.output.info(f"Decreasing {spender}'s allowance by {amount} tokens...")
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Decreasing {spender}'s allowance by {amount} tokens...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.token_decrease_allowance(keypair, spender, raw_delta)
-        print_success("Allowance decreased!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.submit(lambda c, kp: c.token_decrease_allowance(kp, spender, raw_delta))
+    state.output.success("Allowance decreased!")
 
 
 # ------------------------------------------------------------------
@@ -519,8 +377,8 @@ def decrease_allowance_cmd(
 @click.argument("from_addr", type=str, metavar="<from-ss58-address>")
 @click.argument("to", type=str, metavar="<to-ss58-address>")
 @click.argument("amount", type=str, metavar="<amount>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def transfer_from_cmd(
     ctx: click.Context,
@@ -540,30 +398,16 @@ def transfer_from_cmd(
       tusdt token transfer-from 5GrwvaEF... 5FHneW... 1000 --wallet-name MyWallet
       tusdt token transfer-from 5GrwvaEF... 5FHneW... 500.5 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
 
-    try:
-        from_addr = resolve_ss58(from_addr, config.get("wallet_path"))
-        to = resolve_ss58(to, config.get("wallet_path"))
-    except Exception as exc:
-        print_error(str(exc))
+    from_addr = resolve_ss58(from_addr, cfg.get("wallet_path"))
+    to_addr = resolve_ss58(to, cfg.get("wallet_path"))
+    state.output.info(f"Transferring {amount} tokens from {from_addr} to {to_addr}...")
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Transferring {amount} tokens from {from_addr} to {to}...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.token_transfer_from(keypair, from_addr, to, raw_amount)
-        print_success("Transfer successful!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.submit(lambda c, kp: c.token_transfer_from(kp, from_addr, to_addr, raw_amount))
+    state.output.success("Transfer successful!")

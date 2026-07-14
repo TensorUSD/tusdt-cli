@@ -1,36 +1,18 @@
 """Election CLI commands."""
 
+import sys
 from typing import Any
 
 import click
 
-from tusdt_cli.client import TUSDTClient
-from tusdt_cli.config import NETWORKS, load_config
+from tusdt_cli.context import CLIContext
+from tusdt_cli.globals import network_option, wallet_option
 from tusdt_cli.utils import (
     ModeAwareGroup,
     format_balance,
     parse_balance,
-    print_dict,
-    print_error,
-    print_info,
-    print_success,
-    print_table,
-    print_tx_result,
 )
-from tusdt_cli.wallet import get_reader_keypair, get_signer_keypair
-
-_network_option = click.option(
-    "--network",
-    type=click.Choice(list(NETWORKS.keys()), case_sensitive=False),
-    default=None,
-    help="Network preset (overrides rpc & contract addresses)",
-)
-
-_wallet_option = click.option(
-    "--wallet-name",
-    default=None,
-    help="Bittensor wallet name for signing (prompts for coldkey password)",
-)
+from tusdt_cli.wallet import get_reader_keypair
 
 _ELECTION_ADVANCED = {
     "cast-approval",
@@ -44,7 +26,7 @@ def _format_phase(raw: Any) -> str:
     if isinstance(raw, dict):
         keys = list(raw.keys())
         if keys:
-            return keys[0]
+            return str(keys[0])
     if isinstance(raw, str):
         return raw
     return str(raw)
@@ -65,7 +47,7 @@ def election_group() -> None:
 
 
 @election_group.command("governance-address")
-@_network_option
+@network_option
 @click.pass_context
 def election_governance(ctx: click.Context, network: str | None) -> None:
     """Show the governance address stored in the election contract.
@@ -75,17 +57,12 @@ def election_governance(ctx: click.Context, network: str | None) -> None:
       tusdt election governance-address
       tusdt election governance-address --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        addr = client.get_election_governance(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Governance", {"Address": addr})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    addr = state.run_read(lambda c: c.get_election_governance(kp))
+    state.output.detail("Governance", {"Address": addr})
 
 
 # ------------------------------------------------------------------
@@ -94,7 +71,7 @@ def election_governance(ctx: click.Context, network: str | None) -> None:
 
 
 @election_group.command("min-candidate-stake")
-@_network_option
+@network_option
 @click.pass_context
 def min_candidate_stake(ctx: click.Context, network: str | None) -> None:
     """Show the minimum candidate stake (alpha).
@@ -104,18 +81,13 @@ def min_candidate_stake(ctx: click.Context, network: str | None) -> None:
       tusdt election min-candidate-stake
       tusdt election min-candidate-stake --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        stake = client.get_min_candidate_stake(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    decimals = config.get("decimals", 9)
-    print_dict("Minimum Candidate Stake", {"Alpha": format_balance(stake, decimals)})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
+    kp = get_reader_keypair(cfg)
+    stake = state.run_read(lambda c: c.get_min_candidate_stake(kp))
+    state.output.detail("Minimum Candidate Stake", {"Alpha": format_balance(stake, decimals)})
 
 
 # ------------------------------------------------------------------
@@ -124,7 +96,7 @@ def min_candidate_stake(ctx: click.Context, network: str | None) -> None:
 
 
 @election_group.command("incumbent")
-@_network_option
+@network_option
 @click.pass_context
 def incumbent(ctx: click.Context, network: str | None) -> None:
     """Show the current incumbent maintainer.
@@ -134,17 +106,12 @@ def incumbent(ctx: click.Context, network: str | None) -> None:
       tusdt election incumbent
       tusdt election incumbent --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        addr = client.get_incumbent(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Incumbent", {"Address": addr})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    addr = state.run_read(lambda c: c.get_incumbent(kp))
+    state.output.detail("Incumbent", {"Address": addr})
 
 
 # ------------------------------------------------------------------
@@ -153,7 +120,7 @@ def incumbent(ctx: click.Context, network: str | None) -> None:
 
 
 @election_group.command("active-netuid")
-@_network_option
+@network_option
 @click.pass_context
 def active_netuid(ctx: click.Context, network: str | None) -> None:
     """Show the active governing subnet netuid.
@@ -163,17 +130,12 @@ def active_netuid(ctx: click.Context, network: str | None) -> None:
       tusdt election active-netuid
       tusdt election active-netuid --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        netuid = client.get_active_netuid(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Active Netuid", {"Netuid": netuid})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    netuid = state.run_read(lambda c: c.get_active_netuid(kp))
+    state.output.detail("Active Netuid", {"Netuid": netuid})
 
 
 # ------------------------------------------------------------------
@@ -182,7 +144,7 @@ def active_netuid(ctx: click.Context, network: str | None) -> None:
 
 
 @election_group.command("phase")
-@_network_option
+@network_option
 @click.pass_context
 def phase(ctx: click.Context, network: str | None) -> None:
     """Show the current election phase.
@@ -192,17 +154,12 @@ def phase(ctx: click.Context, network: str | None) -> None:
       tusdt election phase
       tusdt election phase --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        raw = client.get_phase(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Phase", {"Phase": _format_phase(raw)})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    raw = state.run_read(lambda c: c.get_phase(kp))
+    state.output.detail("Phase", {"Phase": _format_phase(raw)})
 
 
 # ------------------------------------------------------------------
@@ -211,7 +168,7 @@ def phase(ctx: click.Context, network: str | None) -> None:
 
 
 @election_group.command("cycle-id")
-@_network_option
+@network_option
 @click.pass_context
 def cycle_id(ctx: click.Context, network: str | None) -> None:
     """Show the current election cycle ID.
@@ -221,17 +178,12 @@ def cycle_id(ctx: click.Context, network: str | None) -> None:
       tusdt election cycle-id
       tusdt election cycle-id --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        cid = client.get_cycle_id(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Cycle ID", {"Cycle": cid})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    cid = state.run_read(lambda c: c.get_cycle_id(kp))
+    state.output.detail("Cycle ID", {"Cycle": cid})
 
 
 # ------------------------------------------------------------------
@@ -240,7 +192,7 @@ def cycle_id(ctx: click.Context, network: str | None) -> None:
 
 
 @election_group.command("next-election-ts")
-@_network_option
+@network_option
 @click.pass_context
 def next_election_ts(ctx: click.Context, network: str | None) -> None:
     """Show the earliest timestamp when the next election may be scheduled.
@@ -250,17 +202,12 @@ def next_election_ts(ctx: click.Context, network: str | None) -> None:
       tusdt election next-election-ts
       tusdt election next-election-ts --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        ts = client.get_next_election_ts(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Next Election", {"Timestamp": ts})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    ts = state.run_read(lambda c: c.get_next_election_ts(kp))
+    state.output.detail("Next Election", {"Timestamp": ts})
 
 
 # ------------------------------------------------------------------
@@ -270,7 +217,7 @@ def next_election_ts(ctx: click.Context, network: str | None) -> None:
 
 @election_group.command("terms-served")
 @click.argument("who", type=str, metavar="<ss58-address>")
-@_network_option
+@network_option
 @click.pass_context
 def terms_served(ctx: click.Context, who: str, network: str | None) -> None:
     """Show how many terms an account has served.
@@ -281,17 +228,12 @@ def terms_served(ctx: click.Context, who: str, network: str | None) -> None:
       tusdt election terms-served 5GrwvaEF...
       tusdt election terms-served 5GrwvaEF... --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        terms = client.get_terms_served(keypair, who)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Terms Served", {"Account": who, "Terms": terms})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    terms = state.run_read(lambda c: c.get_terms_served(kp, who))
+    state.output.detail("Terms Served", {"Account": who, "Terms": terms})
 
 
 # ------------------------------------------------------------------
@@ -301,7 +243,7 @@ def terms_served(ctx: click.Context, who: str, network: str | None) -> None:
 
 @election_group.command("get-candidate")
 @click.argument("candidate", type=str, metavar="<ss58-address>")
-@_network_option
+@network_option
 @click.pass_context
 def get_candidate(ctx: click.Context, candidate: str, network: str | None) -> None:
     """Show registration info for a candidate.
@@ -312,21 +254,17 @@ def get_candidate(ctx: click.Context, candidate: str, network: str | None) -> No
       tusdt election get-candidate 5GrwvaEF...
       tusdt election get-candidate 5GrwvaEF... --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        info = client.get_candidate(keypair, candidate)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    info = state.run_read(lambda c: c.get_candidate(kp, candidate))
 
     if info is None:
-        print_info(f"Candidate {candidate} not found in current cycle")
+        state.output.info(f"Candidate {candidate} not found in current cycle")
         return
 
-    print_dict(
+    state.output.detail(
         f"Candidate {candidate}",
         {
             "Netuid": info.get("netuid", "?"),
@@ -341,7 +279,7 @@ def get_candidate(ctx: click.Context, candidate: str, network: str | None) -> No
 
 
 @election_group.command("candidate-list")
-@_network_option
+@network_option
 @click.pass_context
 def candidate_list(ctx: click.Context, network: str | None) -> None:
     """List all registered candidates for the current cycle.
@@ -351,22 +289,18 @@ def candidate_list(ctx: click.Context, network: str | None) -> None:
       tusdt election candidate-list
       tusdt election candidate-list --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        candidates = client.get_candidate_list(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    candidates = state.run_read(lambda c: c.get_candidate_list(kp))
 
     if not candidates:
-        print_info("No candidates registered")
+        state.output.info("No candidates registered")
         return
 
     rows = [[str(i), addr] for i, addr in enumerate(candidates)]
-    print_table("Candidates", ["#", "Address"], rows)
+    state.output.table("Candidates", ["#", "Address"], rows)
 
 
 # ------------------------------------------------------------------
@@ -376,7 +310,7 @@ def candidate_list(ctx: click.Context, network: str | None) -> None:
 
 @election_group.command("approval-weight")
 @click.argument("candidate", type=str, metavar="<ss58-address>")
-@_network_option
+@network_option
 @click.pass_context
 def approval_weight(ctx: click.Context, candidate: str, network: str | None) -> None:
     """Show the accumulated approval weight for a candidate.
@@ -387,18 +321,15 @@ def approval_weight(ctx: click.Context, candidate: str, network: str | None) -> 
       tusdt election approval-weight 5GrwvaEF...
       tusdt election approval-weight 5GrwvaEF... --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        weight = client.get_approval_weight(keypair, candidate)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    decimals = config.get("decimals", 9)
-    print_dict("Approval Weight", {"Candidate": candidate, "Weight": format_balance(weight, decimals)})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
+    kp = get_reader_keypair(cfg)
+    weight = state.run_read(lambda c: c.get_approval_weight(kp, candidate))
+    state.output.detail(
+        "Approval Weight", {"Candidate": candidate, "Weight": format_balance(weight, decimals)}
+    )
 
 
 # ------------------------------------------------------------------
@@ -407,7 +338,7 @@ def approval_weight(ctx: click.Context, candidate: str, network: str | None) -> 
 
 
 @election_group.command("total-participating-power")
-@_network_option
+@network_option
 @click.pass_context
 def total_participating_power(ctx: click.Context, network: str | None) -> None:
     """Show the total summed voting power of all participants.
@@ -417,18 +348,13 @@ def total_participating_power(ctx: click.Context, network: str | None) -> None:
       tusdt election total-participating-power
       tusdt election total-participating-power --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        power = client.get_total_participating_power(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    decimals = config.get("decimals", 9)
-    print_dict("Total Participating Power", {"Power": format_balance(power, decimals)})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
+    kp = get_reader_keypair(cfg)
+    power = state.run_read(lambda c: c.get_total_participating_power(kp))
+    state.output.detail("Total Participating Power", {"Power": format_balance(power, decimals)})
 
 
 # ------------------------------------------------------------------
@@ -437,7 +363,7 @@ def total_participating_power(ctx: click.Context, network: str | None) -> None:
 
 
 @election_group.command("total-voted-balance")
-@_network_option
+@network_option
 @click.pass_context
 def total_voted_balance(ctx: click.Context, network: str | None) -> None:
     """Show the total raw alpha balance of all participants.
@@ -447,18 +373,13 @@ def total_voted_balance(ctx: click.Context, network: str | None) -> None:
       tusdt election total-voted-balance
       tusdt election total-voted-balance --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        balance = client.get_total_voted_balance(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    decimals = config.get("decimals", 9)
-    print_dict("Total Voted Balance", {"Balance": format_balance(balance, decimals)})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
+    kp = get_reader_keypair(cfg)
+    balance = state.run_read(lambda c: c.get_total_voted_balance(kp))
+    state.output.detail("Total Voted Balance", {"Balance": format_balance(balance, decimals)})
 
 
 # ------------------------------------------------------------------
@@ -467,7 +388,7 @@ def total_voted_balance(ctx: click.Context, network: str | None) -> None:
 
 
 @election_group.command("quorum")
-@_network_option
+@network_option
 @click.pass_context
 def quorum(ctx: click.Context, network: str | None) -> None:
     """Show the quorum threshold for the current election cycle.
@@ -477,18 +398,13 @@ def quorum(ctx: click.Context, network: str | None) -> None:
       tusdt election quorum
       tusdt election quorum --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        q = client.get_quorum_election(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    decimals = config.get("decimals", 9)
-    print_dict("Quorum", {"Threshold": format_balance(q, decimals)})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
+    kp = get_reader_keypair(cfg)
+    q = state.run_read(lambda c: c.get_quorum_election(kp))
+    state.output.detail("Quorum", {"Threshold": format_balance(q, decimals)})
 
 
 # ------------------------------------------------------------------
@@ -497,7 +413,7 @@ def quorum(ctx: click.Context, network: str | None) -> None:
 
 
 @election_group.command("leading-candidate")
-@_network_option
+@network_option
 @click.pass_context
 def leading_candidate(ctx: click.Context, network: str | None) -> None:
     """Show the current leading candidate and their approval weight.
@@ -507,24 +423,20 @@ def leading_candidate(ctx: click.Context, network: str | None) -> None:
       tusdt election leading-candidate
       tusdt election leading-candidate --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        data = client.get_leading_candidate(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
+    kp = get_reader_keypair(cfg)
+    data = state.run_read(lambda c: c.get_leading_candidate(kp))
 
     if data is None:
-        print_info("No leading candidate")
+        state.output.info("No leading candidate")
         return
 
-    decimals = config.get("decimals", 9)
     candidate_addr = data[0] if isinstance(data, (list, tuple)) else "?"
     weight = data[1] if isinstance(data, (list, tuple)) and len(data) > 1 else 0
-    print_dict(
+    state.output.detail(
         "Leading Candidate",
         {
             "Candidate": candidate_addr,
@@ -539,7 +451,7 @@ def leading_candidate(ctx: click.Context, network: str | None) -> None:
 
 
 @election_group.command("maintainer-elect")
-@_network_option
+@network_option
 @click.pass_context
 def maintainer_elect(ctx: click.Context, network: str | None) -> None:
     """Show the maintainer-elect awaiting activation.
@@ -549,22 +461,18 @@ def maintainer_elect(ctx: click.Context, network: str | None) -> None:
       tusdt election maintainer-elect
       tusdt election maintainer-elect --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        data = client.get_maintainer_elect(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
+    kp = get_reader_keypair(cfg)
+    data = state.run_read(lambda c: c.get_maintainer_elect(kp))
 
     if data is None:
-        print_info("No maintainer-elect")
+        state.output.info("No maintainer-elect")
         return
 
-    decimals = config.get("decimals", 9)
-    print_dict(
+    state.output.detail(
         "Maintainer Elect",
         {
             "Who": data.get("who", "?"),
@@ -581,7 +489,7 @@ def maintainer_elect(ctx: click.Context, network: str | None) -> None:
 
 
 @election_group.command("transition")
-@_network_option
+@network_option
 @click.pass_context
 def transition(ctx: click.Context, network: str | None) -> None:
     """Show the active subnet transition, if any.
@@ -591,21 +499,17 @@ def transition(ctx: click.Context, network: str | None) -> None:
       tusdt election transition
       tusdt election transition --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        data = client.get_transition(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    data = state.run_read(lambda c: c.get_transition(kp))
 
     if data is None:
-        print_info("No active transition")
+        state.output.info("No active transition")
         return
 
-    print_dict(
+    state.output.detail(
         "Transition",
         {
             "From Netuid": data.get("from_netuid", "?"),
@@ -621,7 +525,7 @@ def transition(ctx: click.Context, network: str | None) -> None:
 
 
 @election_group.command("is-in-transition")
-@_network_option
+@network_option
 @click.pass_context
 def is_in_transition(ctx: click.Context, network: str | None) -> None:
     """Check whether a subnet transition is active.
@@ -631,17 +535,12 @@ def is_in_transition(ctx: click.Context, network: str | None) -> None:
       tusdt election is-in-transition
       tusdt election is-in-transition --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        in_transition = client.is_in_transition(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Transition Status", {"In Transition": in_transition})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    in_transition = state.run_read(lambda c: c.is_in_transition(kp))
+    state.output.detail("Transition Status", {"In Transition": in_transition})
 
 
 # ------------------------------------------------------------------
@@ -650,7 +549,7 @@ def is_in_transition(ctx: click.Context, network: str | None) -> None:
 
 
 @election_group.command("voting-window")
-@_network_option
+@network_option
 @click.pass_context
 def voting_window(ctx: click.Context, network: str | None) -> None:
     """Show the current voting window (opens at, ends at).
@@ -660,18 +559,14 @@ def voting_window(ctx: click.Context, network: str | None) -> None:
       tusdt election voting-window
       tusdt election voting-window --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        window = client.get_voting_window(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    window = state.run_read(lambda c: c.get_voting_window(kp))
 
     if isinstance(window, (list, tuple)) and len(window) >= 2:
-        print_dict(
+        state.output.detail(
             "Voting Window",
             {
                 "Opens At": window[0],
@@ -679,7 +574,7 @@ def voting_window(ctx: click.Context, network: str | None) -> None:
             },
         )
     else:
-        print_dict("Voting Window", {"Raw": window})
+        state.output.detail("Voting Window", {"Raw": window})
 
 
 # ======================================================================
@@ -692,8 +587,8 @@ def voting_window(ctx: click.Context, network: str | None) -> None:
 
 
 @election_group.command("schedule-election")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def schedule_election(ctx: click.Context, wallet_name: str | None, network: str | None) -> None:
     """Schedule a new election cycle (permissionless).
@@ -705,26 +600,13 @@ def schedule_election(ctx: click.Context, wallet_name: str | None, network: str 
       tusdt election schedule-election --wallet-name MyWallet
       tusdt election schedule-election --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info("Scheduling election...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.schedule_election(keypair)
-        print_success("Election scheduled!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info("Scheduling election...")
+    state.submit(lambda c, kp: c.schedule_election(kp))
+    state.output.success("Election scheduled!")
 
 
 # ------------------------------------------------------------------
@@ -735,8 +617,8 @@ def schedule_election(ctx: click.Context, wallet_name: str | None, network: str 
 @election_group.command("register-candidate")
 @click.argument("netuid", type=int, metavar="<netuid>")
 @click.argument("hotkey", type=str, metavar="<ss58-address>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def register_candidate(
     ctx: click.Context,
@@ -755,26 +637,13 @@ def register_candidate(
       tusdt election register-candidate 113 5GrwvaEF... --wallet-name MyWallet
       tusdt election register-candidate 42 5GrwvaEF... --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Registering as candidate for netuid {netuid} with hotkey {hotkey}...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.register_candidate(keypair, netuid, hotkey)
-        print_success("Candidate registered!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info(f"Registering as candidate for netuid {netuid} with hotkey {hotkey}...")
+    state.submit(lambda c, kp: c.register_candidate(kp, netuid, hotkey))
+    state.output.success("Candidate registered!")
 
 
 # ------------------------------------------------------------------
@@ -799,8 +668,8 @@ def register_candidate(
     metavar="<hex-string>",
     help="Merkle proof hash as hex-encoded 32 bytes (repeatable, e.g. --proof 0xabc... --proof 0xdef...)",
 )
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def cast_approval(
     ctx: click.Context,
@@ -823,10 +692,11 @@ def cast_approval(
       tusdt election cast-approval 5GrwvaEF... --hotkey 5GrwvaEF... --balance 1000 --multiplier-bps 10000 --proof 0x5637... --wallet-name MyWallet
       tusdt election cast-approval 5FHneW... --hotkey 5GrwvaEF... --balance 500 --multiplier-bps 10000 --proof 0xabc... --proof 0xdef... --wallet-name MyWallet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
     raw_balance = parse_balance(balance, decimals)
 
     # Convert each hex proof hash to a list of 32 bytes (MerkleHash = [u8; 32])
@@ -837,26 +707,17 @@ def cast_approval(
             ph = ph[2:]
         proof_bytes = bytes.fromhex(ph)
         if len(proof_bytes) != 32:
-            print_error(f"Each --proof must be exactly 32 bytes (64 hex chars), got {len(proof_bytes)} bytes")
-            return
+            state.output.error(
+                f"Each --proof must be exactly 32 bytes (64 hex chars), got {len(proof_bytes)} bytes"
+            )
+            sys.exit(1)
         proof_list.append(list(proof_bytes))
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Casting approval for {candidate} with balance {balance}...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.cast_approval(keypair, candidate, hotkey, raw_balance, multiplier_bps, proof_list)
-        print_success("Approval cast!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info(f"Casting approval for {candidate} with balance {balance}...")
+    state.submit(
+        lambda c, kp: c.cast_approval(kp, candidate, hotkey, raw_balance, multiplier_bps, proof_list)
+    )
+    state.output.success("Approval cast!")
 
 
 # ------------------------------------------------------------------
@@ -865,8 +726,8 @@ def cast_approval(
 
 
 @election_group.command("finalize")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def finalize(ctx: click.Context, wallet_name: str | None, network: str | None) -> None:
     """Finalize the current election cycle (permissionless).
@@ -879,26 +740,13 @@ def finalize(ctx: click.Context, wallet_name: str | None, network: str | None) -
       tusdt election finalize --wallet-name MyWallet
       tusdt election finalize --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info("Finalizing election...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.finalize_election(keypair)
-        print_success("Election finalized!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info("Finalizing election...")
+    state.submit(lambda c, kp: c.finalize_election(kp))
+    state.output.success("Election finalized!")
 
 
 # ------------------------------------------------------------------
@@ -907,8 +755,8 @@ def finalize(ctx: click.Context, wallet_name: str | None, network: str | None) -
 
 
 @election_group.command("activate")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def activate(ctx: click.Context, wallet_name: str | None, network: str | None) -> None:
     """Activate the elected maintainer (permissionless).
@@ -921,26 +769,12 @@ def activate(ctx: click.Context, wallet_name: str | None, network: str | None) -
       tusdt election activate --wallet-name MyWallet
       tusdt election activate --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info("Activating maintainer-elect...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.activate_election(keypair)
-        print_success("Maintainer activated!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info("Activating maintainer-elect...")
+    state.submit(lambda c, kp: c.activate_election(kp))
+    state.output.success("Maintainer activated!")
 
 
 # ------------------------------------------------------------------
@@ -949,8 +783,8 @@ def activate(ctx: click.Context, wallet_name: str | None, network: str | None) -
 
 
 @election_group.command("end-transition")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def end_transition(ctx: click.Context, wallet_name: str | None, network: str | None) -> None:
     """End the active subnet transition (permissionless).
@@ -961,26 +795,13 @@ def end_transition(ctx: click.Context, wallet_name: str | None, network: str | N
       tusdt election end-transition --wallet-name MyWallet
       tusdt election end-transition --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info("Ending subnet transition...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.end_transition(keypair)
-        print_success("Transition ended!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info("Ending subnet transition...")
+    state.submit(lambda c, kp: c.end_transition(kp))
+    state.output.success("Transition ended!")
 
 
 # ------------------------------------------------------------------
@@ -989,8 +810,8 @@ def end_transition(ctx: click.Context, wallet_name: str | None, network: str | N
 
 
 @election_group.command("trigger-emergency-election")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def trigger_emergency_election(ctx: click.Context, wallet_name: str | None, network: str | None) -> None:
     """Trigger an emergency election (incumbent only).
@@ -1002,26 +823,13 @@ def trigger_emergency_election(ctx: click.Context, wallet_name: str | None, netw
       tusdt election trigger-emergency-election --wallet-name MyWallet
       tusdt election trigger-emergency-election --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info("Triggering emergency election...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.trigger_emergency_election(keypair)
-        print_success("Emergency election triggered!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info("Triggering emergency election...")
+    state.submit(lambda c, kp: c.trigger_emergency_election(kp))
+    state.output.success("Emergency election triggered!")
 
 
 # ------------------------------------------------------------------
@@ -1030,8 +838,8 @@ def trigger_emergency_election(ctx: click.Context, wallet_name: str | None, netw
 
 
 @election_group.command("cancel-cycle")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def cancel_cycle(ctx: click.Context, wallet_name: str | None, network: str | None) -> None:
     """Cancel the current election cycle (incumbent only).
@@ -1043,23 +851,10 @@ def cancel_cycle(ctx: click.Context, wallet_name: str | None, network: str | Non
       tusdt election cancel-cycle --wallet-name MyWallet
       tusdt election cancel-cycle --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info("Cancelling election cycle...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.cancel_cycle(keypair)
-        print_success("Election cycle cancelled!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info("Cancelling election cycle...")
+    state.submit(lambda c, kp: c.cancel_cycle(kp))
+    state.output.success("Election cycle cancelled!")

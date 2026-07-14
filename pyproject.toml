@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tusdt-cli"
-version = "0.3.5"
+version = "0.4.0"
 description = "CLI for interacting with the TUSDT ink! smart contract system on subtensor(bittensor)"
 readme = "README.md"
 license = "MIT"
@@ -37,7 +37,15 @@ Issues = "https://github.com/tensorusd/tusdt-cli/issues"
 tusdt = "tusdt_cli.cli:main"
 
 [project.optional-dependencies]
-dev = ["ruff>=0.11.0"]
+dev = [
+    "ruff>=0.11.0",
+    "pytest>=8.0",
+    "pytest-cov>=6.0",
+    "hypothesis>=6.100",
+    "ty",
+    "pre-commit",
+    "build",
+]
 
 [tool.ruff]
 target-version = "py310"
@@ -80,3 +88,23 @@ max-doc-length = 120
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/tusdt_cli"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["tusdt_cli"]
+branch = true
+
+[tool.ty.rules]
+# Ratchet plan: these categories have pre-existing findings (warnings).
+# Everything NOT listed here is enforced at "error" level.
+invalid-argument-type = "warn"
+unresolved-attribute = "warn"
+invalid-assignment = "warn"
+invalid-return-type = "warn"
+unsupported-operator = "warn"
+not-iterable = "warn"
+unknown-argument = "warn"
+invalid-type-form = "warn"
+invalid-attribute-access = "warn"

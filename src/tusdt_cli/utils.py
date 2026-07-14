@@ -13,6 +13,8 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+from tusdt_cli.errors import TUSDTError
+
 console = Console()
 
 
@@ -165,7 +167,7 @@ def print_tx_result(result: dict[str, Any], network: str = "finney") -> None:
 # ---------------------------------------------------------------------------
 
 
-class ContractError(Exception):
+class ContractError(TUSDTError):
     """Raised when a contract call returns an error."""
 
 

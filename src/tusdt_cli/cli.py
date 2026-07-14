@@ -18,16 +18,10 @@ from tusdt_cli.commands.token import token_group
 from tusdt_cli.commands.treasury import treasury_group
 from tusdt_cli.commands.vault import vault_group
 from tusdt_cli.config import CONFIG_FILE, NETWORKS, load_config, save_config
+from tusdt_cli.context import CLIContext
+from tusdt_cli.globals import json_option, network_option, quiet_option, verbose_option
 from tusdt_cli.utils import HelpfulGroup, console, print_dict, print_info, print_success
 from tusdt_cli.wallet import get_default_wallet_path, list_wallets
-
-_network_option = click.option(
-    "--network",
-    type=click.Choice(list(NETWORKS.keys()), case_sensitive=False),
-    default=None,
-    help="Network preset (overrides rpc & contract addresses)",
-)
-
 
 # ======================================================================
 # Root group
@@ -36,10 +30,18 @@ _network_option = click.option(
 
 @click.group()
 @click.version_option(__version__, prog_name="tusdt-cli")
+@json_option
+@quiet_option
+@verbose_option
 @click.pass_context
-def cli(ctx: click.Context) -> None:
+def cli(
+    ctx: click.Context,
+    use_json: bool = False,
+    quiet: bool = False,
+    verbosity: int = 0,
+) -> None:
     """TUSDT CLI – interact with the TUSDT ink! smart-contract system."""
-    ctx.ensure_object(dict)
+    ctx.obj = CLIContext(use_json=use_json, quiet=quiet, verbosity=verbosity)
 
 
 # ======================================================================
@@ -53,7 +55,7 @@ def config_group() -> None:
 
 
 @config_group.command("show")
-@_network_option
+@network_option
 @click.pass_context
 def config_show(ctx: click.Context, network: str | None) -> None:
     """Display the current configuration."""
@@ -215,7 +217,7 @@ def wallet_group() -> None:
 
 @wallet_group.command("list")
 @click.option("--path", default=None, help="Custom wallet directory path")
-@_network_option
+@network_option
 @click.pass_context
 def wallet_list(ctx: click.Context, path: str | None, network: str | None) -> None:
     """List all bittensor wallets with their addresses."""
@@ -249,6 +251,49 @@ cli.add_command(oracle_group)
 cli.add_command(governance_group)
 cli.add_command(treasury_group)
 cli.add_command(election_group)
+
+
+# ======================================================================
+# shell completions
+# ======================================================================
+
+
+@cli.group("completion", cls=HelpfulGroup, hidden=True)
+def completion_group() -> None:
+    """Generate shell completion scripts for bash, zsh, or fish."""
+
+
+@completion_group.command("bash")
+def completion_bash() -> None:
+    """Print bash completion script (source it from ~/.bashrc)."""
+    prog = "tusdt"
+    script = f"""\
+# {prog} completion for bash – add this to ~/.bashrc or source it
+eval "$(_{prog.upper()}_COMPLETE=bash_source {prog})"
+"""
+    console.print(script.strip())
+
+
+@completion_group.command("zsh")
+def completion_zsh() -> None:
+    """Print zsh completion script (source it from ~/.zshrc)."""
+    prog = "tusdt"
+    script = f"""\
+# {prog} completion for zsh – add this to ~/.zshrc or source it
+eval "$(_{prog.upper()}_COMPLETE=zsh_source {prog})"
+"""
+    console.print(script.strip())
+
+
+@completion_group.command("fish")
+def completion_fish() -> None:
+    """Print fish completion script (source it from ~/.config/fish/completions/)."""
+    prog = "tusdt"
+    script = f"""\
+# {prog} completion for fish
+eval (env _{prog.upper()}_COMPLETE=fish_source {prog})
+"""
+    console.print(script.strip())
 
 
 # ======================================================================

@@ -5,12 +5,15 @@ methods for the Vault, Token (ERC-20), Auction, Oracle, Governance, and
 Treasury contracts.
 """
 
+import logging
+from time import sleep
 from typing import Any
 
 from substrateinterface import Keypair, SubstrateInterface
 from substrateinterface.contracts import ContractInstance, ContractMetadata
 from substrateinterface.exceptions import ContractReadFailedException
 
+from tusdt_cli.errors import ErrorCode, TUSDTError
 from tusdt_cli.utils import (
     ContractError,
     console,
@@ -19,47 +22,64 @@ from tusdt_cli.utils import (
     unwrap_result,
 )
 
-_ContractMetadata__parse_metadata = ContractMetadata._ContractMetadata__parse_metadata
+logger = logging.getLogger("tusdt_cli")
+
+_PATCH_APPLIED = False
 
 
-def _patched_parse_metadata(self: ContractMetadata) -> None:
-    self._ContractMetadata__convert_to_latest_metadata()
+def _apply_metadata_patch() -> None:
+    """Apply the monkey-patch to ContractMetadata for newer ink! metadata formats.
 
-    # -- original checks (lines 140-154) --
-    if "types" not in self.metadata_dict:
-        raise ValueError("No 'types' directive present in metadata file")
-    if "spec" not in self.metadata_dict:
-        raise ValueError("'spec' directive not present in metadata file")
-    if "constructors" not in self.metadata_dict["spec"]:
-        raise ValueError("No constructors present in metadata file")
-    if "messages" not in self.metadata_dict["spec"]:
-        raise ValueError("No messages present in metadata file")
-    if "source" not in self.metadata_dict:
-        raise ValueError("'source' directive not present in metadata file")
+    The patch is applied at most once (idempotent). Called from
+    TUSDTClient.__init__ so it is explicit rather than a side effect of
+    importing this module.
+    """
+    global _PATCH_APPLIED
+    if _PATCH_APPLIED:
+        return
+    _PATCH_APPLIED = True
 
-    if "V0" in self.metadata_dict and tuple(
-        int(x) for x in self.metadata_dict["metadataVersion"].split(".")
-    ) < (0, 7, 0):
-        self._ContractMetadata__type_offset = 1
+    _parse_metadata_original = ContractMetadata._ContractMetadata__parse_metadata  # ty: ignore
 
-    self.type_string_prefix = f"ink::{self.metadata_dict['source']['hash']}"
+    def _patched_parse_metadata(self: ContractMetadata) -> None:
+        self._ContractMetadata__convert_to_latest_metadata()
 
-    if self.metadata_version == 0:
-        for idx, _ in enumerate(self.metadata_dict["types"]):
-            idx += self._ContractMetadata__type_offset
-            if idx not in self.type_registry:
-                self.type_registry[idx] = self.get_type_string_for_metadata_type(idx)
-    else:
-        self.substrate.init_runtime()
-        pr = self.substrate.runtime_config.create_scale_object("PortableRegistry")
-        pr.encode({"types": self.metadata_dict["types"]})
-        raw_types = pr["types"]
-        if hasattr(raw_types, "value_object"):
-            raw_types = raw_types.value_object
-        self.substrate.runtime_config.update_from_scale_info_types(raw_types, prefix=self.type_string_prefix)
+        # -- original checks (lines 140-154) --
+        if "types" not in self.metadata_dict:
+            raise ValueError("No 'types' directive present in metadata file")
+        if "spec" not in self.metadata_dict:
+            raise ValueError("'spec' directive not present in metadata file")
+        if "constructors" not in self.metadata_dict["spec"]:
+            raise ValueError("No constructors present in metadata file")
+        if "messages" not in self.metadata_dict["spec"]:
+            raise ValueError("No messages present in metadata file")
+        if "source" not in self.metadata_dict:
+            raise ValueError("'source' directive not present in metadata file")
 
+        if "V0" in self.metadata_dict and tuple(
+            int(x) for x in self.metadata_dict["metadataVersion"].split(".")
+        ) < (0, 7, 0):
+            self._ContractMetadata__type_offset = 1  # ty: ignore
 
-ContractMetadata._ContractMetadata__parse_metadata = _patched_parse_metadata
+        self.type_string_prefix = f"ink::{self.metadata_dict['source']['hash']}"
+
+        if self.metadata_version == 0:
+            for idx, _ in enumerate(self.metadata_dict["types"]):
+                idx += self._ContractMetadata__type_offset
+                if idx not in self.type_registry:
+                    self.type_registry[idx] = self.get_type_string_for_metadata_type(idx)
+        else:
+            self.substrate.init_runtime()
+            pr = self.substrate.runtime_config.create_scale_object("PortableRegistry")
+            pr.encode({"types": self.metadata_dict["types"]})
+            raw_types = pr["types"]
+            if hasattr(raw_types, "value_object"):
+                raw_types = raw_types.value_object
+            self.substrate.runtime_config.update_from_scale_info_types(
+                raw_types, prefix=self.type_string_prefix
+            )
+
+    ContractMetadata._ContractMetadata__parse_metadata = _patched_parse_metadata  # ty: ignore
 
 
 def _decode_dispatch_error(err: Any) -> str:
@@ -76,12 +96,54 @@ def _decode_dispatch_error(err: Any) -> str:
     return str(err)
 
 
-class TUSDTClient:
-    """High-level client for the TUSDT contract system (six contracts)."""
+_MAX_RETRIES = 3
+_RETRY_BASE_DELAY = 1.0  # seconds
 
-    def __init__(self, config: dict[str, Any]) -> None:
+
+def _connect_with_retry(rpc: str) -> SubstrateInterface:
+    """Create a SubstrateInterface with retry on connection failure."""
+    last_error: Exception | None = None
+    for attempt in range(_MAX_RETRIES):
+        try:
+            logger.debug("Connecting to %s (attempt %d/%d)", rpc, attempt + 1, _MAX_RETRIES)
+            return SubstrateInterface(
+                url=rpc,
+                use_remote_preset=True,
+                type_registry={"types": {"Balance": "u64"}},
+                ws_options={"max_size": 2**20, "close_timeout": 5},
+            )
+        except (ConnectionError, TimeoutError, OSError) as exc:
+            last_error = exc
+            if attempt < _MAX_RETRIES - 1:
+                delay = _RETRY_BASE_DELAY * (attempt + 1)
+                logger.warning(
+                    "Connection to %s failed (attempt %d/%d), retrying in %.1fs: %s",
+                    rpc,
+                    attempt + 1,
+                    _MAX_RETRIES,
+                    delay,
+                    exc,
+                )
+                sleep(delay)
+
+    raise TUSDTError(
+        f"Cannot connect to {rpc} after {_MAX_RETRIES} attempts: {last_error}",
+        code=ErrorCode.CONNECTION_FAILED,
+    )
+
+
+class TUSDTClient:
+    """High-level client for the TUSDT contract system (seven contracts).
+
+    Accepts an optional ``_substrate`` kwarg for test injection.
+    When ``None`` (the default), a real ``SubstrateInterface`` is created
+    lazily on first access.
+    """
+
+    def __init__(self, config: dict[str, Any], _substrate: SubstrateInterface | None = None) -> None:
+        _apply_metadata_patch()
         self.config = config
-        self._substrate: SubstrateInterface | None = None
+        self._substrate: SubstrateInterface | None = _substrate
         self._vault: ContractInstance | None = None
         self._token: ContractInstance | None = None
         self._auction: ContractInstance | None = None
@@ -100,11 +162,7 @@ class TUSDTClient:
             rpc = self.config.get("rpc")
             if not rpc:
                 raise ValueError("RPC endpoint not configured. Run: tusdt config set --rpc <url>")
-            self._substrate = SubstrateInterface(
-                url=rpc,
-                use_remote_preset=True,
-                type_registry={"types": {"Balance": "u64"}},
-            )
+            self._substrate = _connect_with_retry(rpc)
         return self._substrate
 
     def _load_contract(self, address: str, metadata_path: str) -> ContractInstance:
