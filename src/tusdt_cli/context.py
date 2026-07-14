@@ -1,0 +1,138 @@
+"""Per-invocation CLI state — the single choke-point for config, signing,
+connection lifecycle, and error handling.
+
+Modeled on btcli's ``cli/context.py`` AppContext pattern.  The root Click
+callback builds one ``CLIContext`` and stashes it on ``ctx.obj``.  Every
+command retrieves it and runs all chain work through ``run_read`` (queries)
+or ``submit`` (mutations), so error rendering, output formatting, and
+connection management live in one place.
+"""
+
+from __future__ import annotations
+
+import logging
+import sys
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from typing import Any, TypeVar
+
+from substrateinterface import Keypair
+
+from tusdt_cli.client import TUSDTClient
+from tusdt_cli.config import load_config
+from tusdt_cli.errors import REMEDIATION, ErrorCode, TUSDTError
+from tusdt_cli.logs import setup_logging
+from tusdt_cli.output import Output
+from tusdt_cli.wallet import get_reader_keypair, get_signer_keypair
+
+T = TypeVar("T")
+
+logger = logging.getLogger("tusdt_cli")
+
+
+@dataclass
+class CLIContext:
+    """Mutable per-invocation state shared across all commands.
+
+    Populated by the root callback from global CLI flags, then each command
+    can further refine fields (network, wallet_name, etc.) before calling
+    :meth:`run_read` or :meth:`submit`.
+    """
+
+    network: str = "finney"
+    wallet_name: str | None = None
+    use_json: bool = False
+    quiet: bool = False
+    assume_yes: bool = False
+    verbosity: int = 0
+    output: Output = field(default_factory=Output)
+
+    def __post_init__(self) -> None:
+        setup_logging(verbosity=self.verbosity, quiet=self.quiet)
+
+    # ------------------------------------------------------------------
+    # Config
+    # ------------------------------------------------------------------
+
+    def make_config(self) -> dict[str, Any]:
+        """Resolve the full config for this invocation.
+
+        Loads from disk, applies network/wallet overrides from the
+        invocation, and syncs output modes.
+        """
+        cfg = load_config(network=self.network)
+        if self.wallet_name:
+            cfg["wallet_name"] = self.wallet_name
+
+        self.output.json_mode = self.use_json
+        self.output.quiet = self.quiet
+        self.output.network = cfg.get("network", self.network)
+
+        return cfg
+
+    # ------------------------------------------------------------------
+    # Read (query)
+    # ------------------------------------------------------------------
+
+    def run_read(self, fn: Callable[[TUSDTClient], T]) -> T:
+        """Open a client, call *fn*, handle errors uniformly.
+
+        Usage from a read-only command::
+
+            state.run_read(lambda client: client.balance_of(keypair, account))
+        """
+        config = self.make_config()
+        try:
+            client = TUSDTClient(config)
+            return fn(client)
+        except TUSDTError as exc:
+            self.output.error(exc.message, help=REMEDIATION.get(exc.code))
+            sys.exit(1)
+        except Exception as exc:
+            logger.exception("Unexpected error during read")
+            err = TUSDTError(str(exc), code=ErrorCode.UNKNOWN)
+            self.output.error(err.message, help=REMEDIATION.get(err.code))
+            sys.exit(1)
+
+    # ------------------------------------------------------------------
+    # Submit (mutation)
+    # ------------------------------------------------------------------
+
+    def submit(self, fn: Callable[[TUSDTClient, Keypair], dict[str, Any]]) -> dict[str, Any]:
+        """Resolve the signer, open a client, call *fn*, and render the result.
+
+        Usage from a write command::
+
+            state.submit(lambda client, kp: client.create_vault(kp, amount))
+        """
+        config = self.make_config()
+        try:
+            keypair = get_signer_keypair(config)
+        except Exception as exc:
+            err = TUSDTError(str(exc), code=ErrorCode.WALLET_NOT_FOUND)
+            self.output.error(err.message, help=REMEDIATION.get(err.code))
+            sys.exit(1)
+
+        self.output.info(f"Signer: {keypair.ss58_address}")
+
+        try:
+            client = TUSDTClient(config)
+            result = fn(client, keypair)
+            self.output.tx_result(result)
+            return result
+        except TUSDTError as exc:
+            self.output.error(exc.message, help=REMEDIATION.get(exc.code))
+            sys.exit(1)
+        except Exception as exc:
+            logger.exception("Unexpected error during submit")
+            err = TUSDTError(str(exc), code=ErrorCode.UNKNOWN)
+            self.output.error(err.message, help=REMEDIATION.get(err.code))
+            sys.exit(1)
+
+    # ------------------------------------------------------------------
+    # Convenience: reader keypair (for read-only commands that need one)
+    # ------------------------------------------------------------------
+
+    def get_reader_keypair(self) -> Keypair:
+        """Return the stateless reader keypair (always //Alice)."""
+        return get_reader_keypair(self.make_config())

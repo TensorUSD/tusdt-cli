@@ -2,34 +2,15 @@
 
 import click
 
-from tusdt_cli.client import TUSDTClient
-from tusdt_cli.config import NETWORKS, load_config
+from tusdt_cli.context import CLIContext
+from tusdt_cli.globals import network_option, wallet_option
 from tusdt_cli.utils import (
     HelpfulCommand,
     ModeAwareGroup,
     format_balance,
     parse_balance,
-    print_dict,
-    print_error,
-    print_info,
-    print_success,
-    print_table,
-    print_tx_result,
 )
-from tusdt_cli.wallet import get_reader_keypair, get_signer_keypair
-
-_network_option = click.option(
-    "--network",
-    type=click.Choice(list(NETWORKS.keys()), case_sensitive=False),
-    default=None,
-    help="Network preset (overrides rpc & contract addresses)",
-)
-
-_wallet_option = click.option(
-    "--wallet-name",
-    default=None,
-    help="Bittensor wallet name for signing (prompts for coldkey password)",
-)
+from tusdt_cli.wallet import get_reader_keypair
 
 _GOVERNANCE_ADVANCED = {
     "set-council",
@@ -69,7 +50,7 @@ def governance_group() -> None:
 
 
 @governance_group.command("maintainer")
-@_network_option
+@network_option
 @click.pass_context
 def maintainer(ctx: click.Context, network: str | None) -> None:
     """Show the current maintainer account address.
@@ -79,17 +60,12 @@ def maintainer(ctx: click.Context, network: str | None) -> None:
       tusdt governance maintainer
       tusdt governance maintainer --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        addr = client.get_maintainer(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Maintainer", {"Address": addr})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    addr = state.run_read(lambda c: c.get_maintainer(kp))
+    state.output.detail("Maintainer", {"Address": addr})
 
 
 # ------------------------------------------------------------------
@@ -98,7 +74,7 @@ def maintainer(ctx: click.Context, network: str | None) -> None:
 
 
 @governance_group.command("council")
-@_network_option
+@network_option
 @click.pass_context
 def council(ctx: click.Context, network: str | None) -> None:
     """List all council members.
@@ -108,22 +84,18 @@ def council(ctx: click.Context, network: str | None) -> None:
       tusdt governance council
       tusdt governance council --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        members = client.get_council(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    members = state.run_read(lambda c: c.get_council(kp))
 
     if not members:
-        print_info("No council members")
+        state.output.info("No council members")
         return
 
     rows = [[str(i), addr] for i, addr in enumerate(members)]
-    print_table("Council Members", ["#", "Address"], rows)
+    state.output.table("Council Members", ["#", "Address"], rows)
 
 
 # ------------------------------------------------------------------
@@ -133,7 +105,7 @@ def council(ctx: click.Context, network: str | None) -> None:
 
 @governance_group.command("is-council")
 @click.argument("account", type=str, metavar="<ss58-address>")
-@_network_option
+@network_option
 @click.pass_context
 def is_council_cmd(ctx: click.Context, account: str, network: str | None) -> None:
     """Check whether an account is a council member.
@@ -144,17 +116,13 @@ def is_council_cmd(ctx: click.Context, account: str, network: str | None) -> Non
       tusdt governance is-council 5GrwvaEF...
       tusdt governance is-council 5GrwvaEF... --network testnet
     """
-    config = load_config(network=network)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    result = state.run_read(lambda c: c.is_council(kp, account))
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        result = client.is_council(keypair, account)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Council Status", {"Account": account, "Is council member": result})
+    state.output.detail("Council Status", {"Account": account, "Is council member": result})
 
 
 # ------------------------------------------------------------------
@@ -163,7 +131,7 @@ def is_council_cmd(ctx: click.Context, account: str, network: str | None) -> Non
 
 
 @governance_group.command("treasury")
-@_network_option
+@network_option
 @click.pass_context
 def governance_treasury(ctx: click.Context, network: str | None) -> None:
     """Show the treasury address registered in the governance contract.
@@ -173,17 +141,12 @@ def governance_treasury(ctx: click.Context, network: str | None) -> None:
       tusdt governance treasury
       tusdt governance treasury --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        addr = client.get_governance_treasury(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Treasury", {"Address": addr})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    addr = state.run_read(lambda c: c.get_governance_treasury(kp))
+    state.output.detail("Treasury", {"Address": addr})
 
 
 # ------------------------------------------------------------------
@@ -192,7 +155,7 @@ def governance_treasury(ctx: click.Context, network: str | None) -> None:
 
 
 @governance_group.command("params")
-@_network_option
+@network_option
 @click.pass_context
 def governance_params(ctx: click.Context, network: str | None) -> None:
     """Show governance contract parameters.
@@ -202,20 +165,16 @@ def governance_params(ctx: click.Context, network: str | None) -> None:
       tusdt governance params
       tusdt governance params --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        params = client.get_governance_params(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    params = state.run_read(lambda c: c.get_governance_params(kp))
 
     if isinstance(params, dict):
-        print_dict("Governance Parameters", params)
+        state.output.detail("Governance Parameters", params)
     else:
-        print_dict("Governance Parameters", {"Raw": params})
+        state.output.detail("Governance Parameters", {"Raw": params})
 
 
 # ------------------------------------------------------------------
@@ -224,7 +183,7 @@ def governance_params(ctx: click.Context, network: str | None) -> None:
 
 
 @governance_group.command("current-epoch")
-@_network_option
+@network_option
 @click.pass_context
 def current_epoch(ctx: click.Context, network: str | None) -> None:
     """Show the current epoch number.
@@ -234,17 +193,12 @@ def current_epoch(ctx: click.Context, network: str | None) -> None:
       tusdt governance current-epoch
       tusdt governance current-epoch --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        epoch = client.get_current_epoch(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Current Epoch", {"Epoch": epoch})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    epoch = state.run_read(lambda c: c.get_current_epoch(kp))
+    state.output.detail("Current Epoch", {"Epoch": epoch})
 
 
 # ------------------------------------------------------------------
@@ -254,7 +208,7 @@ def current_epoch(ctx: click.Context, network: str | None) -> None:
 
 @governance_group.command("get-snapshot")
 @click.argument("epoch", type=int, metavar="<epoch>")
-@_network_option
+@network_option
 @click.pass_context
 def get_snapshot(ctx: click.Context, epoch: int, network: str | None) -> None:
     """Show the Merkle snapshot for a given epoch.
@@ -266,20 +220,16 @@ def get_snapshot(ctx: click.Context, epoch: int, network: str | None) -> None:
       tusdt governance get-snapshot 42
       tusdt governance get-snapshot 42 --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        snapshot = client.get_snapshot(keypair, epoch)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    snapshot = state.run_read(lambda c: c.get_snapshot(kp, epoch))
 
     if snapshot is None:
-        print_info(f"No snapshot for epoch {epoch}")
+        state.output.info(f"No snapshot for epoch {epoch}")
     else:
-        print_dict(f"Snapshot – Epoch {epoch}", snapshot)
+        state.output.detail(f"Snapshot – Epoch {epoch}", snapshot)
 
 
 # ------------------------------------------------------------------
@@ -289,7 +239,7 @@ def get_snapshot(ctx: click.Context, epoch: int, network: str | None) -> None:
 
 @governance_group.command("quorum")
 @click.argument("epoch", type=int, metavar="<epoch>")
-@_network_option
+@network_option
 @click.pass_context
 def quorum(ctx: click.Context, epoch: int, network: str | None) -> None:
     """Show the absolute quorum threshold for a given epoch.
@@ -301,22 +251,18 @@ def quorum(ctx: click.Context, epoch: int, network: str | None) -> None:
       tusdt governance quorum 42
       tusdt governance quorum 42 --network testnet
     """
-    config = load_config(network=network)
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
+    kp = get_reader_keypair(cfg)
+    result = state.run_read(lambda c: c.get_quorum(kp, epoch))
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        result = client.get_quorum(keypair, epoch)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict(
+    state.output.detail(
         f"Quorum – Epoch {epoch}",
         {
             "Quorum (raw)": result,
-            "Quorum": format_balance(result, decimals),
+            "Quorum": format_balance(result, decimals),  # ty: ignore
         },
     )
 
@@ -327,7 +273,7 @@ def quorum(ctx: click.Context, epoch: int, network: str | None) -> None:
 
 
 @governance_group.command("proposal-count")
-@_network_option
+@network_option
 @click.pass_context
 def proposal_count(ctx: click.Context, network: str | None) -> None:
     """Show the total number of proposals.
@@ -337,17 +283,12 @@ def proposal_count(ctx: click.Context, network: str | None) -> None:
       tusdt governance proposal-count
       tusdt governance proposal-count --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        count = client.get_proposal_count(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Proposals", {"Count": count})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    count = state.run_read(lambda c: c.get_proposal_count(kp))
+    state.output.detail("Proposals", {"Count": count})
 
 
 # ------------------------------------------------------------------
@@ -357,7 +298,7 @@ def proposal_count(ctx: click.Context, network: str | None) -> None:
 
 @governance_group.command("get-proposal")
 @click.argument("proposal_id", type=int, metavar="<proposal-id>")
-@_network_option
+@network_option
 @click.pass_context
 def get_proposal(ctx: click.Context, proposal_id: int, network: str | None) -> None:
     """Show details for a specific proposal.
@@ -368,21 +309,17 @@ def get_proposal(ctx: click.Context, proposal_id: int, network: str | None) -> N
       tusdt governance get-proposal 0
       tusdt governance get-proposal 5 --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        proposal = client.get_proposal(keypair, proposal_id)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    proposal = state.run_read(lambda c: c.get_proposal(kp, proposal_id))
 
     if proposal is None:
-        print_error(f"Proposal {proposal_id} not found")
+        state.output.error(f"Proposal {proposal_id} not found")
         return
 
-    print_dict(f"Proposal #{proposal_id}", proposal)
+    state.output.detail(f"Proposal #{proposal_id}", proposal)
 
 
 # ------------------------------------------------------------------
@@ -394,7 +331,7 @@ def get_proposal(ctx: click.Context, proposal_id: int, network: str | None) -> N
 @click.argument("proposal_id", type=int, metavar="<proposal-id>")
 @click.option("--coldkey", required=True, help="Coldkey SS58 address (e.g. 5GrwvaEF...)")
 @click.option("--hotkey", required=True, help="Hotkey SS58 address (e.g. 5GrwvaEF...)")
-@_network_option
+@network_option
 @click.pass_context
 def has_voted_cmd(
     ctx: click.Context,
@@ -411,17 +348,13 @@ def has_voted_cmd(
       tusdt governance has-voted 0 --coldkey 5GrwvaEF... --hotkey 5GrwvaEF...
       tusdt governance has-voted 5 --coldkey 5GrwvaEF... --hotkey 5FHneW... --network testnet
     """
-    config = load_config(network=network)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    result = state.run_read(lambda c: c.has_voted(kp, proposal_id, coldkey, hotkey))
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        result = client.has_voted(keypair, proposal_id, coldkey, hotkey)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict(
+    state.output.detail(
         "Vote Status",
         {
             "Proposal ID": proposal_id,
@@ -438,7 +371,7 @@ def has_voted_cmd(
 
 
 @governance_group.command("netuid")
-@_network_option
+@network_option
 @click.pass_context
 def governance_netuid(ctx: click.Context, network: str | None) -> None:
     """Show the governing subnet netuid.
@@ -448,17 +381,12 @@ def governance_netuid(ctx: click.Context, network: str | None) -> None:
       tusdt governance netuid
       tusdt governance netuid --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        netuid = client.get_netuid(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Governing Netuid", {"Netuid": netuid})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    netuid = state.run_read(lambda c: c.get_netuid(kp))
+    state.output.detail("Governing Netuid", {"Netuid": netuid})
 
 
 # ------------------------------------------------------------------
@@ -467,7 +395,7 @@ def governance_netuid(ctx: click.Context, network: str | None) -> None:
 
 
 @governance_group.command("election")
-@_network_option
+@network_option
 @click.pass_context
 def governance_election(ctx: click.Context, network: str | None) -> None:
     """Show the election contract address registered in governance.
@@ -477,17 +405,12 @@ def governance_election(ctx: click.Context, network: str | None) -> None:
       tusdt governance election
       tusdt governance election --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        addr = client.get_election_address(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_dict("Election Contract", {"Address": addr})
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    addr = state.run_read(lambda c: c.get_election_address(kp))
+    state.output.detail("Election Contract", {"Address": addr})
 
 
 # ------------------------------------------------------------------
@@ -496,7 +419,7 @@ def governance_election(ctx: click.Context, network: str | None) -> None:
 
 
 @governance_group.command("election-snapshot")
-@_network_option
+@network_option
 @click.pass_context
 def governance_election_snapshot(ctx: click.Context, network: str | None) -> None:
     """Show the latest election snapshot used by the election contract.
@@ -506,24 +429,20 @@ def governance_election_snapshot(ctx: click.Context, network: str | None) -> Non
       tusdt governance election-snapshot
       tusdt governance election-snapshot --network testnet
     """
-    config = load_config(network=network)
-
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        snapshot = client.get_election_snapshot(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    snapshot = state.run_read(lambda c: c.get_election_snapshot(kp))
 
     if snapshot is None:
-        print_info("No election snapshot available")
+        state.output.info("No election snapshot available")
         return
 
     if isinstance(snapshot, (list, tuple)) and len(snapshot) >= 4:
         merkle_root = snapshot[0]
         root_hex = "0x" + bytes(merkle_root).hex() if merkle_root else "N/A"
-        print_dict(
+        state.output.detail(
             "Election Snapshot",
             {
                 "Merkle Root": root_hex,
@@ -533,7 +452,7 @@ def governance_election_snapshot(ctx: click.Context, network: str | None) -> Non
             },
         )
     else:
-        print_dict("Election Snapshot", {"Raw": snapshot})
+        state.output.detail("Election Snapshot", {"Raw": snapshot})
 
 
 # ======================================================================
@@ -552,8 +471,8 @@ def governance_election_snapshot(ctx: click.Context, network: str | None) -> Non
     required=True,
     help="Council member SS58 address (repeatable, e.g. --members A --members B)",
 )
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def set_council_cmd(
     ctx: click.Context,
@@ -569,27 +488,14 @@ def set_council_cmd(
       tusdt governance set-council --members 5GrwvaEF... --members 5FHneW... --wallet-name MyWallet
       tusdt governance set-council --members 5GrwvaEF... --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
 
     members_list = list(members)
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Setting council to {len(members_list)} member(s)...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.set_council(keypair, members_list)
-        print_success("Council updated!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info(f"Setting council to {len(members_list)} member(s)...")
+    state.submit(lambda c, kp: c.set_council(kp, members_list))
+    state.output.success("Council updated!")
 
 
 # ------------------------------------------------------------------
@@ -635,8 +541,8 @@ def set_council_cmd(
     default=None,
     help="Maximum total collateral across all vaults in human-readable units",
 )
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def gov_vault_set_params_cmd(
     ctx: click.Context,
@@ -662,10 +568,11 @@ def gov_vault_set_params_cmd(
       tusdt governance vault-set-params --collateral-ratio 150 --wallet-name MyWallet
       tusdt governance vault-set-params --interest-rate 5 --borrow-cap 1000000 --wallet-name MyWallet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
 
     params: dict = {}
     if collateral_ratio is not None:
@@ -692,25 +599,12 @@ def gov_vault_set_params_cmd(
         params["max_total_collateral"] = parse_balance(max_total_collateral, decimals)
 
     if not params:
-        print_error("Provide at least one parameter to update")
+        state.output.error("Provide at least one parameter to update")
         return
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Scheduling vault parameter update via governance: {params}")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.gov_vault_set_contract_params(keypair, params)
-        print_success("Vault parameter update scheduled via governance!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info(f"Scheduling vault parameter update via governance: {params}")
+    state.submit(lambda c, kp: c.gov_vault_set_contract_params(kp, params))
+    state.output.success("Vault parameter update scheduled via governance!")
 
 
 # ------------------------------------------------------------------
@@ -719,8 +613,8 @@ def gov_vault_set_params_cmd(
 
 
 @governance_group.command("vault-cancel-update")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def gov_vault_cancel_update_cmd(
     ctx: click.Context,
@@ -734,26 +628,12 @@ def gov_vault_cancel_update_cmd(
       tusdt governance vault-cancel-update --wallet-name MyWallet
       tusdt governance vault-cancel-update --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info("Cancelling pending vault parameter update via governance...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.gov_vault_cancel_update(keypair)
-        print_success("Vault parameter update cancelled via governance!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info("Cancelling pending vault parameter update via governance...")
+    state.submit(lambda c, kp: c.gov_vault_cancel_update(kp))
+    state.output.success("Vault parameter update cancelled via governance!")
 
 
 # ------------------------------------------------------------------
@@ -763,8 +643,8 @@ def gov_vault_cancel_update_cmd(
 
 @governance_group.command("vault-update-treasury")
 @click.argument("address", type=str, metavar="<ss58-address>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def gov_vault_update_treasury_cmd(
     ctx: click.Context,
@@ -780,26 +660,12 @@ def gov_vault_update_treasury_cmd(
       tusdt governance vault-update-treasury 5GrwvaEF... --wallet-name MyWallet
       tusdt governance vault-update-treasury 5GrwvaEF... --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Updating vault treasury to {address} via governance...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.gov_vault_update_treasury(keypair, address)
-        print_success("Vault treasury updated via governance!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Updating vault treasury to {address} via governance...")
+    state.submit(lambda c, kp: c.gov_vault_update_treasury(kp, address))
+    state.output.success("Vault treasury updated via governance!")
 
 
 # ------------------------------------------------------------------
@@ -809,8 +675,8 @@ def gov_vault_update_treasury_cmd(
 
 @governance_group.command("vault-update-platform")
 @click.argument("address", type=str, metavar="<ss58-address>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def gov_vault_update_platform_cmd(
     ctx: click.Context,
@@ -826,26 +692,12 @@ def gov_vault_update_platform_cmd(
       tusdt governance vault-update-platform 5GrwvaEF... --wallet-name MyWallet
       tusdt governance vault-update-platform 5GrwvaEF... --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Updating vault platform to {address} via governance...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.gov_vault_update_platform(keypair, address)
-        print_success("Vault platform updated via governance!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Updating vault platform to {address} via governance...")
+    state.submit(lambda c, kp: c.gov_vault_update_platform(kp, address))
+    state.output.success("Vault platform updated via governance!")
 
 
 # ------------------------------------------------------------------
@@ -854,8 +706,8 @@ def gov_vault_update_platform_cmd(
 
 
 @governance_group.command("vault-unpause")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def gov_vault_unpause_cmd(
     ctx: click.Context,
@@ -869,26 +721,12 @@ def gov_vault_unpause_cmd(
       tusdt governance vault-unpause --wallet-name MyWallet
       tusdt governance vault-unpause --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info("Unpausing vault contract via governance...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.gov_vault_unpause(keypair)
-        print_success("Vault unpaused via governance!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info("Unpausing vault contract via governance...")
+    state.submit(lambda c, kp: c.gov_vault_unpause(kp))
+    state.output.success("Vault unpaused via governance!")
 
 
 # ------------------------------------------------------------------
@@ -897,8 +735,8 @@ def gov_vault_unpause_cmd(
 
 
 @governance_group.command("vault-pause")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def gov_vault_pause_cmd(
     ctx: click.Context,
@@ -912,26 +750,12 @@ def gov_vault_pause_cmd(
       tusdt governance vault-pause --wallet-name MyWallet
       tusdt governance vault-pause --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info("Pausing vault contract via governance...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.gov_vault_pause(keypair)
-        print_success("Vault paused via governance!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info("Pausing vault contract via governance...")
+    state.submit(lambda c, kp: c.gov_vault_pause(kp))
+    state.output.success("Vault paused via governance!")
 
 
 # ------------------------------------------------------------------
@@ -942,8 +766,8 @@ def gov_vault_pause_cmd(
 @governance_group.command("oracle-set-validator")
 @click.argument("address", type=str, metavar="<ss58-address>", required=False)
 @click.option("--clear", is_flag=True, default=False, help="Clear the validator (set to None)")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def gov_oracle_set_validator_cmd(
     ctx: click.Context,
@@ -960,32 +784,19 @@ def gov_oracle_set_validator_cmd(
       tusdt governance oracle-set-validator 5GrwvaEF... --wallet-name MyWallet
       tusdt governance oracle-set-validator --clear --wallet-name MyWallet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
 
     validator = None if clear else address
     if not clear and not address:
-        print_error("Provide an SS58 address or use --clear to remove the validator")
-        return
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
+        state.output.error("Provide an SS58 address or use --clear to remove the validator")
         return
 
     action = "Clearing" if clear else f"Setting to {address}"
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"{action} oracle validator via governance...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.gov_oracle_set_validator(keypair, validator)
-        print_success("Oracle validator updated via governance!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info(f"{action} oracle validator via governance...")
+    state.submit(lambda c, kp: c.gov_oracle_set_validator(kp, validator))
+    state.output.success("Oracle validator updated via governance!")
 
 
 # ------------------------------------------------------------------
@@ -995,8 +806,8 @@ def gov_oracle_set_validator_cmd(
 
 @governance_group.command("oracle-set-deviation")
 @click.argument("deviation", type=int, metavar="<deviation>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def gov_oracle_set_deviation_cmd(
     ctx: click.Context,
@@ -1012,26 +823,12 @@ def gov_oracle_set_deviation_cmd(
       tusdt governance oracle-set-deviation 500000000000000000 --wallet-name MyWallet
       tusdt governance oracle-set-deviation 500000000000000000 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Setting oracle max price deviation to {deviation} via governance...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.gov_oracle_set_max_price_deviation(keypair, deviation)
-        print_success("Oracle max price deviation updated via governance!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Setting oracle max price deviation to {deviation} via governance...")
+    state.submit(lambda c, kp: c.gov_oracle_set_max_price_deviation(kp, deviation))
+    state.output.success("Oracle max price deviation updated via governance!")
 
 
 # ------------------------------------------------------------------
@@ -1041,8 +838,8 @@ def gov_oracle_set_deviation_cmd(
 
 @governance_group.command("oracle-commit-round")
 @click.argument("price", type=int, metavar="<price>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def gov_oracle_commit_round_cmd(
     ctx: click.Context,
@@ -1058,26 +855,12 @@ def gov_oracle_commit_round_cmd(
       tusdt governance oracle-commit-round 1500000000000000000 --wallet-name MyWallet
       tusdt governance oracle-commit-round 1500000000000000000 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Committing oracle round with price {price} via governance...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.gov_oracle_commit_round(keypair, price)
-        print_success("Oracle round committed via governance!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Committing oracle round with price {price} via governance...")
+    state.submit(lambda c, kp: c.gov_oracle_commit_round(kp, price))
+    state.output.success("Oracle round committed via governance!")
 
 
 # ------------------------------------------------------------------
@@ -1087,27 +870,17 @@ def gov_oracle_commit_round_cmd(
 
 @governance_group.command("oracle-set-netuid")
 @click.argument("netuid", type=int, metavar="<netuid>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def oracle_set_netuid(ctx: click.Context, netuid: int, wallet_name: str | None, network: str | None) -> None:
     """Set the oracle's governing subnet netuid via governance (maintainer only)."""
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-    print_info(f"Setting oracle netuid to {netuid}...")
-    try:
-        client = TUSDTClient(config)
-        result = client.gov_oracle_set_netuid(keypair, netuid)
-        print_success("Oracle netuid updated!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Setting oracle netuid to {netuid}...")
+    state.submit(lambda c, kp: c.gov_oracle_set_netuid(kp, netuid))
+    state.output.success("Oracle netuid updated!")
 
 
 # ------------------------------------------------------------------
@@ -1117,34 +890,28 @@ def oracle_set_netuid(ctx: click.Context, netuid: int, wallet_name: str | None, 
 
 @governance_group.command("oracle-set-min-submitter-stake")
 @click.argument("amount", type=str, metavar="<amount>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def oracle_set_min_submitter_stake(
     ctx: click.Context, amount: str, wallet_name: str | None, network: str | None
 ) -> None:
     """Set the oracle's minimum submitter stake via governance (maintainer only)."""
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
+
     try:
-        raw_amount = parse_balance(amount, config.get("decimals", 9))
+        raw_amount = parse_balance(amount, decimals)
     except ValueError:
-        print_error(f"Invalid amount: {amount}")
+        state.output.error(f"Invalid amount: {amount}")
         return
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-    print_info(f"Setting oracle min submitter stake to {amount} (raw: {raw_amount})...")
-    try:
-        client = TUSDTClient(config)
-        result = client.gov_oracle_set_min_submitter_stake(keypair, raw_amount)
-        print_success("Oracle min submitter stake updated!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+
+    state.output.info(f"Setting oracle min submitter stake to {amount} (raw: {raw_amount})...")
+    state.submit(lambda c, kp: c.gov_oracle_set_min_submitter_stake(kp, raw_amount))
+    state.output.success("Oracle min submitter stake updated!")
 
 
 # ------------------------------------------------------------------
@@ -1155,8 +922,8 @@ def oracle_set_min_submitter_stake(
 @governance_group.command("auction-set-admin")
 @click.argument("address", type=str, metavar="<ss58-address>", required=False)
 @click.option("--clear", is_flag=True, default=False, help="Clear the admin (set to None)")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def gov_auction_set_admin_cmd(
     ctx: click.Context,
@@ -1173,32 +940,19 @@ def gov_auction_set_admin_cmd(
       tusdt governance auction-set-admin 5GrwvaEF... --wallet-name MyWallet
       tusdt governance auction-set-admin --clear --wallet-name MyWallet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
 
     admin = None if clear else address
     if not clear and not address:
-        print_error("Provide an SS58 address or use --clear to remove the admin")
-        return
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
+        state.output.error("Provide an SS58 address or use --clear to remove the admin")
         return
 
     action = "Clearing" if clear else f"Setting to {address}"
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"{action} auction admin via governance...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.gov_auction_set_admin(keypair, admin)
-        print_success("Auction admin updated via governance!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info(f"{action} auction admin via governance...")
+    state.submit(lambda c, kp: c.gov_auction_set_admin(kp, admin))
+    state.output.success("Auction admin updated via governance!")
 
 
 # ------------------------------------------------------------------
@@ -1207,8 +961,8 @@ def gov_auction_set_admin_cmd(
 
 
 @governance_group.command("update-params", cls=HelpfulCommand)
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.option(
     "--voting-period-ms",
     type=int,
@@ -1255,28 +1009,20 @@ def update_params_cmd(
     Examples:
       tusdt governance update-params --voting-period-ms 172800000 --quorum-bps 2000 --approval-bps 5001 --min-proposer-stake 1000.0 --submission-open-day 1 --submission-close-day 7 --wallet-name MyWallet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
 
     raw_min_stake = parse_balance(min_proposer_stake, decimals)
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(
+    state.output.info(
         f"Updating governance parameters: voting_period_ms={voting_period_ms}, quorum_bps={quorum_bps}, approval_bps={approval_bps}, min_proposer_stake={raw_min_stake}, submission_open_day={submission_open_day}, submission_close_day={submission_close_day}"
     )
-
-    try:
-        client = TUSDTClient(config)
-        result = client.update_governance_params(
-            keypair,
+    state.submit(
+        lambda c, kp: c.update_governance_params(
+            kp,
             voting_period_ms,
             quorum_bps,
             approval_bps,
@@ -1284,10 +1030,8 @@ def update_params_cmd(
             submission_open_day,
             submission_close_day,
         )
-        print_success("Governance parameters updated!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    )
+    state.output.success("Governance parameters updated!")
 
 
 # ------------------------------------------------------------------
@@ -1331,8 +1075,8 @@ def update_params_cmd(
     metavar="<ss58-address>",
     help="Recipient SS58 address (required if kind=funding)",
 )
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def submit_proposal_cmd(
     ctx: click.Context,
@@ -1354,18 +1098,22 @@ def submit_proposal_cmd(
       tusdt governance submit-proposal --cid "QmXyz..." --kind non-funding --wallet-name MyWallet
       tusdt governance submit-proposal --cid "QmXyz..." --kind funding --fund emergency --token-kind tusdt --funding-amount 5000 --funding-recipient 5GrwvaEF... --wallet-name MyWallet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
 
     # Build ProposalKind
     if kind.lower() == "funding":
         if not all([fund, token_kind_opt, funding_amount, funding_recipient]):
-            print_error(
+            state.output.error(
                 "Funding proposals require: --fund, --token-kind, --funding-amount, --funding-recipient"
             )
             return
+        assert funding_amount is not None
+        assert fund is not None
+        assert token_kind_opt is not None
         raw_amount = parse_balance(funding_amount, decimals)
         # Fund variant: {"Emergency": null}, {"Operation": null}, etc.
         fund_dict = {fund.capitalize(): None}
@@ -1382,22 +1130,9 @@ def submit_proposal_cmd(
     else:
         kind_dict = {"NonFunding": None}
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Submitting proposal (cid={cid}, kind={kind})...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.submit_proposal(keypair, cid, kind_dict)
-        print_success("Proposal submitted!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info(f"Submitting proposal (cid={cid}, kind={kind})...")
+    state.submit(lambda c, kp: c.submit_proposal(kp, cid, kind_dict))
+    state.output.success("Proposal submitted!")
 
 
 # ------------------------------------------------------------------
@@ -1425,8 +1160,8 @@ def submit_proposal_cmd(
     metavar="<hex-string>",
     help="Merkle proof hash as hex-encoded 32 bytes (repeatable, e.g. --proof 0xabc... --proof 0xdef...)",
 )
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def vote_cmd(
     ctx: click.Context,
@@ -1448,10 +1183,11 @@ def vote_cmd(
       tusdt governance vote 0 --hotkey 5GrwvaEF... --support --balance 1000 --multiplier-bps 10000 --proof 0x5637... --wallet-name MyWallet
       tusdt governance vote 0 --hotkey 5GrwvaEF... --oppose --balance 500 --multiplier-bps 10000 --proof 0x5637... --proof 0x8087... --wallet-name MyWallet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
     raw_balance = parse_balance(balance, decimals)
 
     # Convert each hex proof hash to a list of 32 bytes (MerkleHash = [u8; 32])
@@ -1462,27 +1198,18 @@ def vote_cmd(
             ph = ph[2:]
         proof_bytes = bytes.fromhex(ph)
         if len(proof_bytes) != 32:
-            print_error(f"Each --proof must be exactly 32 bytes (64 hex chars), got {len(proof_bytes)} bytes")
+            state.output.error(
+                f"Each --proof must be exactly 32 bytes (64 hex chars), got {len(proof_bytes)} bytes"
+            )
             return
         proof_list.append(list(proof_bytes))
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
     vote_dir = "Support" if support else "Oppose"
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Casting {vote_dir} vote on proposal {proposal_id} with balance {balance}...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.vote(keypair, proposal_id, hotkey, support, raw_balance, multiplier_bps, proof_list)
-        print_success("Vote cast!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info(f"Casting {vote_dir} vote on proposal {proposal_id} with balance {balance}...")
+    state.submit(
+        lambda c, kp: c.vote(kp, proposal_id, hotkey, support, raw_balance, multiplier_bps, proof_list)
+    )
+    state.output.success("Vote cast!")
 
 
 # ------------------------------------------------------------------
@@ -1492,8 +1219,8 @@ def vote_cmd(
 
 @governance_group.command("finalize-proposal")
 @click.argument("proposal_id", type=int, metavar="<proposal-id>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def finalize_proposal_cmd(
     ctx: click.Context,
@@ -1509,26 +1236,12 @@ def finalize_proposal_cmd(
       tusdt governance finalize-proposal 0 --wallet-name MyWallet
       tusdt governance finalize-proposal 5 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Finalizing proposal {proposal_id}...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.finalize_proposal(keypair, proposal_id)
-        print_success("Proposal finalized!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Finalizing proposal {proposal_id}...")
+    state.submit(lambda c, kp: c.finalize_proposal(kp, proposal_id))
+    state.output.success("Proposal finalized!")
 
 
 # ------------------------------------------------------------------
@@ -1538,8 +1251,8 @@ def finalize_proposal_cmd(
 
 @governance_group.command("execute-proposal")
 @click.argument("proposal_id", type=int, metavar="<proposal-id>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def execute_proposal_cmd(
     ctx: click.Context,
@@ -1555,26 +1268,12 @@ def execute_proposal_cmd(
       tusdt governance execute-proposal 0 --wallet-name MyWallet
       tusdt governance execute-proposal 5 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Executing proposal {proposal_id}...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.execute_proposal(keypair, proposal_id)
-        print_success("Proposal executed!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Executing proposal {proposal_id}...")
+    state.submit(lambda c, kp: c.execute_proposal(kp, proposal_id))
+    state.output.success("Proposal executed!")
 
 
 # ------------------------------------------------------------------
@@ -1588,8 +1287,8 @@ def execute_proposal_cmd(
 )
 @click.option("--circulating-supply", type=int, required=True, help="Circulating supply as raw u128 integer")
 @click.option("--snapshot-block", type=int, required=True, help="Snapshot block number as u32 integer")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def submit_snapshot_cmd(
     ctx: click.Context,
@@ -1606,9 +1305,9 @@ def submit_snapshot_cmd(
       tusdt governance submit-snapshot --root 0xabcdef... --circulating-supply 1000000000000 --snapshot-block 5000000 --wallet-name MyWallet
       tusdt governance submit-snapshot --root 0xabcdef... --circulating-supply 1000000000000 --snapshot-block 5000000 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
 
     # Convert hex root to list of ints (32 bytes)
     root_hex = root.strip()
@@ -1617,19 +1316,6 @@ def submit_snapshot_cmd(
     root_bytes = bytes.fromhex(root_hex.zfill(64))
     root_list = list(root_bytes)
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Submitting snapshot for block {snapshot_block} (supply={circulating_supply})...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.submit_snapshot(keypair, root_list, circulating_supply, snapshot_block)
-        print_success("Snapshot submitted!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info(f"Submitting snapshot for block {snapshot_block} (supply={circulating_supply})...")
+    state.submit(lambda c, kp: c.submit_snapshot(kp, root_list, circulating_supply, snapshot_block))
+    state.output.success("Snapshot submitted!")

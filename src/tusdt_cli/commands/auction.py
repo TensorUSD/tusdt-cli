@@ -2,35 +2,14 @@
 
 import click
 
-from tusdt_cli.client import TUSDTClient
-from tusdt_cli.config import NETWORKS, load_config
+from tusdt_cli.context import CLIContext
+from tusdt_cli.globals import network_option, wallet_option
 from tusdt_cli.utils import (
     ModeAwareGroup,
     format_balance,
     parse_balance,
-    print_dict,
-    print_error,
-    print_info,
-    print_success,
-    print_table,
-    print_tx_result,
-    print_warning,
 )
-from tusdt_cli.wallet import get_reader_keypair, get_signer_keypair, load_hotkey, resolve_ss58
-
-_network_option = click.option(
-    "--network",
-    type=click.Choice(list(NETWORKS.keys()), case_sensitive=False),
-    default=None,
-    help="Network preset (overrides rpc & contract addresses)",
-)
-
-_wallet_option = click.option(
-    "--wallet-name",
-    default=None,
-    help="Bittensor wallet name for signing (prompts for coldkey password)",
-)
-
+from tusdt_cli.wallet import get_reader_keypair, load_hotkey, resolve_ss58
 
 _AUCTION_ADVANCED = {
     "list-all",
@@ -58,7 +37,7 @@ def auction_group() -> None:
 
 @auction_group.command("list-active")
 @click.option("--page", default=0, show_default=True, help="Page number (10 per page)")
-@_network_option
+@network_option
 @click.pass_context
 def list_active(ctx: click.Context, page: int, network: str | None) -> None:
     """List active liquidation auctions.
@@ -68,20 +47,17 @@ def list_active(ctx: click.Context, page: int, network: str | None) -> None:
       tusdt auction list-active --network testnet
       tusdt auction list-active --page 2 --network testnet
     """
-    config = load_config(network=network)
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        total = client.get_active_auctions_count(keypair)
-        auctions = client.list_active_auctions(keypair, page)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    kp = get_reader_keypair(cfg)
+    total = state.run_read(lambda c: c.get_active_auctions_count(kp))
+    auctions = state.run_read(lambda c: c.list_active_auctions(kp, page))
 
     if not auctions:
-        print_info(f"No active auctions (page {page})")
+        state.output.info(f"No active auctions (page {page})")
         return
 
     rows = []
@@ -98,8 +74,8 @@ def list_active(ctx: click.Context, page: int, network: str | None) -> None:
             ]
         )
 
-    print_info(f"Active auctions: {total}  |  Page: {page}")
-    print_table(
+    state.output.info(f"Active auctions: {total}  |  Page: {page}")
+    state.output.table(
         "Active Auctions",
         ["ID", "Vault", "Collateral", "Debt", "Highest Bid", "Bids", "Ends At"],
         rows,
@@ -113,7 +89,7 @@ def list_active(ctx: click.Context, page: int, network: str | None) -> None:
 
 @auction_group.command("info")
 @click.argument("auction_id", type=int, metavar="<auction-id>")
-@_network_option
+@network_option
 @click.pass_context
 def auction_info(ctx: click.Context, auction_id: int, network: str | None) -> None:
     """Show details for a specific auction.
@@ -123,22 +99,19 @@ def auction_info(ctx: click.Context, auction_id: int, network: str | None) -> No
     Examples:
       tusdt auction info 5 --network testnet
     """
-    config = load_config(network=network)
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        data = client.get_auction(keypair, auction_id)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    kp = get_reader_keypair(cfg)
+    data = state.run_read(lambda c: c.get_auction(kp, auction_id))
 
     if data is None:
-        print_error(f"Auction {auction_id} not found")
+        state.output.error(f"Auction {auction_id} not found")
         return
 
-    print_dict(
+    state.output.detail(
         f"Auction #{auction_id}",
         {
             "ID": data.get("id", auction_id),
@@ -167,8 +140,8 @@ def auction_info(ctx: click.Context, auction_id: int, network: str | None) -> No
 @click.option(
     "--wallet-hotkey", default=None, help="Hotkey name to resolve its SS58 address for bid metadata"
 )
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def bid(
     ctx: click.Context,
@@ -189,60 +162,54 @@ def bid(
       tusdt auction bid 5 500 --wallet-name MyWallet --network testnet
       tusdt auction bid 5 500 --wallet-name MyWallet --wallet-hotkey myhotkey
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
 
     # Resolve hotkey SS58 address for bid metadata
     hot_key_address: str | None = None
     if wallet_hotkey:
-        wname = wallet_name or config.get("wallet_name")
+        wname = state.wallet_name or cfg.get("wallet_name")
         if not wname:
-            print_error("--wallet-hotkey requires --wallet-name (or wallet_name in config)")
+            state.output.error("--wallet-hotkey requires --wallet-name (or wallet_name in config)")
             return
         try:
-            hk_keypair = load_hotkey(wname, wallet_hotkey, config.get("wallet_path"))
+            hk_keypair = load_hotkey(wname, wallet_hotkey, cfg.get("wallet_path"))
             hot_key_address = hk_keypair.ss58_address
-            print_info(f"Hotkey: {hot_key_address}")
+            state.output.info(f"Hotkey: {hot_key_address}")
         except Exception as exc:
-            print_error(f"Failed to load hotkey '{wallet_hotkey}': {exc}")
+            state.output.error(f"Failed to load hotkey '{wallet_hotkey}': {exc}")
             return
 
-    print_info(f"Signer: {keypair.ss58_address}")
+    # Check and handle allowance
+    auction_address = cfg.get("auction_address", "")
+    if auction_address:
+        wname = state.wallet_name or cfg.get("wallet_name")
+        if not wname:
+            state.output.error("Cannot determine signer address for allowance check")
+            return
+        signer_addr = resolve_ss58(wname, cfg.get("wallet_path"))
+        kp = get_reader_keypair(cfg)
+        current_allowance = state.run_read(lambda c: c.allowance(kp, signer_addr, auction_address))
+        if current_allowance < raw_amount:
+            state.output.warning(
+                f"Current allowance ({format_balance(current_allowance, decimals)}) "
+                f"is less than bid amount ({amount})."
+            )
+            if click.confirm("Approve the auction contract to spend your tokens?"):
+                max_approval = 2**64 - 1
+                state.submit(lambda c, kp: c.approve(kp, auction_address, max_approval))
+                state.output.success("Approved!")
+            else:
+                state.output.info("Bid cancelled.")
+                return
 
-    try:
-        client = TUSDTClient(config)
-
-        # Check and handle allowance
-        auction_address = config.get("auction_address", "")
-        if auction_address:
-            current_allowance = client.allowance(keypair, keypair.ss58_address, auction_address)
-            if current_allowance < raw_amount:
-                print_warning(
-                    f"Current allowance ({format_balance(current_allowance, decimals)}) "
-                    f"is less than bid amount ({amount})."
-                )
-                if click.confirm("Approve the auction contract to spend your tokens?"):
-                    max_approval = 2**64 - 1
-                    approve_result = client.approve(keypair, auction_address, max_approval)
-                    print_success(f"Approved! tx: {approve_result['extrinsic_hash']}")
-                else:
-                    print_info("Bid cancelled.")
-                    return
-
-        print_info(f"Placing bid of {amount} on auction {auction_id}...")
-        result = client.place_bid(keypair, auction_id, raw_amount, hot_key_address)
-        print_success("Bid placed!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info(f"Placing bid of {amount} on auction {auction_id}...")
+    state.submit(lambda c, kp: c.place_bid(kp, auction_id, raw_amount, hot_key_address))
+    state.output.success("Bid placed!")
 
 
 # ------------------------------------------------------------------
@@ -252,8 +219,8 @@ def bid(
 
 @auction_group.command("finalize")
 @click.argument("auction_id", type=int, metavar="<auction-id>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def finalize(ctx: click.Context, auction_id: int, wallet_name: str | None, network: str | None) -> None:
     """Finalize a completed auction.
@@ -263,25 +230,13 @@ def finalize(ctx: click.Context, auction_id: int, wallet_name: str | None, netwo
     Examples:
       tusdt auction finalize 5 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Finalizing auction {auction_id}...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.finalize_auction(keypair, auction_id)
-        print_success("Auction finalized!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info(f"Finalizing auction {auction_id}...")
+    state.submit(lambda c, kp: c.finalize_auction(kp, auction_id))
+    state.output.success("Auction finalized!")
 
 
 # ------------------------------------------------------------------
@@ -292,8 +247,8 @@ def finalize(ctx: click.Context, auction_id: int, wallet_name: str | None, netwo
 @auction_group.command("withdraw-refund")
 @click.argument("auction_id", type=int, metavar="<auction-id>")
 @click.argument("bid_id", type=int, metavar="<bid-id>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def withdraw_refund(
     ctx: click.Context, auction_id: int, bid_id: int, wallet_name: str | None, network: str | None
@@ -306,25 +261,13 @@ def withdraw_refund(
     Examples:
       tusdt auction withdraw-refund 5 1 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Withdrawing refund for bid {bid_id} on auction {auction_id}...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.withdraw_refund(keypair, auction_id, bid_id)
-        print_success("Refund withdrawn!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info(f"Withdrawing refund for bid {bid_id} on auction {auction_id}...")
+    state.submit(lambda c, kp: c.withdraw_refund(kp, auction_id, bid_id))
+    state.output.success("Refund withdrawn!")
 
 
 # ------------------------------------------------------------------
@@ -334,8 +277,8 @@ def withdraw_refund(
 
 @auction_group.command("my-bid")
 @click.argument("auction_id", type=int, metavar="<auction-id>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def my_bid(ctx: click.Context, auction_id: int, wallet_name: str | None, network: str | None) -> None:
     """Show your current bid in an auction.
@@ -345,36 +288,32 @@ def my_bid(ctx: click.Context, auction_id: int, wallet_name: str | None, network
     Examples:
       tusdt auction my-bid 5 --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
 
     # Determine bidder address from wallet name (no password needed – reads coldkeypub.txt)
-    wname = wallet_name or config.get("wallet_name")
+    wname = state.wallet_name or cfg.get("wallet_name")
     if not wname:
-        print_error("Provide --wallet-name or configure wallet_name to identify your address.")
+        state.output.error("Provide --wallet-name or configure wallet_name to identify your address.")
         return
 
     try:
-        bidder = resolve_ss58(wname, config.get("wallet_path"))
+        bidder = resolve_ss58(wname, cfg.get("wallet_path"))
     except Exception as exc:
-        print_error(str(exc))
+        state.output.error(str(exc))
         return
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        data = client.get_my_bid(keypair, auction_id, bidder)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    kp = get_reader_keypair(cfg)
+    data = state.run_read(lambda c: c.get_my_bid(kp, auction_id, bidder))
 
     if data is None:
-        print_info(f"No bid found for {bidder} in auction {auction_id}")
+        state.output.info(f"No bid found for {bidder} in auction {auction_id}")
         return
 
-    print_dict(
+    state.output.detail(
         f"Your Bid – Auction #{auction_id}",
         {
             "Bid ID": data.get("id", "?"),
@@ -393,7 +332,7 @@ def my_bid(ctx: click.Context, auction_id: int, wallet_name: str | None, network
 
 @auction_group.command("list-all")
 @click.option("--page", default=0, show_default=True, help="Page number (10 per page)")
-@_network_option
+@network_option
 @click.pass_context
 def list_all(ctx: click.Context, page: int, network: str | None) -> None:
     """List all auctions (active + finalized, paginated).
@@ -403,20 +342,17 @@ def list_all(ctx: click.Context, page: int, network: str | None) -> None:
       tusdt auction list-all --network testnet
       tusdt auction list-all --page 2 --network testnet
     """
-    config = load_config(network=network)
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        total = client.get_total_auctions_count(keypair)
-        auctions = client.list_all_auctions(keypair, page)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    kp = get_reader_keypair(cfg)
+    total = state.run_read(lambda c: c.get_total_auctions_count(kp))
+    auctions = state.run_read(lambda c: c.list_all_auctions(kp, page))
 
     if not auctions:
-        print_info(f"No auctions found (page {page})")
+        state.output.info(f"No auctions found (page {page})")
         return
 
     rows = []
@@ -433,8 +369,8 @@ def list_all(ctx: click.Context, page: int, network: str | None) -> None:
             ]
         )
 
-    print_info(f"Total auctions: {total}  |  Page: {page}")
-    print_table(
+    state.output.info(f"Total auctions: {total}  |  Page: {page}")
+    state.output.table(
         "All Auctions",
         ["ID", "Vault", "Collateral", "Debt", "Highest Bid", "Bids", "Finalized"],
         rows,
@@ -447,7 +383,7 @@ def list_all(ctx: click.Context, page: int, network: str | None) -> None:
 
 
 @auction_group.command("total-count")
-@_network_option
+@network_option
 @click.pass_context
 def total_count(ctx: click.Context, network: str | None) -> None:
     """Show total auction count.
@@ -456,17 +392,13 @@ def total_count(ctx: click.Context, network: str | None) -> None:
     Examples:
       tusdt auction total-count --network testnet
     """
-    config = load_config(network=network)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        count = client.get_total_auctions_count(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    kp = get_reader_keypair(state.make_config())
+    count = state.run_read(lambda c: c.get_total_auctions_count(kp))
 
-    print_dict("Total Auctions", {"Count": count})
+    state.output.detail("Total Auctions", {"Count": count})
 
 
 # ------------------------------------------------------------------
@@ -477,7 +409,7 @@ def total_count(ctx: click.Context, network: str | None) -> None:
 @auction_group.command("vault-auction")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.option("--owner", required=True, help="Vault owner SS58 address or wallet name")
-@_network_option
+@network_option
 @click.pass_context
 def vault_auction(ctx: click.Context, vault_id: int, owner: str, network: str | None) -> None:
     """Show the active auction for a specific vault.
@@ -487,26 +419,23 @@ def vault_auction(ctx: click.Context, vault_id: int, owner: str, network: str | 
     Examples:
       tusdt auction vault-auction 0 --owner 5GrwvaEF... --network testnet
     """
-    config = load_config(network=network)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
 
     try:
-        owner = resolve_ss58(owner, config.get("wallet_path"))
+        owner = resolve_ss58(owner, cfg.get("wallet_path"))
     except Exception as exc:
-        print_error(str(exc))
+        state.output.error(str(exc))
         return
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        auction_id = client.get_active_vault_auction(keypair, owner, vault_id)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    kp = get_reader_keypair(cfg)
+    auction_id = state.run_read(lambda c: c.get_active_vault_auction(kp, owner, vault_id))
 
     if auction_id is None:
-        print_info(f"No active auction for vault {vault_id} (owner: {owner})")
+        state.output.info(f"No active auction for vault {vault_id} (owner: {owner})")
     else:
-        print_dict(
+        state.output.detail(
             f"Active Auction – Vault #{vault_id}",
             {
                 "Owner": owner,
@@ -523,7 +452,7 @@ def vault_auction(ctx: click.Context, vault_id: int, owner: str, network: str | 
 @auction_group.command("bids")
 @click.argument("auction_id", type=int, metavar="<auction-id>")
 @click.option("--page", default=0, show_default=True, help="Page number (10 per page)")
-@_network_option
+@network_option
 @click.pass_context
 def list_bids(ctx: click.Context, auction_id: int, page: int, network: str | None) -> None:
     """List bids for an auction (paginated).
@@ -534,19 +463,16 @@ def list_bids(ctx: click.Context, auction_id: int, page: int, network: str | Non
       tusdt auction bids 5 --network testnet
       tusdt auction bids 5 --page 1 --network testnet
     """
-    config = load_config(network=network)
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        bids = client.list_bids(keypair, auction_id, page)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    kp = get_reader_keypair(cfg)
+    bids = state.run_read(lambda c: c.list_bids(kp, auction_id, page))
 
     if not bids:
-        print_info(f"No bids for auction {auction_id} (page {page})")
+        state.output.info(f"No bids for auction {auction_id} (page {page})")
         return
 
     rows = []
@@ -560,8 +486,8 @@ def list_bids(ctx: click.Context, auction_id: int, page: int, network: str | Non
             ]
         )
 
-    print_info(f"Bids for auction {auction_id}  |  Page: {page}")
-    print_table(
+    state.output.info(f"Bids for auction {auction_id}  |  Page: {page}")
+    state.output.table(
         f"Bids – Auction #{auction_id}",
         ["Bid ID", "Bidder", "Amount", "Withdrawn"],
         rows,
@@ -576,7 +502,7 @@ def list_bids(ctx: click.Context, auction_id: int, page: int, network: str | Non
 @auction_group.command("bid-info")
 @click.argument("auction_id", type=int, metavar="<auction-id>")
 @click.argument("bid_id", type=int, metavar="<bid-id>")
-@_network_option
+@network_option
 @click.pass_context
 def bid_info(ctx: click.Context, auction_id: int, bid_id: int, network: str | None) -> None:
     """Show details for a specific bid.
@@ -587,25 +513,22 @@ def bid_info(ctx: click.Context, auction_id: int, bid_id: int, network: str | No
     Examples:
       tusdt auction bid-info 5 1 --network testnet
     """
-    config = load_config(network=network)
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        data = client.get_bid(keypair, auction_id, bid_id)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    kp = get_reader_keypair(cfg)
+    data = state.run_read(lambda c: c.get_bid(kp, auction_id, bid_id))
 
     if data is None:
-        print_error(f"Bid {bid_id} not found in auction {auction_id}")
+        state.output.error(f"Bid {bid_id} not found in auction {auction_id}")
         return
 
     metadata = data.get("metadata")
     hot_key = metadata.get("hot_key", "N/A") if isinstance(metadata, dict) else "N/A"
 
-    print_dict(
+    state.output.detail(
         f"Bid #{bid_id} – Auction #{auction_id}",
         {
             "Bid ID": data.get("id", bid_id),
@@ -624,7 +547,7 @@ def bid_info(ctx: click.Context, auction_id: int, bid_id: int, network: str | No
 
 
 @auction_group.command("controller")
-@_network_option
+@network_option
 @click.pass_context
 def auction_controller_cmd(ctx: click.Context, network: str | None) -> None:
     """Show the controller address of the auction contract.
@@ -634,17 +557,13 @@ def auction_controller_cmd(ctx: click.Context, network: str | None) -> None:
       tusdt auction controller
       tusdt auction controller --network testnet
     """
-    config = load_config(network=network)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        addr = client.get_auction_controller(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    kp = get_reader_keypair(state.make_config())
+    addr = state.run_read(lambda c: c.get_auction_controller(kp))
 
-    print_dict("Auction Controller", {"Address": addr})
+    state.output.detail("Auction Controller", {"Address": addr})
 
 
 # ------------------------------------------------------------------
@@ -653,7 +572,7 @@ def auction_controller_cmd(ctx: click.Context, network: str | None) -> None:
 
 
 @auction_group.command("governance")
-@_network_option
+@network_option
 @click.pass_context
 def auction_governance_cmd(ctx: click.Context, network: str | None) -> None:
     """Show the governance address of the auction contract.
@@ -663,17 +582,13 @@ def auction_governance_cmd(ctx: click.Context, network: str | None) -> None:
       tusdt auction governance
       tusdt auction governance --network testnet
     """
-    config = load_config(network=network)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        addr = client.get_auction_governance(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    kp = get_reader_keypair(state.make_config())
+    addr = state.run_read(lambda c: c.get_auction_governance(kp))
 
-    print_dict("Auction Governance", {"Address": addr})
+    state.output.detail("Auction Governance", {"Address": addr})
 
 
 # ------------------------------------------------------------------
@@ -682,7 +597,7 @@ def auction_governance_cmd(ctx: click.Context, network: str | None) -> None:
 
 
 @auction_group.command("admin-address")
-@_network_option
+@network_option
 @click.pass_context
 def auction_admin_cmd(ctx: click.Context, network: str | None) -> None:
     """Show the admin address of the auction contract, if set.
@@ -692,20 +607,16 @@ def auction_admin_cmd(ctx: click.Context, network: str | None) -> None:
       tusdt auction admin-address
       tusdt auction admin-address --network testnet
     """
-    config = load_config(network=network)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
 
-    try:
-        keypair = get_reader_keypair(config)
-        client = TUSDTClient(config)
-        admin = client.get_auction_admin(keypair)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    kp = get_reader_keypair(state.make_config())
+    admin = state.run_read(lambda c: c.get_auction_admin(kp))
 
     if admin is None:
-        print_info("No admin set")
+        state.output.info("No admin set")
     else:
-        print_dict("Auction Admin", {"Address": admin})
+        state.output.detail("Auction Admin", {"Address": admin})
 
 
 # ------------------------------------------------------------------
@@ -735,8 +646,8 @@ def auction_admin_cmd(ctx: click.Context, network: str | None) -> None:
     default=None,
     help="Auction duration in milliseconds (uses contract default if omitted)",
 )
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def create_auction_cmd(
     ctx: click.Context,
@@ -758,34 +669,27 @@ def create_auction_cmd(
     Examples:
       tusdt auction create 5GrwvaEF... 0 --collateral-balance 10 --debt-balance 100 --min-bid 10 --liquidation-price 1500000000000000000 --duration-ms 86400000 --wallet-name MyWallet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
-    decimals = config.get("decimals", 9)
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
 
     raw_collateral = parse_balance(collateral_balance, decimals)
     raw_debt = parse_balance(debt_balance, decimals)
     raw_min_bid = parse_balance(min_bid, decimals)
 
     try:
-        vault_owner = resolve_ss58(vault_owner, config.get("wallet_path"))
+        vault_owner = resolve_ss58(vault_owner, cfg.get("wallet_path"))
     except Exception as exc:
-        print_error(str(exc))
+        state.output.error(str(exc))
         return
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
+    state.output.info(f"Creating auction for vault {vault_id} (owner: {vault_owner})...")
 
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Creating auction for vault {vault_id} (owner: {vault_owner})...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.create_auction(
-            keypair,
+    state.submit(
+        lambda c, kp: c.create_auction(
+            kp,
             vault_owner,
             vault_id,
             raw_collateral,
@@ -794,10 +698,8 @@ def create_auction_cmd(
             liquidation_price,
             duration_ms,
         )
-        print_success("Auction created!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    )
+    state.output.success("Auction created!")
 
 
 # ------------------------------------------------------------------
@@ -808,8 +710,8 @@ def create_auction_cmd(
 @auction_group.command("set-admin")
 @click.argument("address", type=str, metavar="<ss58-address>", required=False)
 @click.option("--clear", is_flag=True, default=False, help="Clear the admin (set to None)")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def auction_set_admin_cmd(
     ctx: click.Context,
@@ -826,32 +728,20 @@ def auction_set_admin_cmd(
       tusdt auction set-admin 5GrwvaEF... --wallet-name MyWallet
       tusdt auction set-admin --clear --wallet-name MyWallet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
 
     admin = None if clear else address
     if not clear and not address:
-        print_error("Provide an SS58 address or use --clear to remove the admin")
-        return
-
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
+        state.output.error("Provide an SS58 address or use --clear to remove the admin")
         return
 
     action = "Clearing" if clear else f"Setting to {address}"
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"{action} auction admin...")
+    state.output.info(f"{action} auction admin...")
 
-    try:
-        client = TUSDTClient(config)
-        result = client.auction_set_admin(keypair, admin)
-        print_success("Auction admin updated!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.submit(lambda c, kp: c.auction_set_admin(kp, admin))
+    state.output.success("Auction admin updated!")
 
 
 # ------------------------------------------------------------------
@@ -861,8 +751,8 @@ def auction_set_admin_cmd(
 
 @auction_group.command("update-governance")
 @click.argument("address", type=str, metavar="<ss58-address>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def auction_update_governance_cmd(
     ctx: click.Context,
@@ -878,26 +768,13 @@ def auction_update_governance_cmd(
       tusdt auction update-governance 5GrwvaEF... --wallet-name MyWallet
       tusdt auction update-governance 5GrwvaEF... --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-        return
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Updating auction governance to {address}...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.auction_update_governance(keypair, address)
-        print_success("Auction governance updated!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info(f"Updating auction governance to {address}...")
+    state.submit(lambda c, kp: c.auction_update_governance(kp, address))
+    state.output.success("Auction governance updated!")
 
 
 # ------------------------------------------------------------------
@@ -908,8 +785,8 @@ def auction_update_governance_cmd(
 @auction_group.command("transfer-winning-bid")
 @click.argument("auction_id", type=int, metavar="<auction-id>")
 @click.argument("recipient", type=str, metavar="<ss58-address>")
-@_wallet_option
-@_network_option
+@wallet_option
+@network_option
 @click.pass_context
 def transfer_winning_bid_cmd(
     ctx: click.Context,
@@ -927,27 +804,17 @@ def transfer_winning_bid_cmd(
       tusdt auction transfer-winning-bid 0 5GrwvaEF... --wallet-name MyWallet
       tusdt auction transfer-winning-bid 5 5GrwvaEF... --wallet-name MyWallet --network testnet
     """
-    config = load_config(network=network)
-    if wallet_name:
-        config["wallet_name"] = wallet_name
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
 
     try:
-        recipient = resolve_ss58(recipient, config.get("wallet_path"))
+        recipient = resolve_ss58(recipient, cfg.get("wallet_path"))
     except Exception as exc:
-        print_error(str(exc))
+        state.output.error(str(exc))
+        return
 
-    try:
-        keypair = get_signer_keypair(config)
-    except Exception as exc:
-        print_error(str(exc))
-
-    print_info(f"Signer: {keypair.ss58_address}")
-    print_info(f"Transferring winning bid for auction {auction_id} to {recipient}...")
-
-    try:
-        client = TUSDTClient(config)
-        result = client.auction_transfer_winning_bid(keypair, auction_id, recipient)
-        print_success("Winning bid transferred!")
-        print_tx_result(result, config.get("network", "finney"))
-    except Exception as exc:
-        print_error(str(exc))
+    state.output.info(f"Transferring winning bid for auction {auction_id} to {recipient}...")
+    state.submit(lambda c, kp: c.auction_transfer_winning_bid(kp, auction_id, recipient))
+    state.output.success("Winning bid transferred!")

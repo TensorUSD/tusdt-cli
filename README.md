@@ -36,8 +36,12 @@ Or using [uv](https://docs.astral.sh/uv/):
 ```bash
 git clone https://github.com/TensorUSD/tusdt-cli
 cd tusdt-cli
-uv sync
+uv sync --all-extras --dev
 ```
+
+A `justfile` is available for common dev tasks — `just check` runs the full
+CI gate (lint + typecheck + test). See the [Development](#development)
+section below.
 
 ## Quickstart
 
@@ -288,6 +292,20 @@ tusdt config set --treasury 5Fcj...
 | `decimals`             | Decimal places for balance display     | `9`                                                  |
 | `access_mode`          | Command visibility (`user` or `dev`)   | `user`                                               |
 
+### Environment variables
+
+Configuration can also be set via environment variables (useful for CI/CD
+or scripting). They take precedence over defaults but are overridden by
+saved config values and CLI flags.
+
+| Variable              | Config key    |
+|-----------------------|---------------|
+| `TUSDT_RPC`           | `rpc`         |
+| `TUSDT_NETWORK`       | `network`     |
+| `TUSDT_WALLET`        | `wallet_name` |
+| `TUSDT_WALLET_PATH`   | `wallet_path` |
+| `TUSDT_WALLET_HOTKEY` | `wallet_hotkey` |
+
 ## Networks
 
 | Network   | RPC endpoint                                |
@@ -312,6 +330,72 @@ Finalized
 
 The `network` parameter in the URL matches the `--network` flag (or the
 configured default).
+
+## Global options
+
+These flags can be passed before any subcommand:
+
+```bash
+tusdt --json vault info 0 --wallet-name MyWallet    # machine-readable JSON output
+tusdt --quiet vault create --amount 10 --wallet-name MyWallet  # suppress non-essential output
+tusdt -v vault info 0 --wallet-name MyWallet         # INFO-level diagnostics
+tusdt -vv vault info 0 --wallet-name MyWallet        # DEBUG-level diagnostics
+```
+
+| Flag         | Effect                                              |
+|--------------|-----------------------------------------------------|
+| `--json`     | Emit machine-readable JSON instead of formatted text |
+| `--quiet`    | Suppress progress messages and warnings              |
+| `-v`         | Enable INFO logging (connection lifecycle, retries)  |
+| `-v -v`      | Enable DEBUG logging (full chain diagnostics)        |
+
+Set `TUSDT_LOG=debug` to enable debug logging via environment variable
+(useful for CI runs).
+
+## Shell completions
+
+Bash, zsh, and fish completions are built into Click. Add one of these
+lines to your shell config, or run the completion command to see the
+exact incantation:
+
+```bash
+tusdt completion bash   # prints the line to add
+tusdt completion zsh
+tusdt completion fish
+```
+
+**bash** — add to `~/.bashrc`:
+```bash
+eval "$(_TUSDT_COMPLETE=bash_source tusdt)"
+```
+
+**zsh** — add to `~/.zshrc`:
+```bash
+eval "$(_TUSDT_COMPLETE=zsh_source tusdt)"
+```
+
+**fish** — add to `~/.config/fish/completions/tusdt.fish`:
+```fish
+eval (env _TUSDT_COMPLETE=fish_source tusdt)
+```
+
+## Development
+
+A `justfile` provides the standard dev workflow (requires [uv](https://docs.astral.sh/uv/)
+and [just](https://github.com/casey/just)):
+
+```bash
+just sync       # install dependencies from lockfile
+just lint       # ruff check + format check
+just fmt        # auto-fix lint issues + format
+just typecheck  # static type checking with ty
+just test       # run test suite (pytest)
+just cov        # run tests with coverage report
+just check      # lint + typecheck + test (the CI gate)
+just build      # build wheel + sdist
+```
+
+Run `just check` before pushing — it's the same gate that CI enforces.
 
 ## Linting
 
@@ -351,9 +435,10 @@ Contributions are welcome. To get started:
 
 1. Fork the repository and clone your fork
 2. Install in development mode: `pip install -e .` (or `uv sync`)
-3. Create a branch for your change: `git checkout -b my-feature`
-4. Make your changes and test locally
-5. Submit a pull request against `main`
+3. Run `just check` to verify lint, type checking, and tests pass
+4. Create a branch for your change: `git checkout -b my-feature`
+5. Make your changes and test locally
+6. Submit a pull request against `main`
 
 Please keep pull requests focused — one feature or fix per PR.
 
