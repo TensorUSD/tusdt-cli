@@ -39,6 +39,13 @@ cd tusdt-cli
 uv sync --all-extras --dev
 ```
 
+After syncing, verify everything works:
+```bash
+just check              # lint + typecheck + test
+just test               # run the test suite (90 tests)
+just cov                # run tests with coverage report
+```
+
 A `justfile` is available for common dev tasks — `just check` runs the full
 CI gate (lint + typecheck + test). See the [Development](#development)
 section below.
@@ -333,24 +340,80 @@ configured default).
 
 ## Global options
 
-These flags can be passed before any subcommand:
+These flags **must** be passed before any subcommand name (Click requires them before, not after):
 
 ```bash
 tusdt --json vault info 0 --wallet-name MyWallet    # machine-readable JSON output
 tusdt --quiet vault create --amount 10 --wallet-name MyWallet  # suppress non-essential output
 tusdt -v vault info 0 --wallet-name MyWallet         # INFO-level diagnostics
 tusdt -vv vault info 0 --wallet-name MyWallet        # DEBUG-level diagnostics
+tusdt --dry-run vault create --amount 10 --wallet-name MyWallet  # preview without submitting
+tusdt --ledger token transfer 5GrwvaEF... 10         # sign with hardware wallet
 ```
 
-| Flag         | Effect                                              |
-|--------------|-----------------------------------------------------|
-| `--json`     | Emit machine-readable JSON instead of formatted text |
-| `--quiet`    | Suppress progress messages and warnings              |
-| `-v`         | Enable INFO logging (connection lifecycle, retries)  |
-| `-v -v`      | Enable DEBUG logging (full chain diagnostics)        |
+> **Note:** `--json`, `--quiet`, `-v`, `--dry-run`, `--ledger`, `--signer-backend`, `--ledger-account`, and `--ledger-index` **must** come before the subcommand name, not after.
+
+```bash
+tusdt --json vault info 0 --wallet-name MyWallet    # correct
+tusdt vault info 0 --wallet-name MyWallet --json     # wrong — global flag after subcommand
+```
+
+| Flag               | Effect                                              |
+|--------------------|-----------------------------------------------------|
+| `--json`           | Emit machine-readable JSON instead of formatted text |
+| `--quiet`          | Suppress progress messages and warnings              |
+| `-v`               | Enable INFO logging (connection lifecycle, retries)  |
+| `-v -v`            | Enable DEBUG logging (full chain diagnostics)        |
+| `--dry-run`        | Preview transaction without submitting (gas + fee)   |
+| `--signer-backend` | Signing backend: `wallet` (default) or `ledger`      |
+| `--ledger`         | Use Ledger hardware wallet (shorthand for `--signer-backend ledger`) |
+| `--ledger-account` | Ledger BIP44 account index (default 0)               |
+| `--ledger-index`   | Ledger BIP44 address index (default 0)               |
 
 Set `TUSDT_LOG=debug` to enable debug logging via environment variable
 (useful for CI runs).
+
+## Transaction preview (dry-run)
+
+Add `--dry-run` to any write command to preview gas consumption, estimated
+fees, and whether the call would succeed — without signing or submitting
+anything on-chain:
+
+```bash
+tusdt --dry-run vault create --amount 10 --wallet-name MyWallet
+tusdt --dry-run token transfer 5GrwvaEF... 50 --wallet-name MyWallet
+tusdt --dry-run --json vault borrow 0 100 --wallet-name MyWallet
+```
+
+The output shows: method name, signer address, gas consumed vs required,
+estimated transaction fee (partial fee), and whether the call would succeed
+(plus the decoded contract return value).
+
+## Hardware wallet (Ledger)
+
+Sign transactions with a Ledger Nano S/X running the **Polkadot** app.
+The private key never touches your computer.
+
+```bash
+# Install with Ledger support
+pip install tusdt-cli[ledger]
+
+# Sign with the default Ledger account (m/44'/354'/0'/0'/0')
+tusdt --ledger token transfer 5GrwvaEF... 10
+
+# Use a specific BIP44 account and index
+tusdt --ledger --ledger-account 3 --ledger-index 1 token transfer 5GrwvaEF... 10
+
+# Preview a transaction before signing on the device
+tusdt --ledger --dry-run token transfer 5GrwvaEF... 10
+
+# Also available: --signer-backend ledger (equivalent to --ledger)
+tusdt --signer-backend ledger token transfer 5GrwvaEF... 10
+```
+
+The `--ledger` flag is a shorthand for `--signer-backend ledger` (mirroring
+the btcli pattern). If `hid` is not installed, tusdt prints a clear error
+message with installation instructions.
 
 ## Shell completions
 
@@ -403,6 +466,17 @@ Run `just check` before pushing — it's the same gate that CI enforces.
 ruff check src/          # Lint
 ruff format src/         # Format
 ruff check --fix src/    # Auto-fix lint issues
+```
+
+## Testing
+
+90 tests span the CLI, config, wallet, client, error handling, and utility
+modules. Run them with:
+
+```bash
+just test       # 90 tests via pytest
+just cov        # same tests with coverage report
+just check      # lint + typecheck + test (full CI gate)
 ```
 
 ## Building & Publishing

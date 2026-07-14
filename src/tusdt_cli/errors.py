@@ -22,6 +22,7 @@ class ErrorCode(str, Enum):
     WALLET_DECRYPT_FAILED = "wallet_decrypt_failed"
     INVALID_ARGUMENT = "invalid_argument"
     NETWORK_ERROR = "network_error"
+    LEDGER_ERROR = "ledger_error"
     UNKNOWN = "unknown"
 
 
@@ -75,6 +76,10 @@ REMEDIATION: dict[ErrorCode, str] = {
         "a network error occurred while talking to the chain; "
         "the request will be retried automatically if transient, "
         "otherwise check your connection and RPC endpoint"
+    ),
+    ErrorCode.LEDGER_ERROR: (
+        "check the device is connected, unlocked, and the Polkadot app is open; "
+        "install hid support with `pip install tusdt-cli[ledger]` if missing"
     ),
     ErrorCode.UNKNOWN: ("an unexpected error occurred; inspect the message above for details"),
 }

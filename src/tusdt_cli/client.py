@@ -6,8 +6,9 @@ Treasury contracts.
 """
 
 import logging
+from dataclasses import dataclass, field
 from time import sleep
-from typing import Any
+from typing import Any, cast
 
 from substrateinterface import Keypair, SubstrateInterface
 from substrateinterface.contracts import ContractInstance, ContractMetadata
@@ -132,6 +133,30 @@ def _connect_with_retry(rpc: str) -> SubstrateInterface:
     )
 
 
+@dataclass
+class DryRunResult:
+    """Structured result of a contract dry-run execution."""
+
+    method: str
+    signer: str
+    gas_required: dict[str, int] | None = None
+    gas_consumed: dict[str, int] | None = None
+    gas_ratio: float | None = None
+    partial_fee: int | None = None
+    is_success: bool = False
+    return_value: Any | None = None
+    debug_info: dict[str, Any] = field(default_factory=dict)
+
+
+def _gas_to_int(gas: Any) -> int | None:
+    """Extract a comparable gas value from a WeightV2 dict or scalar."""
+    if gas is None:
+        return None
+    if isinstance(gas, dict):
+        return int(gas.get("ref_time", 0))
+    return int(gas)
+
+
 class TUSDTClient:
     """High-level client for the TUSDT contract system (seven contracts).
 
@@ -144,6 +169,7 @@ class TUSDTClient:
         _apply_metadata_patch()
         self.config = config
         self._substrate: SubstrateInterface | None = _substrate
+        self.dry_run: bool = False
         self._vault: ContractInstance | None = None
         self._token: ContractInstance | None = None
         self._auction: ContractInstance | None = None
@@ -318,8 +344,12 @@ class TUSDTClient:
         method: str,
         args: dict[str, Any] | None = None,
         value: int = 0,
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | DryRunResult:
         """Dry-run for gas estimation, then submit the extrinsic.
+
+        When ``self.dry_run`` is True, the gas estimation is performed but the
+        extrinsic is never submitted.  Returns a :class:`DryRunResult` instead
+        of the normal extrinsic-hash dict.
 
         Shows a step-by-step progress spinner:
           1. Estimating gas...
@@ -329,6 +359,9 @@ class TUSDTClient:
         Returns a dict with ``extrinsic_hash`` and ``block_hash`` on success.
         Raises ``ContractError`` on failure.
         """
+        if self.dry_run:
+            return self._dry_run(contract, keypair, method, args, value)
+
         with console.status("[bold cyan]Estimating gas...") as status:
             gas_predict = self._read(contract, keypair, method, args, value, _silent=True)
 
@@ -355,27 +388,137 @@ class TUSDTClient:
             "block_hash": receipt.block_hash,
         }
 
+    def _dry_run(
+        self,
+        contract: ContractInstance,
+        keypair: Keypair,
+        method: str,
+        args: dict[str, Any] | None = None,
+        value: int = 0,
+    ) -> DryRunResult:
+        """Preview a contract call without submitting.
+
+        Performs a read-only runtime simulation (same as gas estimation),
+        decodes the return value, and attempts a fee estimate via the
+        ``TransactionPaymentApi``.  No state change occurs.
+        """
+        logger.debug("Dry-run %s(args=%s, value=%s)", method, args, value)
+        is_success = False
+        return_value: Any | None = None
+        debug_info: dict[str, Any] = {}
+
+        try:
+            gas_result = self._read(contract, keypair, method, args, value, _silent=True)
+            gas_required = getattr(gas_result, "gas_required", None)
+            gas_consumed = getattr(gas_result, "gas_consumed", None)
+            debug_info["flags"] = getattr(gas_result, "flags", None)
+            debug_info["did_revert"] = getattr(gas_result, "did_revert", False)
+
+            # Decode contract return value
+            try:
+                contract_result = gas_result.contract_result_data
+                if contract_result is not None:
+                    value_obj = contract_result.value_object
+                    if value_obj is not None and isinstance(value_obj, tuple) and len(value_obj) >= 2:
+                        is_success = value_obj[0] == "Ok"
+                        if is_success and value_obj[1] is not None:
+                            return_value = (
+                                value_obj[1].value if hasattr(value_obj[1], "value") else value_obj[1]
+                            )
+                        elif not is_success:
+                            return_value = str(value_obj[1])
+            except Exception:
+                pass
+        except ContractError as exc:
+            return DryRunResult(
+                method=method,
+                signer=keypair.ss58_address,
+                is_success=False,
+                return_value=str(exc),
+                debug_info=debug_info,
+            )
+
+        gas_req = _gas_to_int(gas_required)
+        gas_con = _gas_to_int(gas_consumed)
+        gas_ratio = (gas_con / gas_req) if gas_req and gas_con else None
+
+        return DryRunResult(
+            method=method,
+            signer=keypair.ss58_address,
+            gas_required=gas_required,
+            gas_consumed=gas_consumed,
+            gas_ratio=gas_ratio,
+            partial_fee=self._estimate_fee(contract, keypair, method, args, value),
+            is_success=is_success,
+            return_value=return_value,
+            debug_info=debug_info,
+        )
+
+    def _estimate_fee(
+        self,
+        contract: ContractInstance,
+        keypair: Keypair,
+        method: str,
+        args: dict[str, Any] | None = None,
+        value: int = 0,
+    ) -> int | None:
+        """Estimate the transaction fee via ``TransactionPaymentApi_query_info``.
+
+        This is a read-only state call — no state change, no real signature
+        needed.  Returns the ``partial_fee`` in native Planck units, or
+        ``None`` if estimation fails.
+        """
+        try:
+            sub = cast(Any, self.substrate)
+            call = sub.generate_contract_call(
+                contract_address=contract.contract_address,
+                metadata=contract.metadata,
+                method=method,
+                args=args or {},
+                value=value,
+            )
+            extrinsic = sub.create_signed_extrinsic(
+                call=call,
+                keypair=keypair,
+                era={"period": 64},
+                nonce=0,
+                tip=0,
+            )
+            encoded = extrinsic.encode()
+            encoded_hex = bytes(encoded.data).hex()
+            result = sub.state_call(
+                "TransactionPaymentApi_query_info",
+                {"extrinsic": "0x" + encoded_hex, "len": len(encoded_hex) // 2},
+            )
+            if hasattr(result, "value"):
+                return result.value.get("partial_fee")
+            return result.get("partial_fee") if isinstance(result, dict) else None
+        except Exception:
+            return None
+
     # ==================================================================
     # VAULT OPERATIONS
     # ==================================================================
 
-    def create_vault(self, keypair: Keypair, amount: int) -> dict[str, Any]:
+    def create_vault(self, keypair: Keypair, amount: int) -> dict[str, Any] | DryRunResult:
         """Create a new vault, depositing *amount* native tokens as collateral."""
         return self._exec(self.vault, keypair, "create_vault", value=amount)
 
-    def add_collateral(self, keypair: Keypair, vault_id: int, amount: int) -> dict[str, Any]:
+    def add_collateral(self, keypair: Keypair, vault_id: int, amount: int) -> dict[str, Any] | DryRunResult:
         """Add collateral to an existing vault."""
         return self._exec(self.vault, keypair, "add_collateral", args={"vault_id": vault_id}, value=amount)
 
-    def borrow(self, keypair: Keypair, vault_id: int, amount: int) -> dict[str, Any]:
+    def borrow(self, keypair: Keypair, vault_id: int, amount: int) -> dict[str, Any] | DryRunResult:
         """Borrow TUSDT tokens against a vault's collateral."""
         return self._exec(self.vault, keypair, "borrow_token", args={"vault_id": vault_id, "amount": amount})
 
-    def repay(self, keypair: Keypair, vault_id: int, amount: int) -> dict[str, Any]:
+    def repay(self, keypair: Keypair, vault_id: int, amount: int) -> dict[str, Any] | DryRunResult:
         """Repay borrowed TUSDT tokens."""
         return self._exec(self.vault, keypair, "repay_token", args={"vault_id": vault_id, "amount": amount})
 
-    def release_collateral(self, keypair: Keypair, vault_id: int, amount: int) -> dict[str, Any]:
+    def release_collateral(
+        self, keypair: Keypair, vault_id: int, amount: int
+    ) -> dict[str, Any] | DryRunResult:
         """Release collateral from a vault."""
         return self._exec(
             self.vault, keypair, "release_collateral", args={"vault_id": vault_id, "amount": amount}
@@ -457,17 +600,21 @@ class TUSDTClient:
         raw = unwrap_plain(result)
         return raw if isinstance(raw, dict) else raw
 
-    def accrue_interest(self, keypair: Keypair, owner: str, vault_id: int) -> dict[str, Any]:
+    def accrue_interest(self, keypair: Keypair, owner: str, vault_id: int) -> dict[str, Any] | DryRunResult:
         """Accrue interest on a vault."""
         return self._exec(self.vault, keypair, "accrue_interest", args={"owner": owner, "vault_id": vault_id})
 
-    def trigger_liquidation(self, keypair: Keypair, owner: str, vault_id: int) -> dict[str, Any]:
+    def trigger_liquidation(
+        self, keypair: Keypair, owner: str, vault_id: int
+    ) -> dict[str, Any] | DryRunResult:
         """Trigger a liquidation auction for an undercollateralized vault."""
         return self._exec(
             self.vault, keypair, "trigger_liquidation_auction", args={"owner": owner, "vault_id": vault_id}
         )
 
-    def settle_liquidation(self, keypair: Keypair, owner: str, vault_id: int) -> dict[str, Any]:
+    def settle_liquidation(
+        self, keypair: Keypair, owner: str, vault_id: int
+    ) -> dict[str, Any] | DryRunResult:
         """Settle a completed liquidation auction for a vault."""
         return self._exec(
             self.vault, keypair, "settle_liquidation_auction", args={"owner": owner, "vault_id": vault_id}
@@ -525,19 +672,19 @@ class TUSDTClient:
             return None
         return raw if isinstance(raw, dict) else raw
 
-    def update_governance(self, keypair: Keypair, new_governance: str) -> dict[str, Any]:
+    def update_governance(self, keypair: Keypair, new_governance: str) -> dict[str, Any] | DryRunResult:
         """Transfer governance to a new account."""
         return self._exec(self.vault, keypair, "update_governance", args={"new_governance": new_governance})
 
-    def update_platform(self, keypair: Keypair, new_platform: str) -> dict[str, Any]:
+    def update_platform(self, keypair: Keypair, new_platform: str) -> dict[str, Any] | DryRunResult:
         """Update the platform account."""
         return self._exec(self.vault, keypair, "update_platform", args={"new_platform": new_platform})
 
-    def pause_contract(self, keypair: Keypair) -> dict[str, Any]:
+    def pause_contract(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
         """Pause the vault contract."""
         return self._exec(self.vault, keypair, "pause")
 
-    def unpause_contract(self, keypair: Keypair) -> dict[str, Any]:
+    def unpause_contract(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
         """Unpause the vault contract."""
         return self._exec(self.vault, keypair, "unpause")
 
@@ -545,7 +692,7 @@ class TUSDTClient:
         self,
         keypair: Keypair,
         params: dict[str, Any],
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | DryRunResult:
         """Schedule a contract parameter update with timelock.
 
         Reads current on-chain params, merges with user-supplied changes,
@@ -558,15 +705,15 @@ class TUSDTClient:
         merged.update(params)
         return self._exec(self.vault, keypair, "set_contract_params", args={"params": merged})
 
-    def execute_params_update(self, keypair: Keypair) -> dict[str, Any]:
+    def execute_params_update(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
         """Execute the pending contract parameter update after timelock."""
         return self._exec(self.vault, keypair, "execute_contract_params_update")
 
-    def cancel_params_update(self, keypair: Keypair) -> dict[str, Any]:
+    def cancel_params_update(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
         """Cancel the pending contract parameter update."""
         return self._exec(self.vault, keypair, "cancel_contract_params_update")
 
-    def claim_surplus_tusdt(self, keypair: Keypair, amount: int) -> dict[str, Any]:
+    def claim_surplus_tusdt(self, keypair: Keypair, amount: int) -> dict[str, Any] | DryRunResult:
         """Claim surplus TUSDT tokens held by the vault contract."""
         return self._exec(self.vault, keypair, "claim_surplus_tusdt", args={"amount": amount})
 
@@ -575,11 +722,11 @@ class TUSDTClient:
         result = self._read(self.vault, keypair, "treasury")
         return unwrap_plain(result)
 
-    def vault_update_treasury(self, keypair: Keypair, new_treasury: str) -> dict[str, Any]:
+    def vault_update_treasury(self, keypair: Keypair, new_treasury: str) -> dict[str, Any] | DryRunResult:
         """Update the treasury address in the vault contract (governance only)."""
         return self._exec(self.vault, keypair, "update_treasury", args={"new_treasury": new_treasury})
 
-    def vault_emergency_drain(self, keypair: Keypair, recipient: str) -> dict[str, Any]:
+    def vault_emergency_drain(self, keypair: Keypair, recipient: str) -> dict[str, Any] | DryRunResult:
         """Emergency drain native balance from the vault (TESTNET ONLY, governance)."""
         return self._exec(self.vault, keypair, "emergency_drain", args={"recipient": recipient})
 
@@ -656,11 +803,11 @@ class TUSDTClient:
 
     # --- Mutating methods ---
 
-    def set_council(self, keypair: Keypair, members: list) -> dict[str, Any]:
+    def set_council(self, keypair: Keypair, members: list) -> dict[str, Any] | DryRunResult:
         """Set the council member list (maintainer only)."""
         return self._exec(self.governance, keypair, "set_council", args={"members": members})
 
-    def gov_vault_set_contract_params(self, keypair: Keypair, params: dict) -> dict[str, Any]:
+    def gov_vault_set_contract_params(self, keypair: Keypair, params: dict) -> dict[str, Any] | DryRunResult:
         """Schedule a vault contract parameter update via governance.
 
         Reads current on-chain params from the vault, merges with user-supplied
@@ -673,37 +820,39 @@ class TUSDTClient:
         merged.update(params)
         return self._exec(self.governance, keypair, "vault_set_contract_params", args={"params": merged})
 
-    def gov_vault_cancel_update(self, keypair: Keypair) -> dict[str, Any]:
+    def gov_vault_cancel_update(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
         """Cancel a pending vault contract parameter update via governance."""
         return self._exec(self.governance, keypair, "vault_cancel_contract_params_update")
 
-    def gov_vault_update_treasury(self, keypair: Keypair, new_treasury: str) -> dict[str, Any]:
+    def gov_vault_update_treasury(self, keypair: Keypair, new_treasury: str) -> dict[str, Any] | DryRunResult:
         """Update the vault treasury address via governance."""
         return self._exec(
             self.governance, keypair, "vault_update_treasury", args={"new_treasury": new_treasury}
         )
 
-    def gov_vault_update_platform(self, keypair: Keypair, new_platform: str) -> dict[str, Any]:
+    def gov_vault_update_platform(self, keypair: Keypair, new_platform: str) -> dict[str, Any] | DryRunResult:
         """Update the vault platform address via governance."""
         return self._exec(
             self.governance, keypair, "vault_update_platform", args={"new_platform": new_platform}
         )
 
-    def gov_vault_unpause(self, keypair: Keypair) -> dict[str, Any]:
+    def gov_vault_unpause(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
         """Unpause the vault contract via governance."""
         return self._exec(self.governance, keypair, "vault_unpause")
 
-    def gov_vault_pause(self, keypair: Keypair) -> dict[str, Any]:
+    def gov_vault_pause(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
         """Pause the vault contract via governance."""
         return self._exec(self.governance, keypair, "vault_pause")
 
-    def gov_oracle_set_validator(self, keypair: Keypair, validator: str | None) -> dict[str, Any]:
+    def gov_oracle_set_validator(
+        self, keypair: Keypair, validator: str | None
+    ) -> dict[str, Any] | DryRunResult:
         """Set the oracle validator via governance (pass None to clear)."""
         return self._exec(self.governance, keypair, "oracle_set_validator", args={"validator": validator})
 
     def gov_oracle_set_max_price_deviation(
         self, keypair: Keypair, max_price_deviation: int
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | DryRunResult:
         """Set the oracle max price deviation via governance."""
         return self._exec(
             self.governance,
@@ -712,21 +861,23 @@ class TUSDTClient:
             args={"max_price_deviation": max_price_deviation},
         )
 
-    def gov_oracle_commit_round(self, keypair: Keypair, price: int) -> dict[str, Any]:
+    def gov_oracle_commit_round(self, keypair: Keypair, price: int) -> dict[str, Any] | DryRunResult:
         """Commit the oracle round with an explicit price via governance."""
         return self._exec(self.governance, keypair, "oracle_commit_round", args={"price": price})
 
-    def gov_oracle_set_netuid(self, keypair: Keypair, netuid: int) -> dict[str, Any]:
+    def gov_oracle_set_netuid(self, keypair: Keypair, netuid: int) -> dict[str, Any] | DryRunResult:
         """Set the oracle's governing subnet netuid via governance."""
         return self._exec(self.governance, keypair, "oracle_set_netuid", args={"netuid": netuid})
 
-    def gov_oracle_set_min_submitter_stake(self, keypair: Keypair, min_stake: int) -> dict[str, Any]:
+    def gov_oracle_set_min_submitter_stake(
+        self, keypair: Keypair, min_stake: int
+    ) -> dict[str, Any] | DryRunResult:
         """Set the oracle's minimum submitter stake via governance."""
         return self._exec(
             self.governance, keypair, "oracle_set_min_submitter_stake", args={"min_stake": min_stake}
         )
 
-    def gov_auction_set_admin(self, keypair: Keypair, admin: str | None) -> dict[str, Any]:
+    def gov_auction_set_admin(self, keypair: Keypair, admin: str | None) -> dict[str, Any] | DryRunResult:
         """Set the auction admin via governance (pass None to clear)."""
         return self._exec(self.governance, keypair, "auction_set_admin", args={"admin": admin})
 
@@ -739,7 +890,7 @@ class TUSDTClient:
         min_proposer_stake: int,
         submission_open_day: int,
         submission_close_day: int,
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | DryRunResult:
         """Update governance parameters (maintainer only)."""
         args = {
             "new_params": {
@@ -753,7 +904,7 @@ class TUSDTClient:
         }
         return self._exec(self.governance, keypair, "update_params", args)
 
-    def submit_proposal(self, keypair: Keypair, cid: str, kind: dict) -> dict[str, Any]:
+    def submit_proposal(self, keypair: Keypair, cid: str, kind: dict) -> dict[str, Any] | DryRunResult:
         """Submit a new governance proposal (council only)."""
         return self._exec(
             self.governance,
@@ -771,7 +922,7 @@ class TUSDTClient:
         balance: int,
         multiplier_bps: int,
         proof: list,
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | DryRunResult:
         """Cast a vote on a governance proposal."""
         return self._exec(
             self.governance,
@@ -787,11 +938,11 @@ class TUSDTClient:
             },
         )
 
-    def finalize_proposal(self, keypair: Keypair, proposal_id: int) -> dict[str, Any]:
+    def finalize_proposal(self, keypair: Keypair, proposal_id: int) -> dict[str, Any] | DryRunResult:
         """Finalize a governance proposal."""
         return self._exec(self.governance, keypair, "finalize", args={"proposal_id": proposal_id})
 
-    def execute_proposal(self, keypair: Keypair, proposal_id: int) -> dict[str, Any]:
+    def execute_proposal(self, keypair: Keypair, proposal_id: int) -> dict[str, Any] | DryRunResult:
         """Execute a finalized governance proposal."""
         return self._exec(self.governance, keypair, "execute", args={"proposal_id": proposal_id})
 
@@ -801,7 +952,7 @@ class TUSDTClient:
         root: list,
         circulating_supply: int,
         snapshot_block: int,
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | DryRunResult:
         """Submit a Merkle snapshot for a given block."""
         return self._exec(
             self.governance,
@@ -848,11 +999,11 @@ class TUSDTClient:
         result = self._read(self.token, keypair, "allowance", args={"owner": owner, "spender": spender})
         return unwrap_plain(result)
 
-    def approve(self, keypair: Keypair, spender: str, amount: int) -> dict[str, Any]:
+    def approve(self, keypair: Keypair, spender: str, amount: int) -> dict[str, Any] | DryRunResult:
         """Approve *spender* to spend *amount* TUSDT tokens."""
         return self._exec(self.token, keypair, "approve", args={"spender": spender, "value": amount})
 
-    def transfer(self, keypair: Keypair, to: str, amount: int) -> dict[str, Any]:
+    def transfer(self, keypair: Keypair, to: str, amount: int) -> dict[str, Any] | DryRunResult:
         """Transfer *amount* TUSDT tokens to *to*."""
         return self._exec(self.token, keypair, "transfer", args={"to": to, "value": amount})
 
@@ -861,27 +1012,33 @@ class TUSDTClient:
         result = self._read(self.token, keypair, "controller")
         return unwrap_plain(result)
 
-    def token_mint(self, keypair: Keypair, to: str, amount: int) -> dict[str, Any]:
+    def token_mint(self, keypair: Keypair, to: str, amount: int) -> dict[str, Any] | DryRunResult:
         """Mint *amount* TUSDT tokens to *to* (controller only)."""
         return self._exec(self.token, keypair, "mint", args={"to": to, "value": amount})
 
-    def token_burn(self, keypair: Keypair, from_addr: str, amount: int) -> dict[str, Any]:
+    def token_burn(self, keypair: Keypair, from_addr: str, amount: int) -> dict[str, Any] | DryRunResult:
         """Burn *amount* TUSDT tokens from *from_addr* (controller only)."""
         return self._exec(self.token, keypair, "burn", args={"from": from_addr, "value": amount})
 
-    def token_increase_allowance(self, keypair: Keypair, spender: str, delta: int) -> dict[str, Any]:
+    def token_increase_allowance(
+        self, keypair: Keypair, spender: str, delta: int
+    ) -> dict[str, Any] | DryRunResult:
         """Increase *spender*'s allowance by *delta* TUSDT tokens."""
         return self._exec(
             self.token, keypair, "increase_allowance", args={"spender": spender, "delta_value": delta}
         )
 
-    def token_decrease_allowance(self, keypair: Keypair, spender: str, delta: int) -> dict[str, Any]:
+    def token_decrease_allowance(
+        self, keypair: Keypair, spender: str, delta: int
+    ) -> dict[str, Any] | DryRunResult:
         """Decrease *spender*'s allowance by *delta* TUSDT tokens."""
         return self._exec(
             self.token, keypair, "decrease_allowance", args={"spender": spender, "delta_value": delta}
         )
 
-    def token_transfer_from(self, keypair: Keypair, from_addr: str, to: str, amount: int) -> dict[str, Any]:
+    def token_transfer_from(
+        self, keypair: Keypair, from_addr: str, to: str, amount: int
+    ) -> dict[str, Any] | DryRunResult:
         """Transfer *amount* TUSDT tokens from *from_addr* to *to* (requires allowance)."""
         return self._exec(
             self.token, keypair, "transfer_from", args={"from": from_addr, "to": to, "value": amount}
@@ -918,7 +1075,7 @@ class TUSDTClient:
         auction_id: int,
         amount: int,
         hot_key: str | None = None,
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | DryRunResult:
         """Place a bid on an auction."""
         args: dict[str, Any] = {
             "auction_id": auction_id,
@@ -930,11 +1087,13 @@ class TUSDTClient:
             args["metadata"] = None
         return self._exec(self.auction, keypair, "place_bid", args=args)
 
-    def finalize_auction(self, keypair: Keypair, auction_id: int) -> dict[str, Any]:
+    def finalize_auction(self, keypair: Keypair, auction_id: int) -> dict[str, Any] | DryRunResult:
         """Finalize an auction after its end time."""
         return self._exec(self.auction, keypair, "finalize_auction", args={"auction_id": auction_id})
 
-    def withdraw_refund(self, keypair: Keypair, auction_id: int, bid_id: int) -> dict[str, Any]:
+    def withdraw_refund(
+        self, keypair: Keypair, auction_id: int, bid_id: int
+    ) -> dict[str, Any] | DryRunResult:
         """Withdraw a refund for a non-winning bid after auction finalization."""
         return self._exec(
             self.auction, keypair, "withdraw_refund", args={"auction_id": auction_id, "bid_id": bid_id}
@@ -1016,7 +1175,7 @@ class TUSDTClient:
         min_bid: int,
         liquidation_price: int,
         duration_ms: int | None = None,
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | DryRunResult:
         """Create a new liquidation auction (controller only)."""
         return self._exec(
             self.auction,
@@ -1033,11 +1192,13 @@ class TUSDTClient:
             },
         )
 
-    def auction_set_admin(self, keypair: Keypair, admin: str | None) -> dict[str, Any]:
+    def auction_set_admin(self, keypair: Keypair, admin: str | None) -> dict[str, Any] | DryRunResult:
         """Set or clear the auction admin (governance only). Pass None to clear."""
         return self._exec(self.auction, keypair, "set_admin", args={"admin": admin})
 
-    def auction_update_governance(self, keypair: Keypair, new_governance: str) -> dict[str, Any]:
+    def auction_update_governance(
+        self, keypair: Keypair, new_governance: str
+    ) -> dict[str, Any] | DryRunResult:
         """Transfer auction governance to a new account (controller only)."""
         return self._exec(self.auction, keypair, "update_governance", args={"new_governance": new_governance})
 
@@ -1046,7 +1207,7 @@ class TUSDTClient:
         keypair: Keypair,
         auction_id: int,
         recipient: str,
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | DryRunResult:
         """Transfer the winning bid amount to a recipient (controller only)."""
         return self._exec(
             self.auction,
@@ -1074,7 +1235,7 @@ class TUSDTClient:
 
     def submit_price(
         self, keypair: Keypair, price: int, hot_key: str, provider: str | None = None
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | DryRunResult:
         """Submit a price to the oracle. The caller must be a registered subnet neuron."""
         provider_bytes = provider.encode() if provider else None
         args: dict[str, Any] = {
@@ -1083,7 +1244,9 @@ class TUSDTClient:
         }
         return self._exec(self.oracle, keypair, "submit_price", args=args)
 
-    def commit_round(self, keypair: Keypair, override_price: int | None = None) -> dict[str, Any]:
+    def commit_round(
+        self, keypair: Keypair, override_price: int | None = None
+    ) -> dict[str, Any] | DryRunResult:
         """Commit the current oracle round. Optionally override the median price."""
         args: dict[str, Any] = {"override_price": override_price}
         return self._exec(self.oracle, keypair, "commit_round", args=args)
@@ -1148,7 +1311,7 @@ class TUSDTClient:
         result = self._read(self.oracle, keypair, "max_round_submissions")
         return unwrap_plain(result)
 
-    def commit_round_governance(self, keypair: Keypair, price: int) -> dict[str, Any]:
+    def commit_round_governance(self, keypair: Keypair, price: int) -> dict[str, Any] | DryRunResult:
         """Governance commits the current oracle round with an explicit price."""
         return self._exec(self.oracle, keypair, "commit_round_governance", args={"price": price})
 
@@ -1157,7 +1320,7 @@ class TUSDTClient:
         result = self._read(self.oracle, keypair, "get_netuid")
         return unwrap_plain(result)
 
-    def oracle_set_netuid(self, keypair: Keypair, netuid: int) -> dict[str, Any]:
+    def oracle_set_netuid(self, keypair: Keypair, netuid: int) -> dict[str, Any] | DryRunResult:
         """Set the oracle's governing subnet netuid (governance only)."""
         return self._exec(self.oracle, keypair, "set_netuid", args={"netuid": netuid})
 
@@ -1166,15 +1329,19 @@ class TUSDTClient:
         result = self._read(self.oracle, keypair, "min_submitter_stake")
         return unwrap_plain(result)
 
-    def oracle_set_min_submitter_stake(self, keypair: Keypair, min_stake: int) -> dict[str, Any]:
+    def oracle_set_min_submitter_stake(
+        self, keypair: Keypair, min_stake: int
+    ) -> dict[str, Any] | DryRunResult:
         """Set the oracle's minimum submitter stake (governance only)."""
         return self._exec(self.oracle, keypair, "set_min_submitter_stake", args={"min_stake": min_stake})
 
-    def set_validator(self, keypair: Keypair, validator: str | None) -> dict[str, Any]:
+    def set_validator(self, keypair: Keypair, validator: str | None) -> dict[str, Any] | DryRunResult:
         """Set the oracle validator account (governance only). Pass None to clear."""
         return self._exec(self.oracle, keypair, "set_validator", args={"validator": validator})
 
-    def set_max_price_deviation(self, keypair: Keypair, max_price_deviation: int) -> dict[str, Any]:
+    def set_max_price_deviation(
+        self, keypair: Keypair, max_price_deviation: int
+    ) -> dict[str, Any] | DryRunResult:
         """Set the maximum allowed price deviation between rounds (governance only)."""
         return self._exec(
             self.oracle,
@@ -1183,7 +1350,9 @@ class TUSDTClient:
             args={"max_price_deviation": max_price_deviation},
         )
 
-    def oracle_update_governance(self, keypair: Keypair, new_governance: str) -> dict[str, Any]:
+    def oracle_update_governance(
+        self, keypair: Keypair, new_governance: str
+    ) -> dict[str, Any] | DryRunResult:
         """Transfer oracle governance to a new account (controller only)."""
         return self._exec(self.oracle, keypair, "update_governance", args={"new_governance": new_governance})
 
@@ -1221,11 +1390,11 @@ class TUSDTClient:
         result = self._read(self.treasury, keypair, "pending_native")
         return unwrap_plain(result)
 
-    def treasury_set_governance(self, keypair: Keypair, new_governance: str) -> dict[str, Any]:
+    def treasury_set_governance(self, keypair: Keypair, new_governance: str) -> dict[str, Any] | DryRunResult:
         """Set a new governance address for the treasury (governance only)."""
         return self._exec(self.treasury, keypair, "set_governance", args={"new_governance": new_governance})
 
-    def treasury_distribute(self, keypair: Keypair) -> dict[str, Any]:
+    def treasury_distribute(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
         """Distribute pending funds to their respective fund balances."""
         return self._exec(self.treasury, keypair, "distribute")
 
@@ -1236,7 +1405,7 @@ class TUSDTClient:
         token_kind: dict,
         amount: int,
         recipient: str,
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | DryRunResult:
         """Release funds from a specific fund to a recipient (governance only)."""
         return self._exec(
             self.treasury,
@@ -1361,11 +1530,11 @@ class TUSDTClient:
 
     # --- Write (mutating) methods ---
 
-    def schedule_election(self, keypair: Keypair) -> dict[str, Any]:
+    def schedule_election(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
         """Schedule a new election cycle (permissionless)."""
         return self._exec(self.election, keypair, "schedule_election")
 
-    def register_candidate(self, keypair: Keypair, netuid: int, hotkey: str) -> dict[str, Any]:
+    def register_candidate(self, keypair: Keypair, netuid: int, hotkey: str) -> dict[str, Any] | DryRunResult:
         """Register as a candidate for the current election cycle."""
         return self._exec(
             self.election, keypair, "register_candidate", args={"netuid": netuid, "hotkey": hotkey}
@@ -1379,7 +1548,7 @@ class TUSDTClient:
         balance: int,
         multiplier_bps: int,
         proof: list,
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | DryRunResult:
         """Cast an approval vote for a candidate."""
         return self._exec(
             self.election,
@@ -1394,22 +1563,22 @@ class TUSDTClient:
             },
         )
 
-    def finalize_election(self, keypair: Keypair) -> dict[str, Any]:
+    def finalize_election(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
         """Finalize the current election cycle (permissionless)."""
         return self._exec(self.election, keypair, "finalize")
 
-    def activate_election(self, keypair: Keypair) -> dict[str, Any]:
+    def activate_election(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
         """Activate the elected maintainer (permissionless)."""
         return self._exec(self.election, keypair, "activate")
 
-    def end_transition(self, keypair: Keypair) -> dict[str, Any]:
+    def end_transition(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
         """End the active subnet transition (permissionless)."""
         return self._exec(self.election, keypair, "end_transition")
 
-    def trigger_emergency_election(self, keypair: Keypair) -> dict[str, Any]:
+    def trigger_emergency_election(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
         """Trigger an emergency election (incumbent only)."""
         return self._exec(self.election, keypair, "trigger_emergency_election")
 
-    def cancel_cycle(self, keypair: Keypair) -> dict[str, Any]:
+    def cancel_cycle(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
         """Cancel the current election cycle (incumbent only)."""
         return self._exec(self.election, keypair, "cancel_cycle")

@@ -21,6 +21,9 @@ from rich.text import Text
 
 from tusdt_cli.config import EXPLORER_URLS
 
+# Warm import — used by dry_run_result()
+from tusdt_cli.utils import format_balance
+
 
 class Output:
     """Single choke-point for all user-visible rendering.
@@ -98,6 +101,63 @@ class Output:
         )
 
     # ------------------------------------------------------------------
+    # Dry-run result
+    # ------------------------------------------------------------------
+
+    def dry_run_result(self, result: Any) -> None:
+        """Render a dry-run preview (gas, fee, return value)."""
+        if self.json_mode:
+            payload: dict[str, Any] = {
+                "method": result.method,
+                "signer": result.signer,
+                "gas_required": result.gas_required,
+                "gas_consumed": result.gas_consumed,
+                "gas_ratio": result.gas_ratio,
+                "partial_fee": result.partial_fee,
+                "is_success": result.is_success,
+            }
+            if result.return_value is not None:
+                payload["return_value"] = str(result.return_value)
+            if result.debug_info:
+                payload["debug_info"] = {k: str(v) for k, v in result.debug_info.items()}
+            self._out.print_json(json.dumps(payload))
+            return
+
+        lines: list[str] = []
+        lines.append(f"  Method:       [cyan]{result.method}[/cyan]")
+        lines.append(f"  Signer:       [cyan]{result.signer}[/cyan]")
+
+        # Gas
+        if result.gas_consumed is not None and result.gas_required is not None:
+            gc = _gas_display(result.gas_consumed)
+            gr = _gas_display(result.gas_required)
+            pct = (result.gas_ratio * 100) if result.gas_ratio else 0
+            lines.append(f"  Gas consumed: {gc}  /  required: {gr}  ([yellow]{pct:.1f}%[/yellow])")
+        elif result.gas_required is not None:
+            lines.append(f"  Gas required: {_gas_display(result.gas_required)}")
+
+        # Fee
+        if result.partial_fee is not None:
+            lines.append(f"  Est. fee:     [green]{format_balance(result.partial_fee)}[/green]")
+        else:
+            lines.append("  Est. fee:     [yellow]could not estimate[/yellow]")
+
+        # Status
+        if result.is_success:
+            lines.append("  Status:       [green]OK[/green]")
+            if result.return_value is not None:
+                rv = str(result.return_value)
+                lines.append(f"  Return:       {rv[:200]}{'...' if len(rv) > 200 else ''}")
+        else:
+            lines.append("  Status:       [red]FAIL[/red]")
+            if result.return_value is not None:
+                lines.append(f"  Error:        [red]{result.return_value}[/red]")
+
+        self._out.print(
+            Panel("\n".join(lines), title="[dim]dry run[/dim]", box=box.ROUNDED, border_style="dim")
+        )
+
+    # ------------------------------------------------------------------
     # Status messages
     # ------------------------------------------------------------------
 
@@ -163,3 +223,12 @@ def _explorer_url(extrinsic_hash: str, network: str) -> str:
     if network == "finney":
         return f"https://viewpallet.com/explorer/transactions/{extrinsic_hash}"
     return f"https://dev.viewpallet.com/explorer/transactions/{extrinsic_hash}"
+
+
+def _gas_display(gas: Any) -> str:
+    """Human-readable gas value from a WeightV2 dict or scalar."""
+    if isinstance(gas, dict):
+        ref = gas.get("ref_time", 0)
+        proof = gas.get("proof_size", 0)
+        return f"ref_time={ref}, proof_size={proof}"
+    return str(gas)
