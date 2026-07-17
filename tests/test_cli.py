@@ -104,3 +104,85 @@ class TestContractGroups:
         """Each group lists at least one subcommand."""
         result = runner.invoke(cli, [group, "--help"])
         assert "Commands:" in result.output
+
+
+class TestVaultAlphaCommands:
+    """Verify new/changed vault commands are registered."""
+
+    @pytest.mark.parametrize(
+        "command",
+        [
+            "create",
+            "add-collateral",
+            "release-collateral",
+            "borrow",
+            "repay",
+            "info",
+            "list",
+            "params",
+            "set-params",
+            "execute-update",
+            "cancel-update",
+            "pending-update",
+            "set-global-params",
+            "execute-global-update",
+            "cancel-global-update",
+            "get-global-params",
+            "set-approved-netuid",
+            "is-approved-netuid",
+            "claim-excess-alpha",
+        ],
+    )
+    def test_vault_command_help(self, command, runner):
+        """Each vault command shows --help."""
+        result = runner.invoke(cli, ["vault", command, "--help"])
+        assert result.exit_code == 0, f"vault {command} --help failed: {result.output[:200]}"
+
+    def test_create_requires_netuid(self, runner):
+        """create requires --netuid flag."""
+        result = runner.invoke(cli, ["vault", "create", "--help"])
+        assert "--netuid" in result.output
+
+    def test_release_collateral_requires_dest_coldkey(self, runner):
+        """release-collateral requires --dest-coldkey flag."""
+        result = runner.invoke(cli, ["vault", "release-collateral", "--help"])
+        assert "--dest-coldkey" in result.output
+
+
+class TestGovernanceNewForwarders:
+    """Verify new governance forwarder commands."""
+
+    @pytest.mark.parametrize(
+        "command",
+        [
+            "vault-claim-excess-alpha",
+            "vault-set-approved-netuid",
+            "vault-set-global-params",
+            "vault-cancel-global-update",
+            "elect-maintainer",
+            "election-set-netuid",
+        ],
+    )
+    def test_forwarder_command_help(self, command, runner):
+        result = runner.invoke(cli, ["governance", command, "--help"])
+        assert result.exit_code == 0, f"governance {command} --help failed: {result.output[:200]}"
+
+
+class TestTokenMinterCommands:
+    """Verify new token minter admin commands."""
+
+    @pytest.mark.parametrize(
+        "command",
+        ["set-controller", "add-minter", "remove-minter", "is-minter"],
+    )
+    def test_minter_command_help(self, command, runner):
+        result = runner.invoke(cli, ["token", command, "--help"])
+        assert result.exit_code == 0, f"token {command} --help failed: {result.output[:200]}"
+
+
+class TestAuctionActiveCount:
+    """Verify new auction active-count command."""
+
+    def test_active_count_help(self, runner):
+        result = runner.invoke(cli, ["auction", "active-count", "--help"])
+        assert result.exit_code == 0

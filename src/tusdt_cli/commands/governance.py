@@ -20,6 +20,10 @@ _GOVERNANCE_ADVANCED = {
     "vault-update-platform",
     "vault-unpause",
     "vault-pause",
+    "vault-claim-excess-alpha",
+    "vault-set-approved-netuid",
+    "vault-set-global-params",
+    "vault-cancel-global-update",
     "oracle-set-validator",
     "oracle-set-deviation",
     "oracle-commit-round",
@@ -32,6 +36,8 @@ _GOVERNANCE_ADVANCED = {
     "finalize-proposal",
     "execute-proposal",
     "submit-snapshot",
+    "elect-maintainer",
+    "election-set-netuid",
 }
 
 
@@ -504,75 +510,43 @@ def set_council_cmd(
 
 
 @governance_group.command("vault-set-params")
+@click.option("--netuid", required=True, type=int, help="Subnet netuid")
+@click.option("--collateral-ratio", type=int, default=None, help="Collateral ratio (e.g. 150 for 150%%)")
+@click.option("--liquidation-ratio", type=int, default=None, help="Liquidation ratio (e.g. 120 for 120%%)")
 @click.option(
-    "--collateral-ratio", type=int, default=None, help="Collateral ratio in percent (e.g. 150 for 150%)"
+    "--interest-rate", type=int, default=None, help="Interest rate in basis points (e.g. 1000 for 10%%)"
 )
 @click.option(
-    "--liquidation-ratio", type=int, default=None, help="Liquidation ratio in percent (e.g. 120 for 120%)"
-)
-@click.option("--interest-rate", type=int, default=None, help="Interest rate in percent (e.g. 5 for 5%)")
-@click.option(
-    "--liquidation-fee", type=int, default=None, help="Liquidation fee in percent (e.g. 10 for 10%)"
-)
-@click.option(
-    "--borrow-cap", type=str, default=None, help="Borrow cap in human-readable units (e.g. 1000000.0)"
-)
-@click.option(
-    "--auction-duration-ms", type=int, default=None, help="Auction duration in milliseconds (integer)"
-)
-@click.option(
-    "--max-oracle-age-ms", type=int, default=None, help="Max oracle price age in milliseconds (integer)"
-)
-@click.option(
-    "--transaction-fee", type=int, default=None, help="Transaction fee in basis points (e.g. 3 for 0.03%)"
-)
-@click.option(
-    "--min-vault-collateral", type=str, default=None, help="Minimum vault collateral in human-readable units"
-)
-@click.option(
-    "--max-vault-collateral",
-    type=str,
-    default=None,
-    help="Maximum per-vault collateral in human-readable units",
-)
-@click.option(
-    "--max-total-collateral",
-    type=str,
-    default=None,
-    help="Maximum total collateral across all vaults in human-readable units",
+    "--liquidation-fee", type=int, default=None, help="Liquidation fee in basis points (e.g. 1100 for 11%%)"
 )
 @wallet_option
 @network_option
 @click.pass_context
 def gov_vault_set_params_cmd(
     ctx: click.Context,
+    netuid: int,
     collateral_ratio: int | None,
     liquidation_ratio: int | None,
     interest_rate: int | None,
     liquidation_fee: int | None,
-    borrow_cap: str | None,
-    auction_duration_ms: int | None,
-    max_oracle_age_ms: int | None,
-    transaction_fee: int | None,
-    min_vault_collateral: str | None,
-    max_vault_collateral: str | None,
-    max_total_collateral: str | None,
     wallet_name: str | None,
     network: str | None,
 ) -> None:
-    """Schedule a vault contract parameter update via governance.
+    """Schedule a per-netuid vault contract parameter update via governance (maintainer only).
 
     \b
-    All parameters are optional; only supplied values will be updated.
+    Per-netuid params: collateral_ratio, liquidation_ratio,
+    interest_rate (bps), liquidation_fee (bps).
+    Global params use `vault-set-global-params`.
+
+    \b
     Examples:
-      tusdt governance vault-set-params --collateral-ratio 150 --wallet-name MyWallet
-      tusdt governance vault-set-params --interest-rate 5 --borrow-cap 1000000 --wallet-name MyWallet
+      tusdt governance vault-set-params --netuid 1 --collateral-ratio 150 --wallet-name MyWallet
+      tusdt governance vault-set-params --netuid 42 --interest-rate 1000 --wallet-name MyWallet
     """
     state: CLIContext = ctx.obj
     state.network = network or state.network
     state.wallet_name = wallet_name or state.wallet_name
-    cfg = state.make_config()
-    decimals = cfg.get("decimals", 9)
 
     params: dict = {}
     if collateral_ratio is not None:
@@ -583,27 +557,13 @@ def gov_vault_set_params_cmd(
         params["interest_rate"] = interest_rate
     if liquidation_fee is not None:
         params["liquidation_fee"] = liquidation_fee
-    if borrow_cap is not None:
-        params["borrow_cap"] = parse_balance(borrow_cap, decimals)
-    if auction_duration_ms is not None:
-        params["auction_duration_ms"] = auction_duration_ms
-    if max_oracle_age_ms is not None:
-        params["max_oracle_age_ms"] = max_oracle_age_ms
-    if transaction_fee is not None:
-        params["transaction_fee"] = transaction_fee
-    if min_vault_collateral is not None:
-        params["min_vault_collateral"] = parse_balance(min_vault_collateral, decimals)
-    if max_vault_collateral is not None:
-        params["max_vault_collateral"] = parse_balance(max_vault_collateral, decimals)
-    if max_total_collateral is not None:
-        params["max_total_collateral"] = parse_balance(max_total_collateral, decimals)
 
     if not params:
         state.output.error("Provide at least one parameter to update")
         return
 
-    state.output.info(f"Scheduling vault parameter update via governance: {params}")
-    state.submit(lambda c, kp: c.gov_vault_set_contract_params(kp, params))
+    state.output.info(f"Scheduling vault parameter update via governance for netuid {netuid}: {params}")
+    state.submit(lambda c, kp: c.gov_vault_set_contract_params(kp, netuid, params))
     state.output.success("Vault parameter update scheduled via governance!")
 
 
@@ -613,26 +573,28 @@ def gov_vault_set_params_cmd(
 
 
 @governance_group.command("vault-cancel-update")
+@click.option("--netuid", required=True, type=int, help="Subnet netuid")
 @wallet_option
 @network_option
 @click.pass_context
 def gov_vault_cancel_update_cmd(
     ctx: click.Context,
+    netuid: int,
     wallet_name: str | None,
     network: str | None,
 ) -> None:
-    """Cancel a pending vault contract parameter update via governance.
+    """Cancel a pending per-netuid vault contract parameter update via governance.
 
     \b
     Examples:
-      tusdt governance vault-cancel-update --wallet-name MyWallet
-      tusdt governance vault-cancel-update --wallet-name MyWallet --network testnet
+      tusdt governance vault-cancel-update --netuid 1 --wallet-name MyWallet
+      tusdt governance vault-cancel-update --netuid 42 --wallet-name MyWallet --network testnet
     """
     state: CLIContext = ctx.obj
     state.network = network or state.network
     state.wallet_name = wallet_name or state.wallet_name
-    state.output.info("Cancelling pending vault parameter update via governance...")
-    state.submit(lambda c, kp: c.gov_vault_cancel_update(kp))
+    state.output.info(f"Cancelling pending vault parameter update via governance for netuid {netuid}...")
+    state.submit(lambda c, kp: c.gov_vault_cancel_update(kp, netuid))
     state.output.success("Vault parameter update cancelled via governance!")
 
 
@@ -1319,3 +1281,165 @@ def submit_snapshot_cmd(
     state.output.info(f"Submitting snapshot for block {snapshot_block} (supply={circulating_supply})...")
     state.submit(lambda c, kp: c.submit_snapshot(kp, root_list, circulating_supply, snapshot_block))
     state.output.success("Snapshot submitted!")
+
+
+# ------------------------------------------------------------------
+# vault-claim-excess-alpha
+# ------------------------------------------------------------------
+
+
+@governance_group.command("vault-claim-excess-alpha")
+@click.argument("netuid", type=int, metavar="<netuid>")
+@wallet_option
+@network_option
+@click.pass_context
+def gov_vault_claim_excess_alpha(
+    ctx: click.Context, netuid: int, wallet_name: str | None, network: str | None
+) -> None:
+    """Claim excess alpha staking rewards on a subnet via governance (maintainer only)."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Claiming excess alpha via governance for netuid {netuid}...")
+    state.submit(lambda c, kp: c.gov_vault_claim_excess_alpha(kp, netuid))
+    state.output.success(f"Excess alpha claimed via governance for netuid {netuid}!")
+
+
+# ------------------------------------------------------------------
+# vault-set-approved-netuid
+# ------------------------------------------------------------------
+
+
+@governance_group.command("vault-set-approved-netuid")
+@click.argument("netuid", type=int, metavar="<netuid>")
+@click.option("--approve/--revoke", default=True, help="Approve (default) or revoke the subnet")
+@wallet_option
+@network_option
+@click.pass_context
+def gov_vault_set_approved_netuid(
+    ctx: click.Context,
+    netuid: int,
+    approve: bool,
+    wallet_name: str | None,
+    network: str | None,
+) -> None:
+    """Approve or revoke a subnet for vault collateral via governance (maintainer only)."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    action = "Approving" if approve else "Revoking"
+    state.output.info(f"{action} subnet {netuid} via governance...")
+    state.submit(lambda c, kp: c.gov_vault_set_approved_netuid(kp, netuid, approve))
+    state.output.success(f"Subnet {netuid} {'approved' if approve else 'revoked'} via governance!")
+
+
+# ------------------------------------------------------------------
+# vault-set-global-params
+# ------------------------------------------------------------------
+
+
+@governance_group.command("vault-set-global-params")
+@click.option("--transaction-fee", type=int, default=None, help="Transaction fee in basis points")
+@click.option("--auction-duration-ms", type=int, default=None, help="Auction duration in milliseconds")
+@click.option("--max-oracle-age-ms", type=int, default=None, help="Max oracle price age in milliseconds")
+@wallet_option
+@network_option
+@click.pass_context
+def gov_vault_set_global_params(
+    ctx: click.Context,
+    transaction_fee: int | None,
+    auction_duration_ms: int | None,
+    max_oracle_age_ms: int | None,
+    wallet_name: str | None,
+    network: str | None,
+) -> None:
+    """Schedule a vault global params update via governance (maintainer only)."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+
+    config: dict = {}
+    if transaction_fee is not None:
+        config["transaction_fee"] = transaction_fee
+    if auction_duration_ms is not None:
+        config["auction_duration_ms"] = auction_duration_ms
+    if max_oracle_age_ms is not None:
+        config["max_oracle_age_ms"] = max_oracle_age_ms
+
+    if not config:
+        state.output.error("Provide at least one global parameter to update")
+        return
+
+    state.output.info(f"Scheduling global params update via governance: {config}")
+    state.submit(lambda c, kp: c.gov_vault_set_global_params(kp, config))
+    state.output.success("Global params update scheduled via governance!")
+
+
+# ------------------------------------------------------------------
+# vault-cancel-global-update
+# ------------------------------------------------------------------
+
+
+@governance_group.command("vault-cancel-global-update")
+@wallet_option
+@network_option
+@click.pass_context
+def gov_vault_cancel_global_update(ctx: click.Context, wallet_name: str | None, network: str | None) -> None:
+    """Cancel the pending vault global params update via governance (maintainer only)."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info("Cancelling pending global params update via governance...")
+    state.submit(lambda c, kp: c.gov_vault_cancel_global_params_update(kp))
+    state.output.success("Global params update cancelled via governance!")
+
+
+# ------------------------------------------------------------------
+# elect-maintainer
+# ------------------------------------------------------------------
+
+
+@governance_group.command("elect-maintainer")
+@click.argument("address", type=str, metavar="<new-maintainer-address>")
+@wallet_option
+@network_option
+@click.pass_context
+def gov_elect_maintainer(
+    ctx: click.Context, address: str, wallet_name: str | None, network: str | None
+) -> None:
+    """Set the maintainer directly on the governance contract (election-only).
+
+    This uses a raw selector (0xE1EC7000) that the election contract
+    cross-calls to install the winning candidate.
+    """
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Setting maintainer to {address}...")
+    state.submit(lambda c, kp: c.elect_maintainer(kp, address))
+    state.output.success(f"Maintainer set to {address}!")
+
+
+# ------------------------------------------------------------------
+# election-set-netuid
+# ------------------------------------------------------------------
+
+
+@governance_group.command("election-set-netuid")
+@click.argument("netuid", type=int, metavar="<netuid>")
+@wallet_option
+@network_option
+@click.pass_context
+def gov_election_set_netuid(
+    ctx: click.Context, netuid: int, wallet_name: str | None, network: str | None
+) -> None:
+    """Set the election contract netuid via governance (election-only).
+
+    Uses raw selector 0xE1EC7001.
+    """
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Setting election netuid to {netuid}...")
+    state.submit(lambda c, kp: c.election_set_netuid(kp, netuid))
+    state.output.success(f"Election netuid set to {netuid}!")

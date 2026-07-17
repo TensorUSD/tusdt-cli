@@ -40,6 +40,13 @@ _VAULT_ADVANCED = {
     "treasury-address",
     "update-treasury",
     "emergency-drain",
+    "set-global-params",
+    "execute-global-update",
+    "cancel-global-update",
+    "get-global-params",
+    "set-approved-netuid",
+    "is-approved-netuid",
+    "claim-excess-alpha",
 }
 
 
@@ -54,17 +61,24 @@ def vault_group() -> None:
 
 
 @vault_group.command("create")
-@click.option("--amount", required=True, help="Collateral amount in human-readable units (e.g. 1.5)")
+@click.option("--amount", required=True, help="Alpha collateral amount in human-readable units (e.g. 1.5)")
+@click.option("--netuid", required=True, type=int, help="Subnet netuid for the alpha collateral")
 @wallet_option
 @network_option
 @click.pass_context
-def create_vault(ctx: click.Context, amount: str, wallet_name: str | None, network: str | None) -> None:
-    """Create a new vault with native-token collateral.
+def create_vault(
+    ctx: click.Context, amount: str, netuid: int, wallet_name: str | None, network: str | None
+) -> None:
+    """Create a new vault with subnet-alpha collateral via atomic pull deposit.
+
+    The caller's alpha stake (held under the vault's hotkey) is pulled
+    atomically via the caller_transfer_stake chain extension — no prior
+    transfer step is needed.
 
     \b
     Examples:
-      tusdt vault create --amount 1.5 --wallet-name MyWallet
-      tusdt vault create --amount 10 --wallet-name MyWallet --network testnet
+      tusdt vault create --amount 1.5 --netuid 1 --wallet-name MyWallet
+      tusdt vault create --amount 10 --netuid 42 --wallet-name MyWallet --network testnet
     """
     state: CLIContext = ctx.obj
     state.network = network or state.network
@@ -73,8 +87,8 @@ def create_vault(ctx: click.Context, amount: str, wallet_name: str | None, netwo
     decimals = cfg.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
 
-    state.output.info(f"Depositing {amount} (raw {raw_amount}) as collateral...")
-    state.submit(lambda c, kp: c.create_vault(kp, raw_amount))
+    state.output.info(f"Pulling {amount} alpha (netuid {netuid}) as collateral...")
+    state.submit(lambda c, kp: c.create_alpha_vault(kp, raw_amount, netuid))
     state.output.success("Vault created successfully!")
 
 
@@ -92,7 +106,7 @@ def create_vault(ctx: click.Context, amount: str, wallet_name: str | None, netwo
 def add_collateral(
     ctx: click.Context, vault_id: int, amount: str, wallet_name: str | None, network: str | None
 ) -> None:
-    """Add collateral to an existing vault.
+    """Add alpha collateral to an existing vault via atomic pull.
 
     \b
     VAULT_ID is the numeric ID of your vault.
@@ -107,8 +121,8 @@ def add_collateral(
     decimals = cfg.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
 
-    state.output.info(f"Adding {amount} collateral to vault {vault_id}...")
-    state.submit(lambda c, kp: c.add_collateral(kp, vault_id, raw_amount))
+    state.output.info(f"Pulling {amount} alpha collateral to vault {vault_id}...")
+    state.submit(lambda c, kp: c.add_alpha_collateral(kp, vault_id, raw_amount))
     state.output.success("Collateral added!")
 
 
@@ -190,20 +204,26 @@ def repay(
 @vault_group.command("release-collateral")
 @click.argument("vault_id", type=int, metavar="<vault-id>")
 @click.argument("amount", type=str, metavar="<amount>")
+@click.option("--dest-coldkey", required=True, help="Destination coldkey SS58 address to receive the alpha")
 @wallet_option
 @network_option
 @click.pass_context
 def release_collateral(
-    ctx: click.Context, vault_id: int, amount: str, wallet_name: str | None, network: str | None
+    ctx: click.Context,
+    vault_id: int,
+    amount: str,
+    dest_coldkey: str,
+    wallet_name: str | None,
+    network: str | None,
 ) -> None:
-    """Release collateral from a vault.
+    """Release alpha collateral from a vault to a destination coldkey.
 
     \b
     VAULT_ID is the numeric ID of your vault.
     AMOUNT  is the human-readable collateral amount to release (e.g. 1.0).
     Examples:
-      tusdt vault release-collateral 0 1.0 --wallet-name MyWallet
-      tusdt vault release-collateral 2 0.5 --wallet-name MyWallet --network testnet
+      tusdt vault release-collateral 0 1.0 --dest-coldkey 5GrwvaEF... --wallet-name MyWallet
+      tusdt vault release-collateral 2 0.5 --dest-coldkey 5GrwvaEF... --wallet-name MyWallet --network testnet
     """
     state: CLIContext = ctx.obj
     state.network = network or state.network
@@ -211,9 +231,10 @@ def release_collateral(
     cfg = state.make_config()
     decimals = cfg.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
+    resolved_dest = resolve_ss58(dest_coldkey, cfg.get("wallet_path", ""))
 
-    state.output.info(f"Releasing {amount} collateral from vault {vault_id}...")
-    state.submit(lambda c, kp: c.release_collateral(kp, vault_id, raw_amount))
+    state.output.info(f"Releasing {amount} alpha collateral from vault {vault_id} to {resolved_dest}...")
+    state.submit(lambda c, kp: c.release_alpha_collateral(kp, vault_id, raw_amount, resolved_dest))
     state.output.success("Collateral released!")
 
 
@@ -266,6 +287,7 @@ def vault_info(
         {
             "ID": vault_data.get("id", vault_id),
             "Owner": vault_data.get("owner", owner),
+            "Netuid": vault_data.get("netuid", "?"),
             "Collateral": format_balance(vault_data.get("collateral_balance", 0), decimals),
             "Borrowed (principal)": format_balance(vault_data.get("borrowed_token_balance", 0), decimals),
             "Debt (principal + interest)": format_balance(vault_data.get("debt_balance", 0), decimals),
@@ -325,6 +347,7 @@ def list_vaults(
         rows.append(
             [
                 str(v.get("id", "?")),
+                str(v.get("netuid", "?")),
                 format_balance(v.get("collateral_balance", 0), decimals),
                 format_balance(v.get("borrowed_token_balance", 0), decimals),
                 format_balance(v.get("debt_balance", 0), decimals),
@@ -335,7 +358,7 @@ def list_vaults(
     state.output.info(f"Total vaults: {total}  |  Page: {page}")
     state.output.table(
         f"Vaults for {owner[:12]}...{owner[-6:]}",
-        ["ID", "Collateral", "Borrowed", "Debt", "Created"],
+        ["ID", "Netuid", "Collateral", "Borrowed", "Debt", "Created"],
         rows,
     )
 
@@ -568,6 +591,7 @@ def list_all_vaults(ctx: click.Context, page: int, network: str | None) -> None:
         rows.append(
             [
                 str(v.get("id", "?")),
+                str(v.get("netuid", "?")),
                 str(v.get("owner", "?")),
                 format_balance(v.get("collateral_balance", 0), decimals),
                 format_balance(v.get("borrowed_token_balance", 0), decimals),
@@ -579,7 +603,7 @@ def list_all_vaults(ctx: click.Context, page: int, network: str | None) -> None:
     state.output.info(f"Total vaults: {total}  |  Page: {page}")
     state.output.table(
         "All Vaults",
-        ["ID", "Owner", "Collateral", "Borrowed", "Debt", "Created"],
+        ["ID", "Netuid", "Owner", "Collateral", "Borrowed", "Debt", "Created"],
         rows,
     )
 
@@ -590,29 +614,31 @@ def list_all_vaults(ctx: click.Context, page: int, network: str | None) -> None:
 
 
 @vault_group.command("params")
+@click.option("--netuid", required=True, type=int, help="Subnet netuid")
 @network_option
 @click.pass_context
-def vault_params(ctx: click.Context, network: str | None) -> None:
-    """Show vault contract parameters.
+def vault_params(ctx: click.Context, netuid: int, network: str | None) -> None:
+    """Show per-netuid vault contract parameters.
 
     \b
     Examples:
-      tusdt vault params --network testnet
+      tusdt vault params --netuid 1
+      tusdt vault params --netuid 42 --network testnet
     """
     state: CLIContext = ctx.obj
     state.network = network or state.network
     cfg = state.make_config()
 
     kp = get_reader_keypair(cfg)
-    params = state.run_read(lambda c: c.get_contract_params(kp))
+    params = state.run_read(lambda c: c.get_contract_params(kp, netuid))
 
     if isinstance(params, dict):
         display = {}
         for key, value in params.items():
             display[key] = value
-        state.output.detail("Vault Contract Parameters", display)
+        state.output.detail(f"Vault Contract Parameters (netuid {netuid})", display)
     else:
-        state.output.detail("Vault Contract Parameters", {"Raw": params})
+        state.output.detail(f"Vault Contract Parameters (netuid {netuid})", {"Raw": params})
 
 
 # ------------------------------------------------------------------
@@ -828,20 +854,21 @@ def paused(ctx: click.Context, network: str | None) -> None:
 
 
 @vault_group.command("pending-update")
+@click.option("--netuid", required=True, type=int, help="Subnet netuid")
 @network_option
 @click.pass_context
-def pending_update(ctx: click.Context, network: str | None) -> None:
-    """Show pending contract parameter update details."""
+def pending_update(ctx: click.Context, netuid: int, network: str | None) -> None:
+    """Show pending per-netuid contract parameter update details."""
     state: CLIContext = ctx.obj
     state.network = network or state.network
     cfg = state.make_config()
     kp = get_reader_keypair(cfg)
-    update = state.run_read(lambda c: c.get_pending_params_update(kp))
+    update = state.run_read(lambda c: c.get_pending_contract_params_update(kp, netuid))
 
     if update is None:
-        state.output.info("No pending parameter update")
+        state.output.info(f"No pending parameter update for netuid {netuid}")
     else:
-        state.output.detail("Pending Parameter Update", update)
+        state.output.detail(f"Pending Parameter Update (netuid {netuid})", update)
 
 
 # ------------------------------------------------------------------
@@ -948,63 +975,44 @@ def unpause_contract(ctx: click.Context, wallet_name: str | None, network: str |
 
 
 @vault_group.command("set-params")
+@click.option("--netuid", required=True, type=int, help="Subnet netuid")
 @click.option("--collateral-ratio", type=int, default=None, help="Collateral ratio (e.g. 150 for 150%%)")
 @click.option("--liquidation-ratio", type=int, default=None, help="Liquidation ratio (e.g. 120 for 120%%)")
-@click.option("--interest-rate", type=int, default=None, help="Interest rate (e.g. 5 for 5%%)")
-@click.option("--liquidation-fee", type=int, default=None, help="Liquidation fee (e.g. 10 for 10%%)")
-@click.option("--borrow-cap", type=str, default=None, help="Borrow cap in human-readable units")
-@click.option("--auction-duration-ms", type=int, default=None, help="Auction duration in milliseconds")
-@click.option("--max-oracle-age-ms", type=int, default=None, help="Max oracle age in milliseconds")
 @click.option(
-    "--transaction-fee", type=int, default=None, help="Transaction fee in basis points (e.g. 3 for 0.03%%)"
+    "--interest-rate", type=int, default=None, help="Interest rate in basis points (e.g. 1000 for 10%%)"
 )
 @click.option(
-    "--min-vault-collateral", type=str, default=None, help="Minimum vault collateral in human-readable units"
-)
-@click.option(
-    "--max-vault-collateral",
-    type=str,
-    default=None,
-    help="Maximum per-vault collateral in human-readable units",
-)
-@click.option(
-    "--max-total-collateral",
-    type=str,
-    default=None,
-    help="Maximum total collateral across all vaults in human-readable units",
+    "--liquidation-fee", type=int, default=None, help="Liquidation fee in basis points (e.g. 1100 for 11%%)"
 )
 @wallet_option
 @network_option
 @click.pass_context
 def set_params(
     ctx: click.Context,
+    netuid: int,
     collateral_ratio: int | None,
     liquidation_ratio: int | None,
     interest_rate: int | None,
     liquidation_fee: int | None,
-    borrow_cap: str | None,
-    auction_duration_ms: int | None,
-    max_oracle_age_ms: int | None,
-    transaction_fee: int | None,
-    min_vault_collateral: str | None,
-    max_vault_collateral: str | None,
-    max_total_collateral: str | None,
     wallet_name: str | None,
     network: str | None,
 ) -> None:
-    """Schedule a contract parameter update (24h timelock).
+    """Schedule a per-netuid contract parameter update (24h timelock).
 
     \b
-    All parameters are optional; only supplied values will be updated.
+    Per-netuid params: collateral_ratio, liquidation_ratio,
+    interest_rate (bps), liquidation_fee (bps).
+    Global params (transaction_fee, auction_duration_ms, max_oracle_age_ms)
+    use the separate `set-global-params` command.
+
+    \b
     Examples:
-      tusdt vault set-params --collateral-ratio 150 --liquidation-ratio 120 --wallet-name MyWallet
-      tusdt vault set-params --interest-rate 5 --borrow-cap 1000000 --wallet-name MyWallet
+      tusdt vault set-params --netuid 1 --collateral-ratio 150 --liquidation-ratio 120 --wallet-name MyWallet
+      tusdt vault set-params --netuid 42 --interest-rate 1000 --wallet-name MyWallet
     """
     state: CLIContext = ctx.obj
     state.network = network or state.network
     state.wallet_name = wallet_name or state.wallet_name
-    cfg = state.make_config()
-    decimals = cfg.get("decimals", 9)
 
     params: dict = {}
     if collateral_ratio is not None:
@@ -1015,27 +1023,13 @@ def set_params(
         params["interest_rate"] = interest_rate
     if liquidation_fee is not None:
         params["liquidation_fee"] = liquidation_fee
-    if borrow_cap is not None:
-        params["borrow_cap"] = parse_balance(borrow_cap, decimals)
-    if auction_duration_ms is not None:
-        params["auction_duration_ms"] = auction_duration_ms
-    if max_oracle_age_ms is not None:
-        params["max_oracle_age_ms"] = max_oracle_age_ms
-    if transaction_fee is not None:
-        params["transaction_fee"] = transaction_fee
-    if min_vault_collateral is not None:
-        params["min_vault_collateral"] = parse_balance(min_vault_collateral, decimals)
-    if max_vault_collateral is not None:
-        params["max_vault_collateral"] = parse_balance(max_vault_collateral, decimals)
-    if max_total_collateral is not None:
-        params["max_total_collateral"] = parse_balance(max_total_collateral, decimals)
 
     if not params:
         state.output.error("Provide at least one parameter to update")
         return
 
-    state.output.info(f"Scheduling parameter update: {params}")
-    state.submit(lambda c, kp: c.set_contract_params(kp, params))
+    state.output.info(f"Scheduling parameter update for netuid {netuid}: {params}")
+    state.submit(lambda c, kp: c.set_contract_params(kp, netuid, params))
     state.output.success("Parameter update scheduled (24h timelock)!")
 
 
@@ -1045,21 +1039,22 @@ def set_params(
 
 
 @vault_group.command("execute-update")
+@click.option("--netuid", required=True, type=int, help="Subnet netuid")
 @wallet_option
 @network_option
 @click.pass_context
-def execute_update(ctx: click.Context, wallet_name: str | None, network: str | None) -> None:
-    """Execute a pending contract parameter update (after timelock expires).
+def execute_update(ctx: click.Context, netuid: int, wallet_name: str | None, network: str | None) -> None:
+    """Execute a pending per-netuid contract parameter update (after timelock expires).
 
     \b
     Examples:
-      tusdt vault execute-update --wallet-name MyWallet
+      tusdt vault execute-update --netuid 1 --wallet-name MyWallet
     """
     state: CLIContext = ctx.obj
     state.network = network or state.network
     state.wallet_name = wallet_name or state.wallet_name
-    state.output.info("Executing pending parameter update...")
-    state.submit(lambda c, kp: c.execute_params_update(kp))
+    state.output.info(f"Executing pending parameter update for netuid {netuid}...")
+    state.submit(lambda c, kp: c.execute_contract_params_update(kp, netuid))
     state.output.success("Parameter update executed!")
 
 
@@ -1069,21 +1064,22 @@ def execute_update(ctx: click.Context, wallet_name: str | None, network: str | N
 
 
 @vault_group.command("cancel-update")
+@click.option("--netuid", required=True, type=int, help="Subnet netuid")
 @wallet_option
 @network_option
 @click.pass_context
-def cancel_update(ctx: click.Context, wallet_name: str | None, network: str | None) -> None:
-    """Cancel a pending contract parameter update.
+def cancel_update(ctx: click.Context, netuid: int, wallet_name: str | None, network: str | None) -> None:
+    """Cancel a pending per-netuid contract parameter update.
 
     \b
     Examples:
-      tusdt vault cancel-update --wallet-name MyWallet
+      tusdt vault cancel-update --netuid 1 --wallet-name MyWallet
     """
     state: CLIContext = ctx.obj
     state.network = network or state.network
     state.wallet_name = wallet_name or state.wallet_name
-    state.output.info("Cancelling pending parameter update...")
-    state.submit(lambda c, kp: c.cancel_params_update(kp))
+    state.output.info(f"Cancelling pending parameter update for netuid {netuid}...")
+    state.submit(lambda c, kp: c.cancel_contract_params_update(kp, netuid))
     state.output.success("Parameter update cancelled!")
 
 
@@ -1340,3 +1336,188 @@ def vault_emergency_drain_cmd(
     state.output.info(f"Emergency draining vault native balance to {recipient}...")
     state.submit(lambda c, kp: c.vault_emergency_drain(kp, recipient))
     state.output.success("Emergency drain completed!")
+
+
+# ------------------------------------------------------------------
+# set-global-params
+# ------------------------------------------------------------------
+
+
+@vault_group.command("set-global-params")
+@click.option(
+    "--transaction-fee", type=int, default=None, help="Transaction fee in basis points (e.g. 30 for 0.3%%)"
+)
+@click.option("--auction-duration-ms", type=int, default=None, help="Auction duration in milliseconds")
+@click.option("--max-oracle-age-ms", type=int, default=None, help="Max oracle price age in milliseconds")
+@wallet_option
+@network_option
+@click.pass_context
+def set_global_params(
+    ctx: click.Context,
+    transaction_fee: int | None,
+    auction_duration_ms: int | None,
+    max_oracle_age_ms: int | None,
+    wallet_name: str | None,
+    network: str | None,
+) -> None:
+    """Schedule a global parameters update (24h timelock).
+
+    Global params affect all subnets: transaction_fee (bps),
+    auction_duration_ms, max_oracle_age_ms.
+    """
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+
+    config: dict = {}
+    if transaction_fee is not None:
+        config["transaction_fee"] = transaction_fee
+    if auction_duration_ms is not None:
+        config["auction_duration_ms"] = auction_duration_ms
+    if max_oracle_age_ms is not None:
+        config["max_oracle_age_ms"] = max_oracle_age_ms
+
+    if not config:
+        state.output.error("Provide at least one global parameter to update")
+        return
+
+    state.output.info(f"Scheduling global params update: {config}")
+    state.submit(lambda c, kp: c.set_global_params(kp, config))
+    state.output.success("Global params update scheduled (24h timelock)!")
+
+
+# ------------------------------------------------------------------
+# execute-global-update
+# ------------------------------------------------------------------
+
+
+@vault_group.command("execute-global-update")
+@wallet_option
+@network_option
+@click.pass_context
+def execute_global_update(ctx: click.Context, wallet_name: str | None, network: str | None) -> None:
+    """Execute the pending global params update (after timelock expires, permissionless)."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info("Executing pending global params update...")
+    state.submit(lambda c, kp: c.execute_global_params_update(kp))
+    state.output.success("Global params update executed!")
+
+
+# ------------------------------------------------------------------
+# cancel-global-update
+# ------------------------------------------------------------------
+
+
+@vault_group.command("cancel-global-update")
+@wallet_option
+@network_option
+@click.pass_context
+def cancel_global_update(ctx: click.Context, wallet_name: str | None, network: str | None) -> None:
+    """Cancel the pending global params update."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info("Cancelling pending global params update...")
+    state.submit(lambda c, kp: c.cancel_global_params_update(kp))
+    state.output.success("Global params update cancelled!")
+
+
+# ------------------------------------------------------------------
+# get-global-params
+# ------------------------------------------------------------------
+
+
+@vault_group.command("get-global-params")
+@network_option
+@click.pass_context
+def get_global_params(ctx: click.Context, network: str | None) -> None:
+    """Show vault global parameters (transaction fee, auction duration, max oracle age)."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    params = state.run_read(lambda c: c.get_global_params(kp))
+    if isinstance(params, dict):
+        state.output.detail("Vault Global Parameters", params)
+    else:
+        state.output.detail("Vault Global Parameters", {"Raw": params})
+
+
+# ------------------------------------------------------------------
+# set-approved-netuid
+# ------------------------------------------------------------------
+
+
+@vault_group.command("set-approved-netuid")
+@click.argument("netuid", type=int, metavar="<netuid>")
+@click.option("--approve/--revoke", default=True, help="Approve (default) or revoke the subnet")
+@wallet_option
+@network_option
+@click.pass_context
+def set_approved_netuid(
+    ctx: click.Context,
+    netuid: int,
+    approve: bool,
+    wallet_name: str | None,
+    network: str | None,
+) -> None:
+    """Approve or revoke a subnet for vault collateral.
+
+    \b
+    Examples:
+      tusdt vault set-approved-netuid 42 --approve --wallet-name MyWallet
+      tusdt vault set-approved-netuid 42 --revoke --wallet-name MyWallet
+    """
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    action = "Approving" if approve else "Revoking"
+    state.output.info(f"{action} subnet {netuid}...")
+    state.submit(lambda c, kp: c.set_approved_netuid(kp, netuid, approve))
+    state.output.success(f"Subnet {netuid} {'approved' if approve else 'revoked'}!")
+
+
+# ------------------------------------------------------------------
+# is-approved-netuid
+# ------------------------------------------------------------------
+
+
+@vault_group.command("is-approved-netuid")
+@click.argument("netuid", type=int, metavar="<netuid>")
+@network_option
+@click.pass_context
+def is_approved_netuid(ctx: click.Context, netuid: int, network: str | None) -> None:
+    """Check whether a subnet is approved for vault collateral."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    approved = state.run_read(lambda c: c.is_approved_netuid(kp, netuid))
+    status = "approved" if approved else "NOT approved"
+    state.output.detail(f"Subnet {netuid}", {"Approved": status})
+
+
+# ------------------------------------------------------------------
+# claim-excess-alpha
+# ------------------------------------------------------------------
+
+
+@vault_group.command("claim-excess-alpha")
+@click.argument("netuid", type=int, metavar="<netuid>")
+@wallet_option
+@network_option
+@click.pass_context
+def claim_excess_alpha(ctx: click.Context, netuid: int, wallet_name: str | None, network: str | None) -> None:
+    """Claim excess alpha staking rewards on a subnet (maintainer only).
+
+    Excess = actual contract stake minus total collateral. The excess
+    is unstaked to native TAO and transferred to the treasury.
+    """
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Claiming excess alpha on netuid {netuid}...")
+    state.submit(lambda c, kp: c.claim_excess_alpha(kp, netuid))
+    state.output.success(f"Excess alpha claimed on netuid {netuid}!")

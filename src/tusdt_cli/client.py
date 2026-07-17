@@ -500,13 +500,30 @@ class TUSDTClient:
     # VAULT OPERATIONS
     # ==================================================================
 
-    def create_vault(self, keypair: Keypair, amount: int) -> dict[str, Any] | DryRunResult:
-        """Create a new vault, depositing *amount* native tokens as collateral."""
-        return self._exec(self.vault, keypair, "create_vault", value=amount)
+    def create_alpha_vault(self, keypair: Keypair, amount: int, netuid: int) -> dict[str, Any] | DryRunResult:
+        """Create a new vault, pulling *amount* alpha stake on *netuid* as collateral.
 
-    def add_collateral(self, keypair: Keypair, vault_id: int, amount: int) -> dict[str, Any] | DryRunResult:
-        """Add collateral to an existing vault."""
-        return self._exec(self.vault, keypair, "add_collateral", args={"vault_id": vault_id}, value=amount)
+        Uses the caller-forwarded ``caller_transfer_stake`` chain extension
+        (function 25) to atomically pull the caller's alpha into the contract's
+        coldkey.
+        """
+        return self._exec(
+            self.vault,
+            keypair,
+            "create_alpha_vault",
+            args={"amount": amount, "netuid": netuid},
+        )
+
+    def add_alpha_collateral(
+        self, keypair: Keypair, vault_id: int, amount: int
+    ) -> dict[str, Any] | DryRunResult:
+        """Add alpha collateral to an existing vault via atomic pull."""
+        return self._exec(
+            self.vault,
+            keypair,
+            "add_alpha_collateral",
+            args={"vault_id": vault_id, "amount": amount},
+        )
 
     def borrow(self, keypair: Keypair, vault_id: int, amount: int) -> dict[str, Any] | DryRunResult:
         """Borrow TUSDT tokens against a vault's collateral."""
@@ -516,12 +533,15 @@ class TUSDTClient:
         """Repay borrowed TUSDT tokens."""
         return self._exec(self.vault, keypair, "repay_token", args={"vault_id": vault_id, "amount": amount})
 
-    def release_collateral(
-        self, keypair: Keypair, vault_id: int, amount: int
+    def release_alpha_collateral(
+        self, keypair: Keypair, vault_id: int, amount: int, dest_coldkey: str
     ) -> dict[str, Any] | DryRunResult:
-        """Release collateral from a vault."""
+        """Release alpha collateral from a vault to *dest_coldkey*."""
         return self._exec(
-            self.vault, keypair, "release_collateral", args={"vault_id": vault_id, "amount": amount}
+            self.vault,
+            keypair,
+            "release_alpha_collateral",
+            args={"vault_id": vault_id, "amount": amount, "dest_coldkey": dest_coldkey},
         )
 
     def get_vault(self, keypair: Keypair, owner: str, vault_id: int) -> dict | None:
@@ -594,9 +614,9 @@ class TUSDTClient:
         result = self._read(self.vault, keypair, "get_total_vaults_count")
         return unwrap_plain(result)
 
-    def get_contract_params(self, keypair: Keypair) -> dict:
-        """Return the vault contract parameters."""
-        result = self._read(self.vault, keypair, "get_contract_params")
+    def get_contract_params(self, keypair: Keypair, netuid: int) -> dict:
+        """Return the per-netuid vault contract parameters for *netuid*."""
+        result = self._read(self.vault, keypair, "get_contract_params", args={"netuid": netuid})
         raw = unwrap_plain(result)
         return raw if isinstance(raw, dict) else raw
 
@@ -664,9 +684,11 @@ class TUSDTClient:
         result = self._read(self.vault, keypair, "paused")
         return unwrap_plain(result)
 
-    def get_pending_params_update(self, keypair: Keypair) -> dict | None:
-        """Return the pending contract parameter update, if any."""
-        result = self._read(self.vault, keypair, "get_pending_contract_params_update")
+    def get_pending_contract_params_update(self, keypair: Keypair, netuid: int) -> dict | None:
+        """Return the pending per-netuid contract parameter update, if any."""
+        result = self._read(
+            self.vault, keypair, "get_pending_contract_params_update", args={"netuid": netuid}
+        )
         raw = unwrap_option(result)
         if raw is None:
             return None
@@ -691,27 +713,77 @@ class TUSDTClient:
     def set_contract_params(
         self,
         keypair: Keypair,
+        netuid: int,
         params: dict[str, Any],
     ) -> dict[str, Any] | DryRunResult:
-        """Schedule a contract parameter update with timelock.
+        """Schedule a per-netuid contract parameter update with timelock.
 
-        Reads current on-chain params, merges with user-supplied changes,
-        and sends the complete 11-field VaultContractParamsConfig struct.
+        Reads current on-chain params for *netuid*, merges with user-supplied
+        changes, and sends the complete VaultContractParamsConfig struct.
         """
-        current = unwrap_plain(self._read(self.vault, keypair, "get_contract_params"))
+        current = unwrap_plain(
+            self._read(self.vault, keypair, "get_contract_params", args={"netuid": netuid})
+        )
         if not isinstance(current, dict):
             raise ContractError(f"Expected dict from get_contract_params, got {type(current).__name__}")
         merged = dict(current)
         merged.update(params)
-        return self._exec(self.vault, keypair, "set_contract_params", args={"params": merged})
+        return self._exec(
+            self.vault,
+            keypair,
+            "set_contract_params",
+            args={"netuid": netuid, "params": merged},
+        )
 
-    def execute_params_update(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
-        """Execute the pending contract parameter update after timelock."""
-        return self._exec(self.vault, keypair, "execute_contract_params_update")
+    def execute_contract_params_update(self, keypair: Keypair, netuid: int) -> dict[str, Any] | DryRunResult:
+        """Execute the pending per-netuid contract parameter update after timelock."""
+        return self._exec(self.vault, keypair, "execute_contract_params_update", args={"netuid": netuid})
 
-    def cancel_params_update(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
-        """Cancel the pending contract parameter update."""
-        return self._exec(self.vault, keypair, "cancel_contract_params_update")
+    def cancel_contract_params_update(self, keypair: Keypair, netuid: int) -> dict[str, Any] | DryRunResult:
+        """Cancel the pending per-netuid contract parameter update."""
+        return self._exec(self.vault, keypair, "cancel_contract_params_update", args={"netuid": netuid})
+
+    def set_approved_netuid(
+        self, keypair: Keypair, netuid: int, approved: bool
+    ) -> dict[str, Any] | DryRunResult:
+        """Approve or revoke a subnet for vault collateral (governance only)."""
+        return self._exec(
+            self.vault,
+            keypair,
+            "set_approved_netuid",
+            args={"netuid": netuid, "approved": approved},
+        )
+
+    def is_approved_netuid(self, keypair: Keypair, netuid: int) -> bool:
+        """Return whether *netuid* is approved for vault collateral."""
+        result = self._read(self.vault, keypair, "is_approved_netuid", args={"netuid": netuid})
+        return unwrap_plain(result)
+
+    def claim_excess_alpha(self, keypair: Keypair, netuid: int) -> dict[str, Any] | DryRunResult:
+        """Claim excess alpha staking rewards on *netuid* (governance only).
+
+        Excess = actual contract stake minus total collateral.  The excess is
+        unstaked to native TAO and transferred to the treasury.
+        """
+        return self._exec(self.vault, keypair, "claim_excess_alpha", args={"netuid": netuid})
+
+    def set_global_params(self, keypair: Keypair, config: dict[str, Any]) -> dict[str, Any] | DryRunResult:
+        """Schedule a global params update with timelock (governance only)."""
+        return self._exec(self.vault, keypair, "set_global_params", args={"config": config})
+
+    def execute_global_params_update(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
+        """Execute the pending global params update after timelock (permissionless)."""
+        return self._exec(self.vault, keypair, "execute_global_params_update")
+
+    def cancel_global_params_update(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
+        """Cancel the pending global params update (governance only)."""
+        return self._exec(self.vault, keypair, "cancel_global_params_update")
+
+    def get_global_params(self, keypair: Keypair) -> dict:
+        """Return the vault global parameters."""
+        result = self._read(self.vault, keypair, "get_global_params")
+        raw = unwrap_plain(result)
+        return raw if isinstance(raw, dict) else raw
 
     def claim_surplus_tusdt(self, keypair: Keypair, amount: int) -> dict[str, Any] | DryRunResult:
         """Claim surplus TUSDT tokens held by the vault contract."""
@@ -807,22 +879,75 @@ class TUSDTClient:
         """Set the council member list (maintainer only)."""
         return self._exec(self.governance, keypair, "set_council", args={"members": members})
 
-    def gov_vault_set_contract_params(self, keypair: Keypair, params: dict) -> dict[str, Any] | DryRunResult:
-        """Schedule a vault contract parameter update via governance.
+    def gov_vault_set_contract_params(
+        self, keypair: Keypair, netuid: int, params: dict
+    ) -> dict[str, Any] | DryRunResult:
+        """Schedule a per-netuid vault contract parameter update via governance.
 
-        Reads current on-chain params from the vault, merges with user-supplied
-        changes, and sends the complete 11-field struct via governance forwarder.
+        Reads current on-chain params for *netuid* from the vault, merges
+        with user-supplied changes, and sends the complete struct via the
+        governance forwarder.
         """
-        current = unwrap_plain(self._read(self.vault, keypair, "get_contract_params"))
+        current = unwrap_plain(
+            self._read(self.vault, keypair, "get_contract_params", args={"netuid": netuid})
+        )
         if not isinstance(current, dict):
             raise ContractError(f"Expected dict from get_contract_params, got {type(current).__name__}")
         merged = dict(current)
         merged.update(params)
-        return self._exec(self.governance, keypair, "vault_set_contract_params", args={"params": merged})
+        return self._exec(
+            self.governance,
+            keypair,
+            "vault_set_contract_params",
+            args={"netuid": netuid, "params": merged},
+        )
 
-    def gov_vault_cancel_update(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
-        """Cancel a pending vault contract parameter update via governance."""
-        return self._exec(self.governance, keypair, "vault_cancel_contract_params_update")
+    def gov_vault_cancel_update(self, keypair: Keypair, netuid: int) -> dict[str, Any] | DryRunResult:
+        """Cancel a pending per-netuid vault contract parameter update via governance."""
+        return self._exec(
+            self.governance,
+            keypair,
+            "vault_cancel_contract_params_update",
+            args={"netuid": netuid},
+        )
+
+    def gov_vault_claim_excess_alpha(self, keypair: Keypair, netuid: int) -> dict[str, Any] | DryRunResult:
+        """Claim excess alpha staking rewards on *netuid* via governance (maintainer only)."""
+        return self._exec(self.governance, keypair, "vault_claim_excess_alpha", args={"netuid": netuid})
+
+    def gov_vault_set_approved_netuid(
+        self, keypair: Keypair, netuid: int, approved: bool
+    ) -> dict[str, Any] | DryRunResult:
+        """Approve or revoke a subnet for vault collateral via governance (maintainer only)."""
+        return self._exec(
+            self.governance,
+            keypair,
+            "vault_set_approved_netuid",
+            args={"netuid": netuid, "approved": approved},
+        )
+
+    def gov_vault_set_global_params(
+        self, keypair: Keypair, config: dict[str, Any]
+    ) -> dict[str, Any] | DryRunResult:
+        """Schedule a vault global params update via governance (maintainer only)."""
+        return self._exec(self.governance, keypair, "vault_set_global_params", args={"config": config})
+
+    def gov_vault_cancel_global_params_update(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
+        """Cancel the pending vault global params update via governance (maintainer only)."""
+        return self._exec(self.governance, keypair, "vault_cancel_global_params_update")
+
+    def elect_maintainer(self, keypair: Keypair, new_maintainer: str) -> dict[str, Any] | DryRunResult:
+        """Set the maintainer directly on the governance contract (election-only, selector 0xE1EC7000)."""
+        return self._exec(
+            self.governance,
+            keypair,
+            "elect_maintainer",
+            args={"new_maintainer": new_maintainer},
+        )
+
+    def election_set_netuid(self, keypair: Keypair, netuid: int) -> dict[str, Any] | DryRunResult:
+        """Set the election contract netuid via governance (election-only, selector 0xE1EC7001)."""
+        return self._exec(self.governance, keypair, "election_set_netuid", args={"netuid": netuid})
 
     def gov_vault_update_treasury(self, keypair: Keypair, new_treasury: str) -> dict[str, Any] | DryRunResult:
         """Update the vault treasury address via governance."""
@@ -1012,12 +1137,29 @@ class TUSDTClient:
         result = self._read(self.token, keypair, "controller")
         return unwrap_plain(result)
 
+    def set_controller(self, keypair: Keypair, new_controller: str) -> dict[str, Any] | DryRunResult:
+        """Transfer the token controller role to *new_controller* (controller only)."""
+        return self._exec(self.token, keypair, "set_controller", args={"new_controller": new_controller})
+
+    def add_minter(self, keypair: Keypair, minter: str) -> dict[str, Any] | DryRunResult:
+        """Authorize *minter* to mint and burn tokens (controller only)."""
+        return self._exec(self.token, keypair, "add_minter", args={"minter": minter})
+
+    def remove_minter(self, keypair: Keypair, minter: str) -> dict[str, Any] | DryRunResult:
+        """Revoke mint/burn authorization from *minter* (controller only)."""
+        return self._exec(self.token, keypair, "remove_minter", args={"minter": minter})
+
+    def is_minter(self, keypair: Keypair, account: str) -> bool:
+        """Return whether *account* is an authorized minter."""
+        result = self._read(self.token, keypair, "is_minter", args={"account": account})
+        return unwrap_plain(result)
+
     def token_mint(self, keypair: Keypair, to: str, amount: int) -> dict[str, Any] | DryRunResult:
-        """Mint *amount* TUSDT tokens to *to* (controller only)."""
+        """Mint *amount* TUSDT tokens to *to* (minter only)."""
         return self._exec(self.token, keypair, "mint", args={"to": to, "value": amount})
 
     def token_burn(self, keypair: Keypair, from_addr: str, amount: int) -> dict[str, Any] | DryRunResult:
-        """Burn *amount* TUSDT tokens from *from_addr* (controller only)."""
+        """Burn *amount* TUSDT tokens from *from_addr* (minter only)."""
         return self._exec(self.token, keypair, "burn", args={"from": from_addr, "value": amount})
 
     def token_increase_allowance(

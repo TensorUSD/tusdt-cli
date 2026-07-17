@@ -2,7 +2,7 @@
 
 Command-line interface for the **TUSDT** stablecoin system — a set of ink!
 smart contracts deployed on the Bittensor (subtensor) network.  TUSDT lets
-users lock native TAO tokens as collateral in **vaults** to mint a
+users lock subnet alpha tokens as collateral in **vaults** to mint a
 USD-pegged stablecoin.  This CLI gives you full control over:
 
 - **Vaults** — create, deposit collateral, borrow TUSDT, repay, and release collateral
@@ -72,14 +72,17 @@ tusdt vault create --help
 tusdt wallet list
 ```
 
-### 2. Vault operations
+### 2. Vault operations (subnet-alpha collateral)
+
+The vault uses subnet alpha tokens as collateral via atomic pull deposits.
+Your alpha stake must be held under the vault's hotkey before creating a vault.
 
 Anywhere an address is expected you can pass a **wallet name** via `--wallet-name`
-and the CLI resolves the SS58 address from `coldkeypub.txt` automatically or use `--owner` and supply ss58 address
+and the CLI resolves the SS58 address from `coldkeypub.txt` automatically or use `--owner` and supply ss58 address.
 
 ```bash
-# Create a vault with 10 TAO as collateral (prompts for coldkey password)
-tusdt vault create --amount 10 --wallet-name MyWallet
+# Create a vault with 10 alpha on netuid 1 (prompts for coldkey password)
+tusdt vault create --amount 10 --netuid 1 --wallet-name MyWallet
 
 # View vault #0 (no password needed – reads coldkeypub.txt)
 #                ↓vault ID
@@ -90,8 +93,8 @@ tusdt vault info 0 --owner 5GrwvaEF...
 tusdt vault list --wallet-name MyWallet
 tusdt vault list --owner 5GrwvaEF...
 
-# Add 5 TAO collateral to vault #0
-#                          ↓vault ID
+# Add 5 alpha collateral to vault #0 (atomic pull)
+#                            ↓vault ID
 tusdt vault add-collateral 0 --amount 5 --wallet-name MyWallet
 
 # Borrow 100 TUSDT from vault #0
@@ -102,9 +105,15 @@ tusdt vault borrow 0        100 --wallet-name MyWallet
 #                 ↓vault ID ↓TUSDT amount
 tusdt vault repay 0         50 --wallet-name MyWallet
 
-# Release 2 TAO collateral from vault #0
-#                              ↓vaultID ↓TAO amount
-tusdt vault release-collateral 0        2 --wallet-name MyWallet
+# Release 2 alpha collateral from vault #0 to a destination coldkey
+#                                   ↓vaultID ↓amount
+tusdt vault release-collateral 0        2 --dest-coldkey 5GrwvaEF... --wallet-name MyWallet
+
+# View per-netuid contract parameters
+tusdt vault params --netuid 1
+
+# View global parameters (transaction fee, auction duration, max oracle age)
+tusdt vault get-global-params
 
 # Check max borrow capacity for vault #0
 #                      ↓vault ID
@@ -134,6 +143,12 @@ tusdt token approve SpenderWallet                 1000 --wallet-name MyWallet
 #                     ↓spender
 tusdt token allowance SpenderWallet --wallet-name MyWallet
 tusdt token allowance SpenderWallet --owner 5GrwvaEF...
+
+# Manage minters (controller-only dev commands)
+tusdt token add-minter 5GrwvaEF... --wallet-name MyWallet   # authorize a minter
+tusdt token remove-minter 5GrwvaEF... --wallet-name MyWallet  # revoke minter
+tusdt token is-minter 5GrwvaEF...                            # check minter status
+tusdt token set-controller 5GrwvaEF... --wallet-name MyWallet  # transfer controller
 ```
 
 ### 4. Auction operations
@@ -286,6 +301,7 @@ tusdt config set --treasury 5Fcj...
 | `oracle_address`       | Oracle contract SS58 address           | `5Dfz8xgQoCsaWWrDxjeCuKB8R6AtYymWZDDDAe2q7NE8tL8A` |
 | `governance_address`   | Governance contract SS58 address       | `5CEPPTnB2YtEv7Cf8TXrFkdr6BPkDAUhDJbiT38t1A1g83g5` |
 | `treasury_address`     | Treasury contract SS58 address         | `5FcjwHj8NkAMbPzkqzYweeC7KW4LffLW7KEKAR62Dx2cft2f` |
+| `otc_address`          | OTC contract SS58 address              | (not yet deployed)                                     |
 | `vault_metadata`       | Path to vault ABI JSON                 | bundled                                              |
 | `token_metadata`       | Path to token ABI JSON                 | bundled                                              |
 | `auction_metadata`     | Path to auction ABI JSON               | bundled                                              |
@@ -344,10 +360,10 @@ These flags **must** be passed before any subcommand name (Click requires them b
 
 ```bash
 tusdt --json vault info 0 --wallet-name MyWallet    # machine-readable JSON output
-tusdt --quiet vault create --amount 10 --wallet-name MyWallet  # suppress non-essential output
+tusdt --quiet vault create --amount 10 --netuid 1 --wallet-name MyWallet  # suppress non-essential output
 tusdt -v vault info 0 --wallet-name MyWallet         # INFO-level diagnostics
 tusdt -vv vault info 0 --wallet-name MyWallet        # DEBUG-level diagnostics
-tusdt --dry-run vault create --amount 10 --wallet-name MyWallet  # preview without submitting
+tusdt --dry-run vault create --amount 10 --netuid 1 --wallet-name MyWallet  # preview without submitting
 tusdt --ledger token transfer 5GrwvaEF... 10         # sign with hardware wallet
 ```
 

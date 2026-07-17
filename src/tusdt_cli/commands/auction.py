@@ -818,3 +818,21 @@ def transfer_winning_bid_cmd(
     state.output.info(f"Transferring winning bid for auction {auction_id} to {recipient}...")
     state.submit(lambda c, kp: c.auction_transfer_winning_bid(kp, auction_id, recipient))
     state.output.success("Winning bid transferred!")
+
+
+# ------------------------------------------------------------------
+# active-count
+# ------------------------------------------------------------------
+
+
+@auction_group.command("active-count")
+@network_option
+@click.pass_context
+def active_count(ctx: click.Context, network: str | None) -> None:
+    """Show the number of currently active auctions."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    count = state.run_read(lambda c: c.get_active_auctions_count(kp))
+    state.output.detail("Active Auctions", {"Count": count})

@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xd280014072a3cddfd98a7f9bd18d5a7ba21ed1b6941534de6a23b7f337bcc334",
+    "hash": "0xea3da743f0a06d7c818255ec91e14d0f5238e5678a248fd6268035bfab2c6e40",
     "language": "ink! 5.1.1",
     "compiler": "rustc 1.91.1",
     "build_info": {
@@ -14,11 +14,12 @@
     }
   },
   "contract": {
-    "name": "tusdt-vault",
+    "name": "tusdt-vault-alpha",
     "version": "0.1.0",
     "authors": [
       "tensorusd admin@tensorusd.com"
-    ]
+    ],
+    "license": "MIT-0"
   },
   "image": null,
   "spec": {
@@ -40,7 +41,7 @@
               "displayName": [
                 "Hash"
               ],
-              "type": 40
+              "type": 56
             }
           },
           {
@@ -49,7 +50,7 @@
               "displayName": [
                 "Hash"
               ],
-              "type": 40
+              "type": 56
             }
           },
           {
@@ -58,26 +59,34 @@
               "displayName": [
                 "Hash"
               ],
-              "type": 40
+              "type": 56
             }
           },
           {
-            "label": "netuid",
+            "label": "oracle_netuid",
             "type": {
               "displayName": [
                 "u16"
               ],
-              "type": 41
+              "type": 7
+            }
+          },
+          {
+            "label": "hotkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
             }
           }
         ],
         "default": false,
         "docs": [
-          "Initializes the vault by wiring up the treasury fee recipient and instantiating the",
-          "token, auction, and oracle child contracts.",
-          "",
-          "`treasury` must be a deployed treasury contract address; governance can",
-          "later reassign it via `update_treasury`."
+          "Initializes the alpha vault. `hotkey` is the single staking position for this",
+          "vault instance. `oracle_netuid` is the subnet whose registered neurons may",
+          "submit oracle prices. Governance must call `set_approved_netuid` to enable",
+          "vault creation for specific subnets."
         ],
         "label": "new",
         "payable": false,
@@ -86,7 +95,7 @@
             "ink_primitives",
             "ConstructorResult"
           ],
-          "type": 42
+          "type": 57
         },
         "selector": "0x9bae9d5e"
       }
@@ -109,19 +118,19 @@
         "displayName": [
           "BlockNumber"
         ],
-        "type": 6
+        "type": 20
       },
       "chainExtension": {
         "displayName": [
           "ChainExtension"
         ],
-        "type": 72
+        "type": 89
       },
       "hash": {
         "displayName": [
           "Hash"
         ],
-        "type": 40
+        "type": 56
       },
       "maxEventTopics": 4,
       "staticBufferSize": 16384,
@@ -143,7 +152,7 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           },
           {
@@ -218,7 +227,7 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           },
           {
@@ -229,7 +238,7 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           },
           {
@@ -272,7 +281,7 @@
               "displayName": [
                 "Option"
               ],
-              "type": 66
+              "type": 83
             }
           }
         ],
@@ -293,7 +302,7 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           },
           {
@@ -315,7 +324,7 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           },
           {
@@ -390,7 +399,7 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           },
           {
@@ -434,7 +443,7 @@
               "displayName": [
                 "Option"
               ],
-              "type": 67
+              "type": 84
             }
           }
         ],
@@ -498,7 +507,7 @@
               "displayName": [
                 "Option"
               ],
-              "type": 66
+              "type": 83
             }
           },
           {
@@ -509,7 +518,7 @@
               "displayName": [
                 "Option"
               ],
-              "type": 66
+              "type": 83
             }
           },
           {
@@ -573,7 +582,7 @@
               "displayName": [
                 "Ratio"
               ],
-              "type": 36
+              "type": 17
             }
           }
         ],
@@ -594,7 +603,7 @@
               "displayName": [
                 "u128"
               ],
-              "type": 5
+              "type": 14
             }
           }
         ],
@@ -615,7 +624,7 @@
               "displayName": [
                 "u16"
               ],
-              "type": 41
+              "type": 7
             }
           }
         ],
@@ -636,7 +645,7 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           },
           {
@@ -658,7 +667,7 @@
               "displayName": [
                 "Ratio"
               ],
-              "type": 36
+              "type": 17
             }
           },
           {
@@ -669,7 +678,7 @@
               "displayName": [
                 "PriceSubmissionMetadata"
               ],
-              "type": 69
+              "type": 86
             }
           },
           {
@@ -701,7 +710,7 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           },
           {
@@ -712,7 +721,7 @@
               "displayName": [
                 "Ratio"
               ],
-              "type": 36
+              "type": 17
             }
           },
           {
@@ -723,7 +732,7 @@
               "displayName": [
                 "Ratio"
               ],
-              "type": 36
+              "type": 17
             }
           },
           {
@@ -734,7 +743,7 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           },
           {
@@ -766,7 +775,7 @@
               "displayName": [
                 "Option"
               ],
-              "type": 66
+              "type": 83
             }
           }
         ],
@@ -776,6 +785,229 @@
         "label": "ValidatorUpdated",
         "module_path": "tusdt_oracle::oracle",
         "signature_topic": "0x9b9e984a30cbf16f16b8bb47b35802825876301f2562ae285a379d3e2b0cef05"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "owner",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "vault_id",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 20
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "dest_coldkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when alpha collateral is returned to the user."
+        ],
+        "label": "CollateralReleased",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0x97aae417a461c2f933f4b53f50f04a8a3f041cdc029be695a2ac89d631e621c6"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 7
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "excess_alpha",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "tao_received",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [],
+        "label": "ExcessAlphaClaimed",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0xd8a49cb55750b75deb891c9b9bcd46f829684f2bf3f9321e97a0ad475ceb2b8d"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "params",
+            "type": {
+              "displayName": [
+                "VaultGlobalParamsConfig"
+              ],
+              "type": 55
+            }
+          }
+        ],
+        "docs": [],
+        "label": "GlobalParamsUpdated",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0xed4774ab89725b90776582f9ccc18649c7eb8f33d62eeae08b24bbf2c614b348"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "recipient",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [],
+        "label": "SurplusTusdtClaimed",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0xd968cc90a991bfdee52bb15a281eca58a07b94210cdc1679eb32dd6e2cae9f05"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "previous_platform",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_platform",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [],
+        "label": "VaultPlatformUpdated",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0x968c8e8d6f99c403be206758aadc258fd0abf2dc43f439545cb6ab8508461735"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "previous_treasury",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_treasury",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [],
+        "label": "VaultTreasuryUpdated",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0xd34584c457f532628ef734e5b447fbc50c4136ba85427857901443728394600f"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "params",
+            "type": {
+              "displayName": [
+                "VaultContractParamsConfig"
+              ],
+              "type": 23
+            }
+          }
+        ],
+        "docs": [],
+        "label": "ContractParamsUpdated",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0xa79b5918fe7b0b92aec902b9fad42e88974ba00b3bf2b0f09f9282d68e3e2aab"
       },
       {
         "args": [
@@ -802,11 +1034,9 @@
             }
           }
         ],
-        "docs": [
-          "Emitted when governance control is transferred (and propagated to child contracts)."
-        ],
+        "docs": [],
         "label": "VaultGovernanceUpdated",
-        "module_path": "tusdt_vault::vault",
+        "module_path": "tusdt_vault_alpha::vault",
         "signature_topic": "0xc2d11add2377baa743dfed4bf31f9ae30757d7ff99e10ac37f07e8c6b0d63c22"
       },
       {
@@ -830,7 +1060,7 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           },
           {
@@ -841,15 +1071,13 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           }
         ],
-        "docs": [
-          "Emitted when a liquidation auction is created for an unsafe vault."
-        ],
+        "docs": [],
         "label": "LiquidationAuctionCreated",
-        "module_path": "tusdt_vault::vault",
+        "module_path": "tusdt_vault_alpha::vault",
         "signature_topic": "0xd53246a10f6e9922a439d9e370fa637a14f48553f3c65c5e4fdb5f821511aeb3"
       },
       {
@@ -860,18 +1088,16 @@
             "label": "params",
             "type": {
               "displayName": [
-                "VaultContractParamsConfig"
+                "VaultGlobalParamsConfig"
               ],
-              "type": 39
+              "type": 55
             }
           }
         ],
-        "docs": [
-          "Emitted when a pending parameter update is cancelled by governance."
-        ],
-        "label": "ContractParamsUpdateCancelled",
-        "module_path": "tusdt_vault::vault",
-        "signature_topic": "0xff81451134857c985287b517981bcb3a24bcc4a522c3477732ed64e0824087b2"
+        "docs": [],
+        "label": "GlobalParamsUpdateCancelled",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0x08d18123a90778a36609c3d42df6d090319ddf81ef88219c6d43c988929a6909"
       },
       {
         "args": [
@@ -881,9 +1107,9 @@
             "label": "params",
             "type": {
               "displayName": [
-                "VaultContractParamsConfig"
+                "VaultGlobalParamsConfig"
               ],
-              "type": 39
+              "type": 55
             }
           },
           {
@@ -898,29 +1124,72 @@
             }
           }
         ],
-        "docs": [
-          "Emitted when a parameter update is queued behind the timelock."
+        "docs": [],
+        "label": "GlobalParamsUpdateScheduled",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0x1287dd7d488a0cb7dce123b567a7bf4460a4391dd99f2c58029e7097d3f5061c"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "params",
+            "type": {
+              "displayName": [
+                "VaultContractParamsConfig"
+              ],
+              "type": 23
+            }
+          }
         ],
+        "docs": [],
+        "label": "ContractParamsUpdateCancelled",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0xff81451134857c985287b517981bcb3a24bcc4a522c3477732ed64e0824087b2"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "params",
+            "type": {
+              "displayName": [
+                "VaultContractParamsConfig"
+              ],
+              "type": 23
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "execute_after",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [],
         "label": "ContractParamsUpdateScheduled",
-        "module_path": "tusdt_vault::vault",
+        "module_path": "tusdt_vault_alpha::vault",
         "signature_topic": "0x1ca0bcc027e10356f024ee99a38703be52b339d03b38a2597a93665992cc7507"
       },
       {
         "args": [],
-        "docs": [
-          "Emitted when the contract is paused."
-        ],
+        "docs": [],
         "label": "Paused",
-        "module_path": "tusdt_vault::vault",
+        "module_path": "tusdt_vault_alpha::vault",
         "signature_topic": "0x0bc7e2d93f816c37cebc39f8cd9f6461f8bd945f23b847e07a39e77b4b0c8820"
       },
       {
         "args": [],
-        "docs": [
-          "Emitted when the contract is unpaused."
-        ],
+        "docs": [],
         "label": "Unpaused",
-        "module_path": "tusdt_vault::vault",
+        "module_path": "tusdt_vault_alpha::vault",
         "signature_topic": "0x653e02ba17d9461415af0142fe0b7aafa9aac6f207b5f1479c13eb1883fc92b0"
       },
       {
@@ -944,7 +1213,7 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           },
           {
@@ -971,10 +1240,10 @@
           }
         ],
         "docs": [
-          "Emitted when borrowed tUSDT is repaid; fee is paid in addition to the principal repayment."
+          "Emitted when borrowed tUSDT is repaid."
         ],
         "label": "TokensRepaid",
-        "module_path": "tusdt_vault::vault",
+        "module_path": "tusdt_vault_alpha::vault",
         "signature_topic": "0xe11c88de1af2c4787d5ce47b80816c6ec7b7780637ea93c5d178e116d4a8192f"
       },
       {
@@ -998,7 +1267,7 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           },
           {
@@ -1014,10 +1283,10 @@
           }
         ],
         "docs": [
-          "Emitted when a new vault is opened with initial collateral."
+          "Emitted when a new alpha-backed vault is opened."
         ],
         "label": "VaultCreated",
-        "module_path": "tusdt_vault::vault",
+        "module_path": "tusdt_vault_alpha::vault",
         "signature_topic": "0x13794296202f378ae6aa03f74fb62ebc0d311a18024138e7803c2454c874e0b5"
       },
       {
@@ -1041,7 +1310,7 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           },
           {
@@ -1068,10 +1337,10 @@
           }
         ],
         "docs": [
-          "Emitted when tUSDT is borrowed against a vault; `amount` is gross, fee is the treasury cut."
+          "Emitted when tUSDT is borrowed against a vault."
         ],
         "label": "TokensBorrowed",
-        "module_path": "tusdt_vault::vault",
+        "module_path": "tusdt_vault_alpha::vault",
         "signature_topic": "0xd775a1237b32075dc9df9854ae98ebab6cdcd965c2f0ce6ec26b0050345c2956"
       },
       {
@@ -1095,7 +1364,7 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           },
           {
@@ -1111,10 +1380,10 @@
           }
         ],
         "docs": [
-          "Emitted when collateral is added to an existing vault."
+          "Emitted when alpha collateral is topped up on an existing vault."
         ],
         "label": "CollateralAdded",
-        "module_path": "tusdt_vault::vault",
+        "module_path": "tusdt_vault_alpha::vault",
         "signature_topic": "0xd2baf654d21478b4b14e965ed7450712fe5e68eca1c409f7d3e5855720c235aa"
       },
       {
@@ -1138,7 +1407,7 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           },
           {
@@ -1179,7 +1448,7 @@
           "Emitted when interest is accrued onto a vault's debt balance."
         ],
         "label": "InterestAccrued",
-        "module_path": "tusdt_vault::vault",
+        "module_path": "tusdt_vault_alpha::vault",
         "signature_topic": "0x9817c420516028890e5664c711e23e8ffd15d13460b1ba1e7b93512b6684dbb1"
       },
       {
@@ -1203,7 +1472,7 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           },
           {
@@ -1214,7 +1483,7 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           },
           {
@@ -1225,7 +1494,7 @@
               "displayName": [
                 "Option"
               ],
-              "type": 66
+              "type": 83
             }
           },
           {
@@ -1273,204 +1542,10 @@
             }
           }
         ],
-        "docs": [
-          "Emitted when a liquidation auction is settled: collateral leaves the vault and debt is cleared."
-        ],
+        "docs": [],
         "label": "VaultLiquidated",
-        "module_path": "tusdt_vault::vault",
+        "module_path": "tusdt_vault_alpha::vault",
         "signature_topic": "0x0f04fc35605f02b23135e50b8a19aa13f9ce70003ec278b3986a4972bdc4b37e"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "recipient",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "amount",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the entire native balance of the contract is drained to abandon the vault, for emergency migration to a new deployment; **TESTNET ONLY**."
-        ],
-        "label": "EmergencyDrained",
-        "module_path": "tusdt_vault::vault",
-        "signature_topic": "0xb63738f4f1451acb16c1d42dec153e32c710e41096abb81dba611434ec9532cb"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "owner",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "vault_id",
-            "type": {
-              "displayName": [
-                "u32"
-              ],
-              "type": 6
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "amount",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when collateral is withdrawn from a vault."
-        ],
-        "label": "CollateralReleased",
-        "module_path": "tusdt_vault::vault",
-        "signature_topic": "0x124f623214cb876f7536a45c6f5558a4b3d8dbf610014d1b6b1204f5ccbf4d13"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "recipient",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "amount",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when surplus tUSDT held by the vault is claimed to governance."
-        ],
-        "label": "SurplusTusdtClaimed",
-        "module_path": "tusdt_vault::vault",
-        "signature_topic": "0xd968cc90a991bfdee52bb15a281eca58a07b94210cdc1679eb32dd6e2cae9f05"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "previous_platform",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "new_platform",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the platform account is updated."
-        ],
-        "label": "VaultPlatformUpdated",
-        "module_path": "tusdt_vault::vault",
-        "signature_topic": "0x968c8e8d6f99c403be206758aadc258fd0abf2dc43f439545cb6ab8508461735"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "previous_treasury",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "new_treasury",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the treasury (fee recipient) account is updated."
-        ],
-        "label": "VaultTreasuryUpdated",
-        "module_path": "tusdt_vault::vault",
-        "signature_topic": "0xd34584c457f532628ef734e5b447fbc50c4136ba85427857901443728394600f"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "params",
-            "type": {
-              "displayName": [
-                "VaultContractParamsConfig"
-              ],
-              "type": 39
-            }
-          }
-        ],
-        "docs": [
-          "Emitted after a scheduled parameter update is executed and becomes active."
-        ],
-        "label": "ContractParamsUpdated",
-        "module_path": "tusdt_vault::vault",
-        "signature_topic": "0xa79b5918fe7b0b92aec902b9fad42e88974ba00b3bf2b0f09f9282d68e3e2aab"
       }
     ],
     "lang_error": {
@@ -1478,24 +1553,34 @@
         "ink",
         "LangError"
       ],
-      "type": 43
+      "type": 58
     },
     "messages": [
       {
         "args": [
+          {
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 7
+            }
+          },
           {
             "label": "params",
             "type": {
               "displayName": [
                 "VaultContractParamsConfig"
               ],
-              "type": 39
+              "type": 23
             }
           }
         ],
         "default": false,
         "docs": [
-          " Schedules a contract parameter update with a fixed timelock; only callable by governance."
+          " Schedules a per-netuid parameter update with the standard timelock.",
+          " Only governance may call."
         ],
         "label": "set_contract_params",
         "mutates": true,
@@ -1505,15 +1590,25 @@
             "ink",
             "MessageResult"
           ],
-          "type": 44
+          "type": 59
         },
         "selector": "0x283617a8"
       },
       {
-        "args": [],
+        "args": [
+          {
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 7
+            }
+          }
+        ],
         "default": false,
         "docs": [
-          " Executes the currently scheduled contract parameter update once its timelock has elapsed."
+          " Executes the currently scheduled parameter update for a netuid once its timelock has elapsed."
         ],
         "label": "execute_contract_params_update",
         "mutates": true,
@@ -1523,15 +1618,25 @@
             "ink",
             "MessageResult"
           ],
-          "type": 44
+          "type": 59
         },
         "selector": "0xec8897e2"
       },
       {
-        "args": [],
+        "args": [
+          {
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 7
+            }
+          }
+        ],
         "default": false,
         "docs": [
-          " Cancels the currently scheduled contract parameter update; only callable by governance."
+          " Cancels the currently scheduled parameter update for a netuid. Governance only."
         ],
         "label": "cancel_contract_params_update",
         "mutates": true,
@@ -1541,9 +1646,74 @@
             "ink",
             "MessageResult"
           ],
-          "type": 44
+          "type": 59
         },
         "selector": "0xcb1c0e93"
+      },
+      {
+        "args": [
+          {
+            "label": "config",
+            "type": {
+              "displayName": [
+                "VaultGlobalParamsConfig"
+              ],
+              "type": 55
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Schedules a global (contract-wide) parameter update with the standard timelock.",
+          " Only governance may call."
+        ],
+        "label": "set_global_params",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 59
+        },
+        "selector": "0x0f0976e0"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [
+          " Executes the currently scheduled global-parameter update once its timelock has elapsed."
+        ],
+        "label": "execute_global_params_update",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 59
+        },
+        "selector": "0x5c7c2987"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [
+          " Cancels the currently scheduled global-parameter update. Governance only."
+        ],
+        "label": "cancel_global_params_update",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 59
+        },
+        "selector": "0x238a6656"
       },
       {
         "args": [
@@ -1558,9 +1728,7 @@
           }
         ],
         "default": false,
-        "docs": [
-          " Transfers vault governance to a new account, propagating the change to the child auction and oracle contracts."
-        ],
+        "docs": [],
         "label": "update_governance",
         "mutates": true,
         "payable": false,
@@ -1569,7 +1737,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 44
+          "type": 59
         },
         "selector": "0xc33c8b6a"
       },
@@ -1586,9 +1754,7 @@
           }
         ],
         "default": false,
-        "docs": [
-          " Updates the treasury (fee recipient) account; governance-only."
-        ],
+        "docs": [],
         "label": "update_treasury",
         "mutates": true,
         "payable": false,
@@ -1597,7 +1763,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 44
+          "type": 59
         },
         "selector": "0xef6ee141"
       },
@@ -1614,9 +1780,7 @@
           }
         ],
         "default": false,
-        "docs": [
-          " Updates the platform (pause-capable operator) account; callable by governance account"
-        ],
+        "docs": [],
         "label": "update_platform",
         "mutates": true,
         "payable": false,
@@ -1625,16 +1789,14 @@
             "ink",
             "MessageResult"
           ],
-          "type": 44
+          "type": 59
         },
         "selector": "0xa59697ab"
       },
       {
         "args": [],
         "default": false,
-        "docs": [
-          " Pauses the contract, blocking user-facing mutations; callable by governance or platform."
-        ],
+        "docs": [],
         "label": "pause",
         "mutates": true,
         "payable": false,
@@ -1643,16 +1805,14 @@
             "ink",
             "MessageResult"
           ],
-          "type": 44
+          "type": 59
         },
         "selector": "0x81e0c604"
       },
       {
         "args": [],
         "default": false,
-        "docs": [
-          " Unpauses the contract; governance-only (platform cannot unpause)."
-        ],
+        "docs": [],
         "label": "unpause",
         "mutates": true,
         "payable": false,
@@ -1661,9 +1821,74 @@
             "ink",
             "MessageResult"
           ],
-          "type": 44
+          "type": 59
         },
         "selector": "0x67616649"
+      },
+      {
+        "args": [
+          {
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 7
+            }
+          },
+          {
+            "label": "approved",
+            "type": {
+              "displayName": [
+                "bool"
+              ],
+              "type": 3
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Adds or removes a netuid from the approved set. Only governance may call."
+        ],
+        "label": "set_approved_netuid",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 59
+        },
+        "selector": "0x16af1e00"
+      },
+      {
+        "args": [
+          {
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 7
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Returns `true` if the given netuid is approved for collateral."
+        ],
+        "label": "is_approved_netuid",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 62
+        },
+        "selector": "0x43efc996"
       },
       {
         "args": [
@@ -1680,9 +1905,7 @@
         "default": false,
         "docs": [
           " Transfers surplus TUSDT held by the vault contract to the treasury.",
-          "",
-          " Permissionless — anyone may sweep accumulated surplus into the treasury, where it will",
-          " be booked across the funds on the next `distribute()` call."
+          " Callable by governance or platform."
         ],
         "label": "claim_surplus_tusdt",
         "mutates": true,
@@ -1692,32 +1915,32 @@
             "ink",
             "MessageResult"
           ],
-          "type": 44
+          "type": 59
         },
         "selector": "0x3b645db8"
       },
       {
         "args": [
           {
-            "label": "recipient",
+            "label": "netuid",
             "type": {
               "displayName": [
-                "AccountId"
+                "u16"
               ],
-              "type": 0
+              "type": 7
             }
           }
         ],
         "default": false,
         "docs": [
-          " **TESTNET ONLY** — Drains the entire native balance of the contract to `recipient`.",
+          " Claims excess alpha staking rewards on a subnet by unstaking them to native",
+          " TAO and transferring the TAO to the treasury. Governance only.",
           "",
-          " Use this before migrating to a new contract deployment when storage layout has",
-          " changed and you need to recover all collateral funds locked in this instance.",
-          " `total_collateral_balance` is zeroed so internal accounting stays consistent.",
-          " Only callable by governance."
+          " Excess = actual contract stake on the netuid minus total vault collateral on",
+          " that netuid (`netuid_total_collateral`).  If there is no excess, this is a",
+          " no-op (returns Ok)."
         ],
-        "label": "emergency_drain",
+        "label": "claim_excess_alpha",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -1725,55 +1948,51 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 59
         },
-        "selector": "0x78a5f8d5"
-      },
-      {
-        "args": [],
-        "default": false,
-        "docs": [
-          " Creates a new vault for the caller with the transferred collateral and returns the vault ID."
-        ],
-        "label": "create_vault",
-        "mutates": true,
-        "payable": true,
-        "returnType": {
-          "displayName": [
-            "ink",
-            "MessageResult"
-          ],
-          "type": 49
-        },
-        "selector": "0x17ff6720"
+        "selector": "0xf0fed99f"
       },
       {
         "args": [
           {
-            "label": "vault_id",
+            "label": "amount",
             "type": {
               "displayName": [
-                "u32"
+                "Balance"
               ],
-              "type": 6
+              "type": 4
+            }
+          },
+          {
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 7
             }
           }
         ],
         "default": false,
         "docs": [
-          " Adds the transferred collateral amount to an existing vault."
+          " Creates a new alpha-backed vault for the caller on the specified subnet by",
+          " atomically pulling `amount` of the CALLER's alpha stake (held under this",
+          " vault's hotkey) into the contract's custody via the caller-forwarded",
+          " `caller_transfer_stake` chain extension. No prior deposit intent or external",
+          " `transfer_stake` extrinsic is needed — the pull and the vault creation happen",
+          " in one message, so deposits are always attributed to the caller."
         ],
-        "label": "add_collateral",
+        "label": "create_alpha_vault",
         "mutates": true,
-        "payable": true,
+        "payable": false,
         "returnType": {
           "displayName": [
             "ink",
             "MessageResult"
           ],
-          "type": 44
+          "type": 63
         },
-        "selector": "0xe3d1fc1b"
+        "selector": "0xf77dffd4"
       },
       {
         "args": [
@@ -1783,7 +2002,7 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           },
           {
@@ -1798,9 +2017,48 @@
         ],
         "default": false,
         "docs": [
-          " Borrows tokens against the vault's collateral, validating collateral ratio,",
-          " accruing interest, minting the fee portion to the treasury, and sending",
-          " the net borrowed tokens to the caller."
+          " Tops up an alpha vault's collateral by atomically pulling `amount` of the",
+          " CALLER's alpha stake (held under this vault's hotkey) into the contract's",
+          " custody. Exactly `amount` is credited to the caller's vault — unattributed",
+          " stake growth (emissions) remains claimable only by governance via",
+          " `claim_excess_alpha`."
+        ],
+        "label": "add_alpha_collateral",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 59
+        },
+        "selector": "0x2b657537"
+      },
+      {
+        "args": [
+          {
+            "label": "vault_id",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 20
+            }
+          },
+          {
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Borrows tokens against the vault's alpha collateral."
         ],
         "label": "borrow_token",
         "mutates": true,
@@ -1810,7 +2068,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 44
+          "type": 59
         },
         "selector": "0x0976540b"
       },
@@ -1822,7 +2080,7 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           },
           {
@@ -1837,8 +2095,7 @@
         ],
         "default": false,
         "docs": [
-          " Repays borrowed tokens from a vault, charging the transaction fee in TUSDT,",
-          " routing accrued interest and the fee to the treasury, and burning only principal net supply."
+          " Repays borrowed tokens from an alpha vault."
         ],
         "label": "repay_token",
         "mutates": true,
@@ -1848,7 +2105,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 44
+          "type": 59
         },
         "selector": "0xddbf65cb"
       },
@@ -1869,13 +2126,13 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           }
         ],
         "default": false,
         "docs": [
-          " Accrues any elapsed interest for a vault and returns the updated debt balance."
+          " Accrues any elapsed interest for a vault."
         ],
         "label": "accrue_interest",
         "mutates": true,
@@ -1885,7 +2142,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 65
         },
         "selector": "0xde62814a"
       },
@@ -1897,7 +2154,7 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           },
           {
@@ -1908,13 +2165,24 @@
               ],
               "type": 4
             }
+          },
+          {
+            "label": "dest_coldkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
           }
         ],
         "default": false,
         "docs": [
-          " Releases collateral from a vault while ensuring the remaining collateral maintains the minimum collateral ratio."
+          " Releases alpha collateral from a vault, returning the stake to a destination",
+          " coldkey via the chain extension. Validates that the remaining collateral still",
+          " satisfies ratio requirements."
         ],
-        "label": "release_collateral",
+        "label": "release_alpha_collateral",
         "mutates": true,
         "payable": false,
         "returnType": {
@@ -1922,9 +2190,9 @@
             "ink",
             "MessageResult"
           ],
-          "type": 44
+          "type": 59
         },
-        "selector": "0x9ca723e0"
+        "selector": "0x6d579080"
       },
       {
         "args": [
@@ -1943,13 +2211,15 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           }
         ],
         "default": false,
         "docs": [
-          " Initiates a liquidation auction for an unsafe vault, returning the auction ID if successful."
+          " Initiates a liquidation auction for an unsafe alpha vault. This first unstakes",
+          " the alpha collateral to native TAO via the chain extension, then creates a",
+          " standard Dutch auction with the recovered TAO."
         ],
         "label": "trigger_liquidation_auction",
         "mutates": true,
@@ -1959,7 +2229,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 49
+          "type": 63
         },
         "selector": "0xec6bd9f2"
       },
@@ -1980,17 +2250,14 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           }
         ],
         "default": false,
         "docs": [
           " Settles a finalized liquidation auction, transferring collateral to the winner,",
-          " routing accrued interest to the treasury, and burning only principal.",
-          "",
-          " This remains callable while paused so governance can freeze new mutations without",
-          " trapping already-finalized auction proceeds in the auction contract."
+          " routing accrued interest to the treasury, and burning only principal."
         ],
         "label": "settle_liquidation_auction",
         "mutates": true,
@@ -2000,7 +2267,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 44
+          "type": 59
         },
         "selector": "0x18f62fe6"
       },
@@ -2021,14 +2288,12 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           }
         ],
         "default": false,
-        "docs": [
-          " Retrieves the vault details for a given owner and vault ID."
-        ],
+        "docs": [],
         "label": "get_vault",
         "mutates": false,
         "payable": false,
@@ -2037,16 +2302,14 @@
             "ink",
             "MessageResult"
           ],
-          "type": 51
+          "type": 67
         },
         "selector": "0x4f96cf6c"
       },
       {
         "args": [],
         "default": false,
-        "docs": [
-          " Returns the account ID of the deployed ERC-20 token contract."
-        ],
+        "docs": [],
         "label": "get_token_address",
         "mutates": false,
         "payable": false,
@@ -2055,16 +2318,14 @@
             "ink",
             "MessageResult"
           ],
-          "type": 53
+          "type": 69
         },
         "selector": "0xc004fc23"
       },
       {
         "args": [],
         "default": false,
-        "docs": [
-          " Returns the account ID of the deployed auction contract."
-        ],
+        "docs": [],
         "label": "get_auction_address",
         "mutates": false,
         "payable": false,
@@ -2073,16 +2334,14 @@
             "ink",
             "MessageResult"
           ],
-          "type": 53
+          "type": 69
         },
         "selector": "0x3518b48d"
       },
       {
         "args": [],
         "default": false,
-        "docs": [
-          " Returns the account ID of the oracle contract."
-        ],
+        "docs": [],
         "label": "get_oracle_address",
         "mutates": false,
         "payable": false,
@@ -2091,16 +2350,14 @@
             "ink",
             "MessageResult"
           ],
-          "type": 53
+          "type": 69
         },
         "selector": "0xdc4c0ffe"
       },
       {
         "args": [],
         "default": false,
-        "docs": [
-          " Returns the current governance account."
-        ],
+        "docs": [],
         "label": "governance",
         "mutates": false,
         "payable": false,
@@ -2109,16 +2366,14 @@
             "ink",
             "MessageResult"
           ],
-          "type": 53
+          "type": 69
         },
         "selector": "0x9f90cf17"
       },
       {
         "args": [],
         "default": false,
-        "docs": [
-          " Returns the current treasury (fee recipient) account."
-        ],
+        "docs": [],
         "label": "treasury",
         "mutates": false,
         "payable": false,
@@ -2127,16 +2382,14 @@
             "ink",
             "MessageResult"
           ],
-          "type": 53
+          "type": 69
         },
         "selector": "0xa9b78461"
       },
       {
         "args": [],
         "default": false,
-        "docs": [
-          " Returns the current platform (pause-capable operator) account."
-        ],
+        "docs": [],
         "label": "platform",
         "mutates": false,
         "payable": false,
@@ -2145,16 +2398,14 @@
             "ink",
             "MessageResult"
           ],
-          "type": 53
+          "type": 69
         },
         "selector": "0x2b86e96a"
       },
       {
         "args": [],
         "default": false,
-        "docs": [
-          " Returns whether the contract is paused by governance."
-        ],
+        "docs": [],
         "label": "paused",
         "mutates": false,
         "payable": false,
@@ -2163,16 +2414,24 @@
             "ink",
             "MessageResult"
           ],
-          "type": 54
+          "type": 62
         },
         "selector": "0xd8fea916"
       },
       {
-        "args": [],
-        "default": false,
-        "docs": [
-          " Returns the current contract parameters (collateral ratio, liquidation ratio, interest rate, etc.) in the external config format."
+        "args": [
+          {
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 7
+            }
+          }
         ],
+        "default": false,
+        "docs": [],
         "label": "get_contract_params",
         "mutates": false,
         "payable": false,
@@ -2181,16 +2440,40 @@
             "ink",
             "MessageResult"
           ],
-          "type": 55
+          "type": 70
         },
         "selector": "0xb89cc086"
       },
       {
         "args": [],
         "default": false,
-        "docs": [
-          " Returns the currently scheduled parameter update, if any."
+        "docs": [],
+        "label": "get_global_params",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 71
+        },
+        "selector": "0xc65d30fc"
+      },
+      {
+        "args": [
+          {
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 7
+            }
+          }
         ],
+        "default": false,
+        "docs": [],
         "label": "get_pending_contract_params_update",
         "mutates": false,
         "payable": false,
@@ -2199,7 +2482,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 56
+          "type": 72
         },
         "selector": "0xacf1f313"
       },
@@ -2220,14 +2503,12 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           }
         ],
         "default": false,
-        "docs": [
-          " Returns the collateral balance for a vault, or None if the vault does not exist."
-        ],
+        "docs": [],
         "label": "get_vault_collateral_balance",
         "mutates": false,
         "payable": false,
@@ -2236,16 +2517,14 @@
             "ink",
             "MessageResult"
           ],
-          "type": 57
+          "type": 74
         },
         "selector": "0x69aef621"
       },
       {
         "args": [],
         "default": false,
-        "docs": [
-          " Returns the total collateral balance across all vaults."
-        ],
+        "docs": [],
         "label": "get_total_collateral_balance",
         "mutates": false,
         "payable": false,
@@ -2254,7 +2533,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 59
+          "type": 76
         },
         "selector": "0x3452f0c5"
       },
@@ -2271,9 +2550,7 @@
           }
         ],
         "default": false,
-        "docs": [
-          " Returns the total borrowed debt across all vaults owned by an account."
-        ],
+        "docs": [],
         "label": "get_total_debt",
         "mutates": false,
         "payable": false,
@@ -2282,7 +2559,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 59
+          "type": 76
         },
         "selector": "0x5a81c550"
       },
@@ -2303,14 +2580,12 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           }
         ],
         "default": false,
-        "docs": [
-          " Calculates the token value of a vault's collateral based on the current price ratio."
-        ],
+        "docs": [],
         "label": "get_vault_collateral_value",
         "mutates": false,
         "payable": false,
@@ -2319,7 +2594,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 65
         },
         "selector": "0x26fc3175"
       },
@@ -2340,14 +2615,12 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           }
         ],
         "default": false,
-        "docs": [
-          " Returns the maximum token amount that can be borrowed against a vault's collateral."
-        ],
+        "docs": [],
         "label": "get_max_borrow",
         "mutates": false,
         "payable": false,
@@ -2356,7 +2629,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 65
         },
         "selector": "0x378eeec9"
       },
@@ -2377,14 +2650,12 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           }
         ],
         "default": false,
-        "docs": [
-          " Returns the auction ID for an active liquidation of a vault, or None if there is no active liquidation."
-        ],
+        "docs": [],
         "label": "get_liquidation_auction_id",
         "mutates": false,
         "payable": false,
@@ -2393,16 +2664,14 @@
             "ink",
             "MessageResult"
           ],
-          "type": 60
+          "type": 77
         },
         "selector": "0x6109b5e5"
       },
       {
         "args": [],
         "default": false,
-        "docs": [
-          " Returns the total number of vaults created across all owners."
-        ],
+        "docs": [],
         "label": "get_total_vaults_count",
         "mutates": false,
         "payable": false,
@@ -2411,7 +2680,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 62
+          "type": 79
         },
         "selector": "0xf5da31f6"
       },
@@ -2428,9 +2697,7 @@
           }
         ],
         "default": false,
-        "docs": [
-          " Returns the number of vaults owned by a specific account."
-        ],
+        "docs": [],
         "label": "get_vaults_count",
         "mutates": false,
         "payable": false,
@@ -2439,7 +2706,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 62
+          "type": 79
         },
         "selector": "0x825fc5ea"
       },
@@ -2460,14 +2727,12 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           }
         ],
         "default": false,
-        "docs": [
-          " Returns a paginated list of vaults owned by a specific account."
-        ],
+        "docs": [],
         "label": "get_vaults",
         "mutates": false,
         "payable": false,
@@ -2476,7 +2741,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 63
+          "type": 80
         },
         "selector": "0xfe77349c"
       },
@@ -2488,14 +2753,12 @@
               "displayName": [
                 "u32"
               ],
-              "type": 6
+              "type": 20
             }
           }
         ],
         "default": false,
-        "docs": [
-          " Returns a paginated list of all vaults across all owners."
-        ],
+        "docs": [],
         "label": "get_all_vaults",
         "mutates": false,
         "payable": false,
@@ -2504,7 +2767,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 63
+          "type": 80
         },
         "selector": "0x64ed974f"
       }
@@ -2649,6 +2912,208 @@
             },
             {
               "layout": {
+                "leaf": {
+                  "key": "0x00000000",
+                  "ty": 0
+                }
+              },
+              "name": "vault_hotkey"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "leaf": {
+                      "key": "0x8595438c",
+                      "ty": 5
+                    }
+                  },
+                  "root_key": "0x8595438c",
+                  "ty": 6
+                }
+              },
+              "name": "approved_netuids"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "leaf": {
+                      "key": "0x366ef829",
+                      "ty": 4
+                    }
+                  },
+                  "root_key": "0x366ef829",
+                  "ty": 11
+                }
+              },
+              "name": "netuid_total_collateral"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "struct": {
+                      "fields": [
+                        {
+                          "layout": {
+                            "struct": {
+                              "fields": [
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0x4092da42",
+                                      "ty": 14
+                                    }
+                                  },
+                                  "name": "0"
+                                }
+                              ],
+                              "name": "Ratio"
+                            }
+                          },
+                          "name": "collateral_ratio"
+                        },
+                        {
+                          "layout": {
+                            "struct": {
+                              "fields": [
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0x4092da42",
+                                      "ty": 14
+                                    }
+                                  },
+                                  "name": "0"
+                                }
+                              ],
+                              "name": "Ratio"
+                            }
+                          },
+                          "name": "liquidation_ratio"
+                        },
+                        {
+                          "layout": {
+                            "struct": {
+                              "fields": [
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0x4092da42",
+                                      "ty": 14
+                                    }
+                                  },
+                                  "name": "0"
+                                }
+                              ],
+                              "name": "Ratio"
+                            }
+                          },
+                          "name": "interest_rate"
+                        },
+                        {
+                          "layout": {
+                            "struct": {
+                              "fields": [
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0x4092da42",
+                                      "ty": 14
+                                    }
+                                  },
+                                  "name": "0"
+                                }
+                              ],
+                              "name": "Ratio"
+                            }
+                          },
+                          "name": "liquidation_fee"
+                        }
+                      ],
+                      "name": "VaultContractParams"
+                    }
+                  },
+                  "root_key": "0x4092da42",
+                  "ty": 15
+                }
+              },
+              "name": "netuid_params"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "struct": {
+                      "fields": [
+                        {
+                          "layout": {
+                            "struct": {
+                              "fields": [
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0x095043d0",
+                                      "ty": 20
+                                    }
+                                  },
+                                  "name": "collateral_ratio"
+                                },
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0x095043d0",
+                                      "ty": 20
+                                    }
+                                  },
+                                  "name": "liquidation_ratio"
+                                },
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0x095043d0",
+                                      "ty": 20
+                                    }
+                                  },
+                                  "name": "interest_rate"
+                                },
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0x095043d0",
+                                      "ty": 20
+                                    }
+                                  },
+                                  "name": "liquidation_fee"
+                                }
+                              ],
+                              "name": "VaultContractParamsConfig"
+                            }
+                          },
+                          "name": "params"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x095043d0",
+                              "ty": 4
+                            }
+                          },
+                          "name": "execute_after"
+                        }
+                      ],
+                      "name": "PendingContractParamsUpdate"
+                    }
+                  },
+                  "root_key": "0x095043d0",
+                  "ty": 21
+                }
+              },
+              "name": "pending_contract_params_updates"
+            },
+            {
+              "layout": {
                 "struct": {
                   "fields": [
                     {
@@ -2659,119 +3124,7 @@
                               "layout": {
                                 "leaf": {
                                   "key": "0x00000000",
-                                  "ty": 5
-                                }
-                              },
-                              "name": "0"
-                            }
-                          ],
-                          "name": "Ratio"
-                        }
-                      },
-                      "name": "collateral_ratio"
-                    },
-                    {
-                      "layout": {
-                        "struct": {
-                          "fields": [
-                            {
-                              "layout": {
-                                "leaf": {
-                                  "key": "0x00000000",
-                                  "ty": 5
-                                }
-                              },
-                              "name": "0"
-                            }
-                          ],
-                          "name": "Ratio"
-                        }
-                      },
-                      "name": "liquidation_ratio"
-                    },
-                    {
-                      "layout": {
-                        "struct": {
-                          "fields": [
-                            {
-                              "layout": {
-                                "leaf": {
-                                  "key": "0x00000000",
-                                  "ty": 5
-                                }
-                              },
-                              "name": "0"
-                            }
-                          ],
-                          "name": "Ratio"
-                        }
-                      },
-                      "name": "interest_rate"
-                    },
-                    {
-                      "layout": {
-                        "struct": {
-                          "fields": [
-                            {
-                              "layout": {
-                                "leaf": {
-                                  "key": "0x00000000",
-                                  "ty": 5
-                                }
-                              },
-                              "name": "0"
-                            }
-                          ],
-                          "name": "Ratio"
-                        }
-                      },
-                      "name": "liquidation_fee"
-                    },
-                    {
-                      "layout": {
-                        "leaf": {
-                          "key": "0x00000000",
-                          "ty": 4
-                        }
-                      },
-                      "name": "borrow_cap"
-                    },
-                    {
-                      "layout": {
-                        "leaf": {
-                          "key": "0x00000000",
-                          "ty": 4
-                        }
-                      },
-                      "name": "min_vault_collateral"
-                    },
-                    {
-                      "layout": {
-                        "leaf": {
-                          "key": "0x00000000",
-                          "ty": 4
-                        }
-                      },
-                      "name": "max_vault_collateral"
-                    },
-                    {
-                      "layout": {
-                        "leaf": {
-                          "key": "0x00000000",
-                          "ty": 4
-                        }
-                      },
-                      "name": "max_total_collateral"
-                    },
-                    {
-                      "layout": {
-                        "struct": {
-                          "fields": [
-                            {
-                              "layout": {
-                                "leaf": {
-                                  "key": "0x00000000",
-                                  "ty": 5
+                                  "ty": 14
                                 }
                               },
                               "name": "0"
@@ -2801,10 +3154,10 @@
                       "name": "max_oracle_age_ms"
                     }
                   ],
-                  "name": "VaultContractParams"
+                  "name": "VaultGlobalParams"
                 }
               },
-              "name": "params"
+              "name": "global_params"
             },
             {
               "layout": {
@@ -2830,79 +3183,7 @@
                                           "layout": {
                                             "leaf": {
                                               "key": "0x00000000",
-                                              "ty": 6
-                                            }
-                                          },
-                                          "name": "collateral_ratio"
-                                        },
-                                        {
-                                          "layout": {
-                                            "leaf": {
-                                              "key": "0x00000000",
-                                              "ty": 6
-                                            }
-                                          },
-                                          "name": "liquidation_ratio"
-                                        },
-                                        {
-                                          "layout": {
-                                            "leaf": {
-                                              "key": "0x00000000",
-                                              "ty": 6
-                                            }
-                                          },
-                                          "name": "interest_rate"
-                                        },
-                                        {
-                                          "layout": {
-                                            "leaf": {
-                                              "key": "0x00000000",
-                                              "ty": 6
-                                            }
-                                          },
-                                          "name": "liquidation_fee"
-                                        },
-                                        {
-                                          "layout": {
-                                            "leaf": {
-                                              "key": "0x00000000",
-                                              "ty": 4
-                                            }
-                                          },
-                                          "name": "borrow_cap"
-                                        },
-                                        {
-                                          "layout": {
-                                            "leaf": {
-                                              "key": "0x00000000",
-                                              "ty": 4
-                                            }
-                                          },
-                                          "name": "min_vault_collateral"
-                                        },
-                                        {
-                                          "layout": {
-                                            "leaf": {
-                                              "key": "0x00000000",
-                                              "ty": 4
-                                            }
-                                          },
-                                          "name": "max_vault_collateral"
-                                        },
-                                        {
-                                          "layout": {
-                                            "leaf": {
-                                              "key": "0x00000000",
-                                              "ty": 4
-                                            }
-                                          },
-                                          "name": "max_total_collateral"
-                                        },
-                                        {
-                                          "layout": {
-                                            "leaf": {
-                                              "key": "0x00000000",
-                                              "ty": 6
+                                              "ty": 20
                                             }
                                           },
                                           "name": "transaction_fee"
@@ -2926,7 +3207,7 @@
                                           "name": "max_oracle_age_ms"
                                         }
                                       ],
-                                      "name": "VaultContractParamsConfig"
+                                      "name": "VaultGlobalParamsConfig"
                                     }
                                   },
                                   "name": "params"
@@ -2941,7 +3222,7 @@
                                   "name": "execute_after"
                                 }
                               ],
-                              "name": "PendingContractParamsUpdate"
+                              "name": "PendingGlobalParamsUpdate"
                             }
                           },
                           "name": "0"
@@ -2952,7 +3233,7 @@
                   }
                 }
               },
-              "name": "pending_contract_params_update"
+              "name": "pending_global_params_update"
             },
             {
               "layout": {
@@ -2963,8 +3244,8 @@
                         {
                           "layout": {
                             "leaf": {
-                              "key": "0x8d337809",
-                              "ty": 6
+                              "key": "0x12f1aaba",
+                              "ty": 20
                             }
                           },
                           "name": "id"
@@ -2972,7 +3253,7 @@
                         {
                           "layout": {
                             "leaf": {
-                              "key": "0x8d337809",
+                              "key": "0x12f1aaba",
                               "ty": 0
                             }
                           },
@@ -2981,7 +3262,16 @@
                         {
                           "layout": {
                             "leaf": {
-                              "key": "0x8d337809",
+                              "key": "0x12f1aaba",
+                              "ty": 7
+                            }
+                          },
+                          "name": "netuid"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x12f1aaba",
                               "ty": 4
                             }
                           },
@@ -2990,7 +3280,7 @@
                         {
                           "layout": {
                             "leaf": {
-                              "key": "0x8d337809",
+                              "key": "0x12f1aaba",
                               "ty": 4
                             }
                           },
@@ -2999,7 +3289,7 @@
                         {
                           "layout": {
                             "leaf": {
-                              "key": "0x8d337809",
+                              "key": "0x12f1aaba",
                               "ty": 4
                             }
                           },
@@ -3008,7 +3298,7 @@
                         {
                           "layout": {
                             "leaf": {
-                              "key": "0x8d337809",
+                              "key": "0x12f1aaba",
                               "ty": 4
                             }
                           },
@@ -3017,7 +3307,7 @@
                         {
                           "layout": {
                             "leaf": {
-                              "key": "0x8d337809",
+                              "key": "0x12f1aaba",
                               "ty": 4
                             }
                           },
@@ -3026,7 +3316,7 @@
                         {
                           "layout": {
                             "leaf": {
-                              "key": "0x8d337809",
+                              "key": "0x12f1aaba",
                               "ty": 4
                             }
                           },
@@ -3036,8 +3326,8 @@
                       "name": "Vault"
                     }
                   },
-                  "root_key": "0x8d337809",
-                  "ty": 7
+                  "root_key": "0x12f1aaba",
+                  "ty": 26
                 }
               },
               "name": "vaults"
@@ -3047,12 +3337,12 @@
                 "root": {
                   "layout": {
                     "leaf": {
-                      "key": "0x549024c7",
+                      "key": "0xf96e0021",
                       "ty": 4
                     }
                   },
-                  "root_key": "0x549024c7",
-                  "ty": 14
+                  "root_key": "0xf96e0021",
+                  "ty": 31
                 }
               },
               "name": "owner_total_debt"
@@ -3062,12 +3352,12 @@
                 "root": {
                   "layout": {
                     "leaf": {
-                      "key": "0x18064f72",
-                      "ty": 6
+                      "key": "0xb4577bc2",
+                      "ty": 20
                     }
                   },
-                  "root_key": "0x18064f72",
-                  "ty": 17
+                  "root_key": "0xb4577bc2",
+                  "ty": 34
                 }
               },
               "name": "vault_count"
@@ -3081,7 +3371,7 @@
                         {
                           "layout": {
                             "leaf": {
-                              "key": "0xf9cff1e3",
+                              "key": "0xd4772da8",
                               "ty": 0
                             }
                           },
@@ -3090,8 +3380,8 @@
                         {
                           "layout": {
                             "leaf": {
-                              "key": "0xf9cff1e3",
-                              "ty": 6
+                              "key": "0xd4772da8",
+                              "ty": 20
                             }
                           },
                           "name": "1"
@@ -3100,8 +3390,8 @@
                       "name": "(A, B)"
                     }
                   },
-                  "root_key": "0xf9cff1e3",
-                  "ty": 20
+                  "root_key": "0xd4772da8",
+                  "ty": 37
                 }
               },
               "name": "vault_keys"
@@ -3111,22 +3401,22 @@
                 "root": {
                   "layout": {
                     "leaf": {
-                      "key": "0xeece564d",
-                      "ty": 6
+                      "key": "0xf8ed2adc",
+                      "ty": 20
                     }
                   },
-                  "root_key": "0xeece564d",
-                  "ty": 25
+                  "root_key": "0xf8ed2adc",
+                  "ty": 42
                 }
               },
               "name": "liquidation_auctions"
             }
           ],
-          "name": "TusdtVault"
+          "name": "TusdtVaultAlpha"
         }
       },
       "root_key": "0x00000000",
-      "ty": 28
+      "ty": 45
     }
   },
   "types": [
@@ -3189,7 +3479,7 @@
       "id": 5,
       "type": {
         "def": {
-          "primitive": "u128"
+          "tuple": []
         }
       }
     },
@@ -3197,28 +3487,20 @@
       "id": 6,
       "type": {
         "def": {
-          "primitive": "u32"
-        }
-      }
-    },
-    {
-      "id": 7,
-      "type": {
-        "def": {
           "composite": {}
         },
         "params": [
           {
             "name": "K",
-            "type": 8
+            "type": 7
           },
           {
             "name": "V",
-            "type": 9
+            "type": 5
           },
           {
             "name": "KeyType",
-            "type": 10
+            "type": 8
           }
         ],
         "path": [
@@ -3230,31 +3512,470 @@
       }
     },
     {
+      "id": 7,
+      "type": {
+        "def": {
+          "primitive": "u16"
+        }
+      }
+    },
+    {
       "id": 8,
       "type": {
         "def": {
-          "tuple": [
-            0,
-            6
-          ]
-        }
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "L",
+            "type": 9
+          },
+          {
+            "name": "R",
+            "type": 10
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ResolverKey"
+        ]
       }
     },
     {
       "id": 9,
       "type": {
         "def": {
+          "composite": {}
+        },
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "AutoKey"
+        ]
+      }
+    },
+    {
+      "id": 10,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "ParentKey",
+            "type": 5
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ManualKey"
+        ]
+      }
+    },
+    {
+      "id": 11,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "K",
+            "type": 7
+          },
+          {
+            "name": "V",
+            "type": 4
+          },
+          {
+            "name": "KeyType",
+            "type": 12
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "mapping",
+          "Mapping"
+        ]
+      }
+    },
+    {
+      "id": 12,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "L",
+            "type": 9
+          },
+          {
+            "name": "R",
+            "type": 13
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ResolverKey"
+        ]
+      }
+    },
+    {
+      "id": 13,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "ParentKey",
+            "type": 5
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ManualKey"
+        ]
+      }
+    },
+    {
+      "id": 14,
+      "type": {
+        "def": {
+          "primitive": "u128"
+        }
+      }
+    },
+    {
+      "id": 15,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "K",
+            "type": 7
+          },
+          {
+            "name": "V",
+            "type": 16
+          },
+          {
+            "name": "KeyType",
+            "type": 18
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "mapping",
+          "Mapping"
+        ]
+      }
+    },
+    {
+      "id": 16,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "collateral_ratio",
+                "type": 17,
+                "typeName": "Ratio"
+              },
+              {
+                "name": "liquidation_ratio",
+                "type": 17,
+                "typeName": "Ratio"
+              },
+              {
+                "name": "interest_rate",
+                "type": 17,
+                "typeName": "Ratio"
+              },
+              {
+                "name": "liquidation_fee",
+                "type": 17,
+                "typeName": "Ratio"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_vault_alpha",
+          "vault",
+          "VaultContractParams"
+        ]
+      }
+    },
+    {
+      "id": 17,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "type": 14,
+                "typeName": "u128"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_primitives",
+          "Ratio"
+        ]
+      }
+    },
+    {
+      "id": 18,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "L",
+            "type": 9
+          },
+          {
+            "name": "R",
+            "type": 19
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ResolverKey"
+        ]
+      }
+    },
+    {
+      "id": 19,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "ParentKey",
+            "type": 5
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ManualKey"
+        ]
+      }
+    },
+    {
+      "id": 20,
+      "type": {
+        "def": {
+          "primitive": "u32"
+        }
+      }
+    },
+    {
+      "id": 21,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "K",
+            "type": 7
+          },
+          {
+            "name": "V",
+            "type": 22
+          },
+          {
+            "name": "KeyType",
+            "type": 24
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "mapping",
+          "Mapping"
+        ]
+      }
+    },
+    {
+      "id": 22,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "params",
+                "type": 23,
+                "typeName": "VaultContractParamsConfig"
+              },
+              {
+                "name": "execute_after",
+                "type": 4,
+                "typeName": "u64"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_vault_alpha",
+          "vault",
+          "PendingContractParamsUpdate"
+        ]
+      }
+    },
+    {
+      "id": 23,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "collateral_ratio",
+                "type": 20,
+                "typeName": "u32"
+              },
+              {
+                "name": "liquidation_ratio",
+                "type": 20,
+                "typeName": "u32"
+              },
+              {
+                "name": "interest_rate",
+                "type": 20,
+                "typeName": "u32"
+              },
+              {
+                "name": "liquidation_fee",
+                "type": 20,
+                "typeName": "u32"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_vault_alpha",
+          "vault",
+          "VaultContractParamsConfig"
+        ]
+      }
+    },
+    {
+      "id": 24,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "L",
+            "type": 9
+          },
+          {
+            "name": "R",
+            "type": 25
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ResolverKey"
+        ]
+      }
+    },
+    {
+      "id": 25,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "ParentKey",
+            "type": 5
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ManualKey"
+        ]
+      }
+    },
+    {
+      "id": 26,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "K",
+            "type": 27
+          },
+          {
+            "name": "V",
+            "type": 28
+          },
+          {
+            "name": "KeyType",
+            "type": 29
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "mapping",
+          "Mapping"
+        ]
+      }
+    },
+    {
+      "id": 27,
+      "type": {
+        "def": {
+          "tuple": [
+            0,
+            20
+          ]
+        }
+      }
+    },
+    {
+      "id": 28,
+      "type": {
+        "def": {
           "composite": {
             "fields": [
               {
                 "name": "id",
-                "type": 6,
+                "type": 20,
                 "typeName": "u32"
               },
               {
                 "name": "owner",
                 "type": 0,
                 "typeName": "AccountId"
+              },
+              {
+                "name": "netuid",
+                "type": 7,
+                "typeName": "u16"
               },
               {
                 "name": "collateral_balance",
@@ -3290,14 +4011,14 @@
           }
         },
         "path": [
-          "tusdt_vault",
+          "tusdt_vault_alpha",
           "vault",
           "Vault"
         ]
       }
     },
     {
-      "id": 10,
+      "id": 29,
       "type": {
         "def": {
           "composite": {}
@@ -3305,11 +4026,11 @@
         "params": [
           {
             "name": "L",
-            "type": 11
+            "type": 9
           },
           {
             "name": "R",
-            "type": 12
+            "type": 30
           }
         ],
         "path": [
@@ -3320,20 +4041,7 @@
       }
     },
     {
-      "id": 11,
-      "type": {
-        "def": {
-          "composite": {}
-        },
-        "path": [
-          "ink_storage_traits",
-          "impls",
-          "AutoKey"
-        ]
-      }
-    },
-    {
-      "id": 12,
+      "id": 30,
       "type": {
         "def": {
           "composite": {}
@@ -3341,7 +4049,7 @@
         "params": [
           {
             "name": "ParentKey",
-            "type": 13
+            "type": 5
           }
         ],
         "path": [
@@ -3352,15 +4060,7 @@
       }
     },
     {
-      "id": 13,
-      "type": {
-        "def": {
-          "tuple": []
-        }
-      }
-    },
-    {
-      "id": 14,
+      "id": 31,
       "type": {
         "def": {
           "composite": {}
@@ -3376,7 +4076,7 @@
           },
           {
             "name": "KeyType",
-            "type": 15
+            "type": 32
           }
         ],
         "path": [
@@ -3388,7 +4088,7 @@
       }
     },
     {
-      "id": 15,
+      "id": 32,
       "type": {
         "def": {
           "composite": {}
@@ -3396,11 +4096,11 @@
         "params": [
           {
             "name": "L",
-            "type": 11
+            "type": 9
           },
           {
             "name": "R",
-            "type": 16
+            "type": 33
           }
         ],
         "path": [
@@ -3411,7 +4111,7 @@
       }
     },
     {
-      "id": 16,
+      "id": 33,
       "type": {
         "def": {
           "composite": {}
@@ -3419,7 +4119,7 @@
         "params": [
           {
             "name": "ParentKey",
-            "type": 13
+            "type": 5
           }
         ],
         "path": [
@@ -3430,7 +4130,7 @@
       }
     },
     {
-      "id": 17,
+      "id": 34,
       "type": {
         "def": {
           "composite": {}
@@ -3442,11 +4142,11 @@
           },
           {
             "name": "V",
-            "type": 6
+            "type": 20
           },
           {
             "name": "KeyType",
-            "type": 18
+            "type": 35
           }
         ],
         "path": [
@@ -3458,7 +4158,7 @@
       }
     },
     {
-      "id": 18,
+      "id": 35,
       "type": {
         "def": {
           "composite": {}
@@ -3466,11 +4166,11 @@
         "params": [
           {
             "name": "L",
-            "type": 11
+            "type": 9
           },
           {
             "name": "R",
-            "type": 19
+            "type": 36
           }
         ],
         "path": [
@@ -3481,7 +4181,7 @@
       }
     },
     {
-      "id": 19,
+      "id": 36,
       "type": {
         "def": {
           "composite": {}
@@ -3489,7 +4189,7 @@
         "params": [
           {
             "name": "ParentKey",
-            "type": 13
+            "type": 5
           }
         ],
         "path": [
@@ -3500,19 +4200,19 @@
       }
     },
     {
-      "id": 20,
+      "id": 37,
       "type": {
         "def": {
           "composite": {
             "fields": [
               {
                 "name": "len",
-                "type": 23,
+                "type": 40,
                 "typeName": "Lazy<u32, KeyType>"
               },
               {
                 "name": "elements",
-                "type": 24,
+                "type": 41,
                 "typeName": "Mapping<u32, V, KeyType>"
               }
             ]
@@ -3521,11 +4221,11 @@
         "params": [
           {
             "name": "V",
-            "type": 8
+            "type": 27
           },
           {
             "name": "KeyType",
-            "type": 21
+            "type": 38
           }
         ],
         "path": [
@@ -3537,7 +4237,7 @@
       }
     },
     {
-      "id": 21,
+      "id": 38,
       "type": {
         "def": {
           "composite": {}
@@ -3545,11 +4245,11 @@
         "params": [
           {
             "name": "L",
-            "type": 11
+            "type": 9
           },
           {
             "name": "R",
-            "type": 22
+            "type": 39
           }
         ],
         "path": [
@@ -3560,7 +4260,7 @@
       }
     },
     {
-      "id": 22,
+      "id": 39,
       "type": {
         "def": {
           "composite": {}
@@ -3568,7 +4268,7 @@
         "params": [
           {
             "name": "ParentKey",
-            "type": 13
+            "type": 5
           }
         ],
         "path": [
@@ -3579,7 +4279,7 @@
       }
     },
     {
-      "id": 23,
+      "id": 40,
       "type": {
         "def": {
           "composite": {}
@@ -3587,11 +4287,11 @@
         "params": [
           {
             "name": "V",
-            "type": 6
+            "type": 20
           },
           {
             "name": "KeyType",
-            "type": 21
+            "type": 38
           }
         ],
         "path": [
@@ -3602,7 +4302,7 @@
       }
     },
     {
-      "id": 24,
+      "id": 41,
       "type": {
         "def": {
           "composite": {}
@@ -3610,15 +4310,15 @@
         "params": [
           {
             "name": "K",
-            "type": 6
+            "type": 20
           },
           {
             "name": "V",
-            "type": 8
+            "type": 27
           },
           {
             "name": "KeyType",
-            "type": 21
+            "type": 38
           }
         ],
         "path": [
@@ -3630,7 +4330,7 @@
       }
     },
     {
-      "id": 25,
+      "id": 42,
       "type": {
         "def": {
           "composite": {}
@@ -3638,15 +4338,15 @@
         "params": [
           {
             "name": "K",
-            "type": 8
+            "type": 27
           },
           {
             "name": "V",
-            "type": 6
+            "type": 20
           },
           {
             "name": "KeyType",
-            "type": 26
+            "type": 43
           }
         ],
         "path": [
@@ -3658,7 +4358,7 @@
       }
     },
     {
-      "id": 26,
+      "id": 43,
       "type": {
         "def": {
           "composite": {}
@@ -3666,11 +4366,11 @@
         "params": [
           {
             "name": "L",
-            "type": 11
+            "type": 9
           },
           {
             "name": "R",
-            "type": 27
+            "type": 44
           }
         ],
         "path": [
@@ -3681,7 +4381,7 @@
       }
     },
     {
-      "id": 27,
+      "id": 44,
       "type": {
         "def": {
           "composite": {}
@@ -3689,7 +4389,7 @@
         "params": [
           {
             "name": "ParentKey",
-            "type": 13
+            "type": 5
           }
         ],
         "path": [
@@ -3700,7 +4400,7 @@
       }
     },
     {
-      "id": 28,
+      "id": 45,
       "type": {
         "def": {
           "composite": {
@@ -3708,97 +4408,122 @@
               {
                 "name": "governance",
                 "type": 0,
-                "typeName": "<AccountId as::ink::storage::traits::AutoStorableHint<::ink::\nstorage::traits::ManualKey<2977074604u32, ()>,>>::Type"
+                "typeName": "<AccountId as::ink::storage::traits::AutoStorableHint<::ink::\nstorage::traits::ManualKey<387494199u32, ()>,>>::Type"
               },
               {
                 "name": "treasury",
                 "type": 0,
-                "typeName": "<AccountId as::ink::storage::traits::AutoStorableHint<::ink::\nstorage::traits::ManualKey<947543076u32, ()>,>>::Type"
+                "typeName": "<AccountId as::ink::storage::traits::AutoStorableHint<::ink::\nstorage::traits::ManualKey<2880177253u32, ()>,>>::Type"
               },
               {
                 "name": "platform",
                 "type": 0,
-                "typeName": "<AccountId as::ink::storage::traits::AutoStorableHint<::ink::\nstorage::traits::ManualKey<3492713953u32, ()>,>>::Type"
+                "typeName": "<AccountId as::ink::storage::traits::AutoStorableHint<::ink::\nstorage::traits::ManualKey<731618703u32, ()>,>>::Type"
               },
               {
                 "name": "paused",
                 "type": 3,
-                "typeName": "<bool as::ink::storage::traits::AutoStorableHint<::ink::storage\n::traits::ManualKey<307479557u32, ()>,>>::Type"
+                "typeName": "<bool as::ink::storage::traits::AutoStorableHint<::ink::storage\n::traits::ManualKey<2607425104u32, ()>,>>::Type"
               },
               {
                 "name": "token",
-                "type": 29,
-                "typeName": "<TusdtErc20Ref as::ink::storage::traits::AutoStorableHint<::ink::\nstorage::traits::ManualKey<3419821504u32, ()>,>>::Type"
+                "type": 46,
+                "typeName": "<TusdtErc20Ref as::ink::storage::traits::AutoStorableHint<::ink::\nstorage::traits::ManualKey<3978134562u32, ()>,>>::Type"
               },
               {
                 "name": "auction",
-                "type": 31,
-                "typeName": "<TusdtAuctionRef as::ink::storage::traits::AutoStorableHint<::ink\n::storage::traits::ManualKey<4012119296u32, ()>,>>::Type"
+                "type": 48,
+                "typeName": "<TusdtAuctionRef as::ink::storage::traits::AutoStorableHint<::ink\n::storage::traits::ManualKey<905793398u32, ()>,>>::Type"
               },
               {
                 "name": "oracle",
-                "type": 33,
-                "typeName": "<TusdtOracleRef as::ink::storage::traits::AutoStorableHint<::ink\n::storage::traits::ManualKey<495210421u32, ()>,>>::Type"
+                "type": 50,
+                "typeName": "<TusdtOracleRef as::ink::storage::traits::AutoStorableHint<::ink\n::storage::traits::ManualKey<2177660152u32, ()>,>>::Type"
               },
               {
                 "name": "total_collateral_balance",
                 "type": 4,
-                "typeName": "<Balance as::ink::storage::traits::AutoStorableHint<::ink::\nstorage::traits::ManualKey<2084020963u32, ()>,>>::Type"
+                "typeName": "<Balance as::ink::storage::traits::AutoStorableHint<::ink::\nstorage::traits::ManualKey<4257681729u32, ()>,>>::Type"
               },
               {
-                "name": "params",
-                "type": 35,
-                "typeName": "<VaultContractParams as::ink::storage::traits::AutoStorableHint<::\nink::storage::traits::ManualKey<1171094371u32, ()>,>>::Type"
+                "name": "vault_hotkey",
+                "type": 0,
+                "typeName": "<AccountId as::ink::storage::traits::AutoStorableHint<::ink::\nstorage::traits::ManualKey<3599386512u32, ()>,>>::Type"
               },
               {
-                "name": "pending_contract_params_update",
-                "type": 37,
-                "typeName": "<Option<PendingContractParamsUpdate> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<1461587648u32,\n()>,>>::Type"
+                "name": "approved_netuids",
+                "type": 6,
+                "typeName": "<Mapping<u16, ()> as::ink::storage::traits::AutoStorableHint<::\nink::storage::traits::ManualKey<2353239429u32, ()>,>>::Type"
+              },
+              {
+                "name": "netuid_total_collateral",
+                "type": 11,
+                "typeName": "<Mapping<u16, Balance> as::ink::storage::traits::AutoStorableHint\n<::ink::storage::traits::ManualKey<704146998u32, ()>,>>::Type"
+              },
+              {
+                "name": "netuid_params",
+                "type": 15,
+                "typeName": "<Mapping<u16, VaultContractParams> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<1121620544u32,\n()>,>>::Type"
+              },
+              {
+                "name": "pending_contract_params_updates",
+                "type": 21,
+                "typeName": "<Mapping<u16, PendingContractParamsUpdate> as::ink::storage::traits\n::AutoStorableHint<::ink::storage::traits::ManualKey<\n3494072329u32, ()>,>>::Type"
+              },
+              {
+                "name": "global_params",
+                "type": 52,
+                "typeName": "<VaultGlobalParams as::ink::storage::traits::AutoStorableHint<::\nink::storage::traits::ManualKey<1508479961u32, ()>,>>::Type"
+              },
+              {
+                "name": "pending_global_params_update",
+                "type": 53,
+                "typeName": "<Option<PendingGlobalParamsUpdate> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<3182000630u32,\n()>,>>::Type"
               },
               {
                 "name": "vaults",
-                "type": 7,
-                "typeName": "<Mapping<(AccountId, u32), Vault> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<158872461u32, ()\n>,>>::Type"
+                "type": 26,
+                "typeName": "<Mapping<(AccountId, u32), Vault> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<3131765010u32,\n()>,>>::Type"
               },
               {
                 "name": "owner_total_debt",
-                "type": 14,
-                "typeName": "<Mapping<AccountId, Balance> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<3341062228u32,\n()>,>>::Type"
+                "type": 31,
+                "typeName": "<Mapping<AccountId, Balance> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<553676537u32, ()\n>,>>::Type"
               },
               {
                 "name": "vault_count",
-                "type": 17,
-                "typeName": "<Mapping<AccountId, u32> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<1917781528u32,\n()>,>>::Type"
+                "type": 34,
+                "typeName": "<Mapping<AccountId, u32> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<3262863284u32,\n()>,>>::Type"
               },
               {
                 "name": "vault_keys",
-                "type": 20,
-                "typeName": "<StorageVec<(AccountId, u32)> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<3824275449u32,\n()>,>>::Type"
+                "type": 37,
+                "typeName": "<StorageVec<(AccountId, u32)> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<2821552084u32,\n()>,>>::Type"
               },
               {
                 "name": "liquidation_auctions",
-                "type": 25,
-                "typeName": "<Mapping<(AccountId, u32), u32> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<1297534702u32,\n()>,>>::Type"
+                "type": 42,
+                "typeName": "<Mapping<(AccountId, u32), u32> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<3693800952u32,\n()>,>>::Type"
               }
             ]
           }
         },
         "path": [
-          "tusdt_vault",
+          "tusdt_vault_alpha",
           "vault",
-          "TusdtVault"
+          "TusdtVaultAlpha"
         ]
       }
     },
     {
-      "id": 29,
+      "id": 46,
       "type": {
         "def": {
           "composite": {
             "fields": [
               {
                 "name": "inner",
-                "type": 30,
+                "type": 47,
                 "typeName": "<TusdtErc20 as::ink::codegen::ContractCallBuilder>::Type"
               }
             ]
@@ -3812,7 +4537,7 @@
       }
     },
     {
-      "id": 30,
+      "id": 47,
       "type": {
         "def": {
           "composite": {
@@ -3833,14 +4558,14 @@
       }
     },
     {
-      "id": 31,
+      "id": 48,
       "type": {
         "def": {
           "composite": {
             "fields": [
               {
                 "name": "inner",
-                "type": 32,
+                "type": 49,
                 "typeName": "<TusdtAuction as::ink::codegen::ContractCallBuilder>::Type"
               }
             ]
@@ -3854,7 +4579,7 @@
       }
     },
     {
-      "id": 32,
+      "id": 49,
       "type": {
         "def": {
           "composite": {
@@ -3875,14 +4600,14 @@
       }
     },
     {
-      "id": 33,
+      "id": 50,
       "type": {
         "def": {
           "composite": {
             "fields": [
               {
                 "name": "inner",
-                "type": 34,
+                "type": 51,
                 "typeName": "<TusdtOracle as::ink::codegen::ContractCallBuilder>::Type"
               }
             ]
@@ -3896,7 +4621,7 @@
       }
     },
     {
-      "id": 34,
+      "id": 51,
       "type": {
         "def": {
           "composite": {
@@ -3917,54 +4642,14 @@
       }
     },
     {
-      "id": 35,
+      "id": 52,
       "type": {
         "def": {
           "composite": {
             "fields": [
               {
-                "name": "collateral_ratio",
-                "type": 36,
-                "typeName": "Ratio"
-              },
-              {
-                "name": "liquidation_ratio",
-                "type": 36,
-                "typeName": "Ratio"
-              },
-              {
-                "name": "interest_rate",
-                "type": 36,
-                "typeName": "Ratio"
-              },
-              {
-                "name": "liquidation_fee",
-                "type": 36,
-                "typeName": "Ratio"
-              },
-              {
-                "name": "borrow_cap",
-                "type": 4,
-                "typeName": "Balance"
-              },
-              {
-                "name": "min_vault_collateral",
-                "type": 4,
-                "typeName": "Balance"
-              },
-              {
-                "name": "max_vault_collateral",
-                "type": 4,
-                "typeName": "Balance"
-              },
-              {
-                "name": "max_total_collateral",
-                "type": 4,
-                "typeName": "Balance"
-              },
-              {
                 "name": "transaction_fee",
-                "type": 36,
+                "type": 17,
                 "typeName": "Ratio"
               },
               {
@@ -3981,33 +4666,14 @@
           }
         },
         "path": [
-          "tusdt_vault",
+          "tusdt_vault_alpha",
           "vault",
-          "VaultContractParams"
+          "VaultGlobalParams"
         ]
       }
     },
     {
-      "id": 36,
-      "type": {
-        "def": {
-          "composite": {
-            "fields": [
-              {
-                "type": 5,
-                "typeName": "u128"
-              }
-            ]
-          }
-        },
-        "path": [
-          "tusdt_primitives",
-          "Ratio"
-        ]
-      }
-    },
-    {
-      "id": 37,
+      "id": 53,
       "type": {
         "def": {
           "variant": {
@@ -4019,7 +4685,7 @@
               {
                 "fields": [
                   {
-                    "type": 38
+                    "type": 54
                   }
                 ],
                 "index": 1,
@@ -4031,7 +4697,7 @@
         "params": [
           {
             "name": "T",
-            "type": 38
+            "type": 54
           }
         ],
         "path": [
@@ -4040,15 +4706,15 @@
       }
     },
     {
-      "id": 38,
+      "id": 54,
       "type": {
         "def": {
           "composite": {
             "fields": [
               {
                 "name": "params",
-                "type": 39,
-                "typeName": "VaultContractParamsConfig"
+                "type": 55,
+                "typeName": "VaultGlobalParamsConfig"
               },
               {
                 "name": "execute_after",
@@ -4059,61 +4725,21 @@
           }
         },
         "path": [
-          "tusdt_vault",
+          "tusdt_vault_alpha",
           "vault",
-          "PendingContractParamsUpdate"
+          "PendingGlobalParamsUpdate"
         ]
       }
     },
     {
-      "id": 39,
+      "id": 55,
       "type": {
         "def": {
           "composite": {
             "fields": [
               {
-                "name": "collateral_ratio",
-                "type": 6,
-                "typeName": "u32"
-              },
-              {
-                "name": "liquidation_ratio",
-                "type": 6,
-                "typeName": "u32"
-              },
-              {
-                "name": "interest_rate",
-                "type": 6,
-                "typeName": "u32"
-              },
-              {
-                "name": "liquidation_fee",
-                "type": 6,
-                "typeName": "u32"
-              },
-              {
-                "name": "borrow_cap",
-                "type": 4,
-                "typeName": "Balance"
-              },
-              {
-                "name": "min_vault_collateral",
-                "type": 4,
-                "typeName": "Balance"
-              },
-              {
-                "name": "max_vault_collateral",
-                "type": 4,
-                "typeName": "Balance"
-              },
-              {
-                "name": "max_total_collateral",
-                "type": 4,
-                "typeName": "Balance"
-              },
-              {
                 "name": "transaction_fee",
-                "type": 6,
+                "type": 20,
                 "typeName": "u32"
               },
               {
@@ -4130,14 +4756,14 @@
           }
         },
         "path": [
-          "tusdt_vault",
+          "tusdt_vault_alpha",
           "vault",
-          "VaultContractParamsConfig"
+          "VaultGlobalParamsConfig"
         ]
       }
     },
     {
-      "id": 40,
+      "id": 56,
       "type": {
         "def": {
           "composite": {
@@ -4157,15 +4783,7 @@
       }
     },
     {
-      "id": 41,
-      "type": {
-        "def": {
-          "primitive": "u16"
-        }
-      }
-    },
-    {
-      "id": 42,
+      "id": 57,
       "type": {
         "def": {
           "variant": {
@@ -4173,7 +4791,7 @@
               {
                 "fields": [
                   {
-                    "type": 13
+                    "type": 5
                   }
                 ],
                 "index": 0,
@@ -4182,7 +4800,7 @@
               {
                 "fields": [
                   {
-                    "type": 43
+                    "type": 58
                   }
                 ],
                 "index": 1,
@@ -4194,11 +4812,11 @@
         "params": [
           {
             "name": "T",
-            "type": 13
+            "type": 5
           },
           {
             "name": "E",
-            "type": 43
+            "type": 58
           }
         ],
         "path": [
@@ -4207,7 +4825,7 @@
       }
     },
     {
-      "id": 43,
+      "id": 58,
       "type": {
         "def": {
           "variant": {
@@ -4226,712 +4844,6 @@
       }
     },
     {
-      "id": 44,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 45
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 43
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 45
-          },
-          {
-            "name": "E",
-            "type": 43
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 45,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 13
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 46
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 13
-          },
-          {
-            "name": "E",
-            "type": 46
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 46,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "index": 0,
-                "name": "VaultNotFound"
-              },
-              {
-                "index": 1,
-                "name": "InsufficientCollateral"
-              },
-              {
-                "index": 2,
-                "name": "CollateralCapExceeded"
-              },
-              {
-                "index": 3,
-                "name": "NotVaultOwner"
-              },
-              {
-                "index": 4,
-                "name": "TransferFailed"
-              },
-              {
-                "index": 5,
-                "name": "InsufficientTokenBalance"
-              },
-              {
-                "index": 6,
-                "name": "InvalidTransactionFee"
-              },
-              {
-                "index": 7,
-                "name": "TokenBorrowedNotZero"
-              },
-              {
-                "index": 8,
-                "name": "InvalidRatio"
-              },
-              {
-                "index": 9,
-                "name": "InvalidAuctionDuration"
-              },
-              {
-                "index": 10,
-                "name": "CollateralRatioExceeded"
-              },
-              {
-                "index": 11,
-                "name": "LiquidationRatioExceeded"
-              },
-              {
-                "index": 12,
-                "name": "BorrowCapExceeded"
-              },
-              {
-                "index": 13,
-                "name": "RepayAmountTooHigh"
-              },
-              {
-                "index": 14,
-                "name": "VaultInLiquidation"
-              },
-              {
-                "index": 15,
-                "name": "NotLiquidatable"
-              },
-              {
-                "index": 16,
-                "name": "LiquidationAuctionExists"
-              },
-              {
-                "index": 17,
-                "name": "AuctionContractCallFailed"
-              },
-              {
-                "index": 18,
-                "name": "AuctionNotFound"
-              },
-              {
-                "index": 19,
-                "name": "AuctionNotFinalized"
-              },
-              {
-                "index": 20,
-                "name": "ArithmeticError"
-              },
-              {
-                "index": 21,
-                "name": "NotGovernance"
-              },
-              {
-                "index": 22,
-                "name": "NotGovernanceOrPlatform"
-              },
-              {
-                "index": 23,
-                "name": "ContractPaused"
-              },
-              {
-                "index": 24,
-                "name": "OracleCallFailed"
-              },
-              {
-                "index": 25,
-                "name": "OraclePriceUnavailable"
-              },
-              {
-                "index": 26,
-                "name": "OraclePriceStale"
-              },
-              {
-                "index": 27,
-                "name": "InvalidOracleMaxAge"
-              },
-              {
-                "index": 28,
-                "name": "NoPendingContractParamsUpdate"
-              },
-              {
-                "index": 29,
-                "name": "ContractParamsUpdateTimelockActive"
-              }
-            ]
-          }
-        },
-        "path": [
-          "tusdt_vault",
-          "vault",
-          "Error"
-        ]
-      }
-    },
-    {
-      "id": 47,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 48
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 43
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 48
-          },
-          {
-            "name": "E",
-            "type": 43
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 48,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 4
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 46
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 4
-          },
-          {
-            "name": "E",
-            "type": 46
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 49,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 50
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 43
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 50
-          },
-          {
-            "name": "E",
-            "type": 43
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 50,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 6
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 46
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 6
-          },
-          {
-            "name": "E",
-            "type": 46
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 51,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 52
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 43
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 52
-          },
-          {
-            "name": "E",
-            "type": 43
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 52,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "index": 0,
-                "name": "None"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 9
-                  }
-                ],
-                "index": 1,
-                "name": "Some"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 9
-          }
-        ],
-        "path": [
-          "Option"
-        ]
-      }
-    },
-    {
-      "id": 53,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 0
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 43
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 0
-          },
-          {
-            "name": "E",
-            "type": 43
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 54,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 3
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 43
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 3
-          },
-          {
-            "name": "E",
-            "type": 43
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 55,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 39
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 43
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 39
-          },
-          {
-            "name": "E",
-            "type": 43
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 56,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 37
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 43
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 37
-          },
-          {
-            "name": "E",
-            "type": 43
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 57,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 58
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 43
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 58
-          },
-          {
-            "name": "E",
-            "type": 43
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 58,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "index": 0,
-                "name": "None"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 4
-                  }
-                ],
-                "index": 1,
-                "name": "Some"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 4
-          }
-        ],
-        "path": [
-          "Option"
-        ]
-      }
-    },
-    {
       "id": 59,
       "type": {
         "def": {
@@ -4940,7 +4852,7 @@
               {
                 "fields": [
                   {
-                    "type": 4
+                    "type": 60
                   }
                 ],
                 "index": 0,
@@ -4949,7 +4861,7 @@
               {
                 "fields": [
                   {
-                    "type": 43
+                    "type": 58
                   }
                 ],
                 "index": 1,
@@ -4961,11 +4873,11 @@
         "params": [
           {
             "name": "T",
-            "type": 4
+            "type": 60
           },
           {
             "name": "E",
-            "type": 43
+            "type": 58
           }
         ],
         "path": [
@@ -4982,7 +4894,7 @@
               {
                 "fields": [
                   {
-                    "type": 61
+                    "type": 5
                   }
                 ],
                 "index": 0,
@@ -4991,7 +4903,7 @@
               {
                 "fields": [
                   {
-                    "type": 43
+                    "type": 61
                   }
                 ],
                 "index": 1,
@@ -5003,11 +4915,11 @@
         "params": [
           {
             "name": "T",
-            "type": 61
+            "type": 5
           },
           {
             "name": "E",
-            "type": 43
+            "type": 61
           }
         ],
         "path": [
@@ -5023,28 +4935,139 @@
             "variants": [
               {
                 "index": 0,
-                "name": "None"
+                "name": "VaultNotFound"
               },
               {
-                "fields": [
-                  {
-                    "type": 6
-                  }
-                ],
                 "index": 1,
-                "name": "Some"
+                "name": "InsufficientCollateral"
+              },
+              {
+                "index": 2,
+                "name": "NotVaultOwner"
+              },
+              {
+                "index": 3,
+                "name": "TransferFailed"
+              },
+              {
+                "index": 4,
+                "name": "InsufficientTokenBalance"
+              },
+              {
+                "index": 5,
+                "name": "InvalidTransactionFee"
+              },
+              {
+                "index": 6,
+                "name": "TokenBorrowedNotZero"
+              },
+              {
+                "index": 7,
+                "name": "InvalidRatio"
+              },
+              {
+                "index": 8,
+                "name": "InvalidAuctionDuration"
+              },
+              {
+                "index": 9,
+                "name": "CollateralRatioExceeded"
+              },
+              {
+                "index": 10,
+                "name": "LiquidationRatioExceeded"
+              },
+              {
+                "index": 11,
+                "name": "RepayAmountTooHigh"
+              },
+              {
+                "index": 12,
+                "name": "VaultInLiquidation"
+              },
+              {
+                "index": 13,
+                "name": "NotLiquidatable"
+              },
+              {
+                "index": 14,
+                "name": "LiquidationAuctionExists"
+              },
+              {
+                "index": 15,
+                "name": "AuctionContractCallFailed"
+              },
+              {
+                "index": 16,
+                "name": "AuctionNotFound"
+              },
+              {
+                "index": 17,
+                "name": "AuctionNotFinalized"
+              },
+              {
+                "index": 18,
+                "name": "ArithmeticError"
+              },
+              {
+                "index": 19,
+                "name": "NotGovernance"
+              },
+              {
+                "index": 20,
+                "name": "NotGovernanceOrPlatform"
+              },
+              {
+                "index": 21,
+                "name": "ContractPaused"
+              },
+              {
+                "index": 22,
+                "name": "OracleCallFailed"
+              },
+              {
+                "index": 23,
+                "name": "OraclePriceUnavailable"
+              },
+              {
+                "index": 24,
+                "name": "OraclePriceStale"
+              },
+              {
+                "index": 25,
+                "name": "InvalidOracleMaxAge"
+              },
+              {
+                "index": 26,
+                "name": "NoPendingContractParamsUpdate"
+              },
+              {
+                "index": 27,
+                "name": "ContractParamsUpdateTimelockActive"
+              },
+              {
+                "index": 28,
+                "name": "ChainExtensionFailed"
+              },
+              {
+                "index": 29,
+                "name": "NoAlphaStakeFound"
+              },
+              {
+                "index": 30,
+                "name": "StakeTransferFailed"
+              },
+              {
+                "index": 31,
+                "name": "UnapprovedNetuid"
               }
             ]
           }
         },
-        "params": [
-          {
-            "name": "T",
-            "type": 6
-          }
-        ],
         "path": [
-          "Option"
+          "tusdt_vault_alpha",
+          "vault",
+          "Error"
         ]
       }
     },
@@ -5057,7 +5080,7 @@
               {
                 "fields": [
                   {
-                    "type": 6
+                    "type": 3
                   }
                 ],
                 "index": 0,
@@ -5066,7 +5089,7 @@
               {
                 "fields": [
                   {
-                    "type": 43
+                    "type": 58
                   }
                 ],
                 "index": 1,
@@ -5078,11 +5101,11 @@
         "params": [
           {
             "name": "T",
-            "type": 6
+            "type": 3
           },
           {
             "name": "E",
-            "type": 43
+            "type": 58
           }
         ],
         "path": [
@@ -5108,7 +5131,7 @@
               {
                 "fields": [
                   {
-                    "type": 43
+                    "type": 58
                   }
                 ],
                 "index": 1,
@@ -5124,7 +5147,7 @@
           },
           {
             "name": "E",
-            "type": 43
+            "type": 58
           }
         ],
         "path": [
@@ -5141,7 +5164,7 @@
               {
                 "fields": [
                   {
-                    "type": 65
+                    "type": 20
                   }
                 ],
                 "index": 0,
@@ -5150,7 +5173,7 @@
               {
                 "fields": [
                   {
-                    "type": 46
+                    "type": 61
                   }
                 ],
                 "index": 1,
@@ -5162,11 +5185,11 @@
         "params": [
           {
             "name": "T",
-            "type": 65
+            "type": 20
           },
           {
             "name": "E",
-            "type": 46
+            "type": 61
           }
         ],
         "path": [
@@ -5178,14 +5201,692 @@
       "id": 65,
       "type": {
         "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 66
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 58
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 66
+          },
+          {
+            "name": "E",
+            "type": 58
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 66,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 4
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 61
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 4
+          },
+          {
+            "name": "E",
+            "type": 61
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 67,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 68
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 58
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 68
+          },
+          {
+            "name": "E",
+            "type": 58
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 68,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 28
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 28
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 69,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 0
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 58
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 0
+          },
+          {
+            "name": "E",
+            "type": 58
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 70,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 23
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 58
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 23
+          },
+          {
+            "name": "E",
+            "type": 58
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 71,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 55
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 58
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 55
+          },
+          {
+            "name": "E",
+            "type": 58
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 72,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 73
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 58
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 73
+          },
+          {
+            "name": "E",
+            "type": 58
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 73,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 22
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 22
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 74,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 75
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 58
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 75
+          },
+          {
+            "name": "E",
+            "type": 58
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 75,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 4
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 4
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 76,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 4
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 58
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 4
+          },
+          {
+            "name": "E",
+            "type": 58
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 77,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 78
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 58
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 78
+          },
+          {
+            "name": "E",
+            "type": 58
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 78,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 20
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 20
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 79,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 20
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 58
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 20
+          },
+          {
+            "name": "E",
+            "type": 58
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 80,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 81
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 58
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 81
+          },
+          {
+            "name": "E",
+            "type": 58
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 81,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 82
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 61
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 82
+          },
+          {
+            "name": "E",
+            "type": 61
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 82,
+      "type": {
+        "def": {
           "sequence": {
-            "type": 9
+            "type": 28
           }
         }
       }
     },
     {
-      "id": 66,
+      "id": 83,
       "type": {
         "def": {
           "variant": {
@@ -5218,7 +5919,7 @@
       }
     },
     {
-      "id": 67,
+      "id": 84,
       "type": {
         "def": {
           "variant": {
@@ -5230,7 +5931,7 @@
               {
                 "fields": [
                   {
-                    "type": 68
+                    "type": 85
                   }
                 ],
                 "index": 1,
@@ -5242,7 +5943,7 @@
         "params": [
           {
             "name": "T",
-            "type": 68
+            "type": 85
           }
         ],
         "path": [
@@ -5251,7 +5952,7 @@
       }
     },
     {
-      "id": 68,
+      "id": 85,
       "type": {
         "def": {
           "composite": {
@@ -5272,7 +5973,7 @@
       }
     },
     {
-      "id": 69,
+      "id": 86,
       "type": {
         "def": {
           "composite": {
@@ -5284,7 +5985,7 @@
               },
               {
                 "name": "provider",
-                "type": 70,
+                "type": 87,
                 "typeName": "Option<Vec<u8>>"
               }
             ]
@@ -5298,7 +5999,7 @@
       }
     },
     {
-      "id": 70,
+      "id": 87,
       "type": {
         "def": {
           "variant": {
@@ -5310,7 +6011,7 @@
               {
                 "fields": [
                   {
-                    "type": 71
+                    "type": 88
                   }
                 ],
                 "index": 1,
@@ -5322,7 +6023,7 @@
         "params": [
           {
             "name": "T",
-            "type": 71
+            "type": 88
           }
         ],
         "path": [
@@ -5331,7 +6032,7 @@
       }
     },
     {
-      "id": 71,
+      "id": 88,
       "type": {
         "def": {
           "sequence": {
@@ -5341,7 +6042,7 @@
       }
     },
     {
-      "id": 72,
+      "id": 89,
       "type": {
         "def": {
           "variant": {}

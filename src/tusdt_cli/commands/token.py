@@ -12,7 +12,17 @@ from tusdt_cli.utils import (
 )
 from tusdt_cli.wallet import get_reader_keypair, resolve_ss58
 
-_TOKEN_ADVANCED = {"mint", "burn", "increase-allowance", "decrease-allowance", "transfer-from"}
+_TOKEN_ADVANCED = {
+    "mint",
+    "burn",
+    "increase-allowance",
+    "decrease-allowance",
+    "transfer-from",
+    "set-controller",
+    "add-minter",
+    "remove-minter",
+    "is-minter",
+}
 
 
 @click.group("token", cls=ModeAwareGroup, advanced_commands=_TOKEN_ADVANCED)
@@ -411,3 +421,86 @@ def transfer_from_cmd(
 
     state.submit(lambda c, kp: c.token_transfer_from(kp, from_addr, to_addr, raw_amount))
     state.output.success("Transfer successful!")
+
+
+# ------------------------------------------------------------------
+# set-controller
+# ------------------------------------------------------------------
+
+
+@token_group.command("set-controller")
+@click.argument("address", type=str, metavar="<new-controller-address>")
+@wallet_option
+@network_option
+@click.pass_context
+def set_controller(ctx: click.Context, address: str, wallet_name: str | None, network: str | None) -> None:
+    """Transfer the token controller role to a new account (controller only).
+
+    The old controller is removed as a minter; the new one is added.
+    """
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Transferring controller to {address}...")
+    state.submit(lambda c, kp: c.set_controller(kp, address))
+    state.output.success(f"Controller transferred to {address}!")
+
+
+# ------------------------------------------------------------------
+# add-minter
+# ------------------------------------------------------------------
+
+
+@token_group.command("add-minter")
+@click.argument("address", type=str, metavar="<minter-address>")
+@wallet_option
+@network_option
+@click.pass_context
+def add_minter(ctx: click.Context, address: str, wallet_name: str | None, network: str | None) -> None:
+    """Authorize an account to mint and burn tokens (controller only)."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Adding {address} as minter...")
+    state.submit(lambda c, kp: c.add_minter(kp, address))
+    state.output.success(f"{address} is now a minter!")
+
+
+# ------------------------------------------------------------------
+# remove-minter
+# ------------------------------------------------------------------
+
+
+@token_group.command("remove-minter")
+@click.argument("address", type=str, metavar="<minter-address>")
+@wallet_option
+@network_option
+@click.pass_context
+def remove_minter(ctx: click.Context, address: str, wallet_name: str | None, network: str | None) -> None:
+    """Revoke mint and burn authorization from an account (controller only)."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Removing {address} from minters...")
+    state.submit(lambda c, kp: c.remove_minter(kp, address))
+    state.output.success(f"{address} is no longer a minter!")
+
+
+# ------------------------------------------------------------------
+# is-minter
+# ------------------------------------------------------------------
+
+
+@token_group.command("is-minter")
+@click.argument("address", type=str, metavar="<account-address>")
+@network_option
+@click.pass_context
+def is_minter(ctx: click.Context, address: str, network: str | None) -> None:
+    """Check whether an account is an authorized minter."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    minter = state.run_read(lambda c: c.is_minter(kp, address))
+    status = "yes" if minter else "no"
+    state.output.detail(f"Minter: {address}", {"Is minter": status})

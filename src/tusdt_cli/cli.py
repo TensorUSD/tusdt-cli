@@ -65,6 +65,12 @@ def cli(
     backend = signer_backend
     if ledger:
         backend = "ledger"
+    # Read the saved network from config so state.network reflects the
+    # user's saved preference, not the hardcoded default.
+    from tusdt_cli.config import load_config as _load_config
+
+    saved_network = _load_config().get("network", "finney")
+
     ctx.obj = CLIContext(
         use_json=use_json,
         quiet=quiet,
@@ -73,6 +79,7 @@ def cli(
         signer_backend=backend,
         ledger_account=ledger_account,
         ledger_index=ledger_index,
+        network=saved_network,
     )
 
 
