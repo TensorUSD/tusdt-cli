@@ -123,10 +123,10 @@ class TestVaultAlphaMethods:
     @patch("tusdt_cli.client.SubstrateInterface")
     @patch("tusdt_cli.client.ContractMetadata")
     @patch("tusdt_cli.client.ContractInstance")
-    def test_create_alpha_vault_not_payable(
+    def test_create_alpha_vault_passes_value(
         self, MockContractInstance, MockMetadata, MockSubstrate, minimal_config
     ):
-        """create_alpha_vault calls _exec without value kwarg (not payable)."""
+        """create_alpha_vault calls _exec with value kwarg for vault creation fee."""
         client = TUSDTClient(minimal_config)
         mock_kp = MagicMock()
         mock_vault = client.vault
@@ -135,7 +135,7 @@ class TestVaultAlphaMethods:
         client.create_alpha_vault(mock_kp, 1000000000, 1)
         client._exec.assert_called_once_with(
             mock_vault, mock_kp, "create_alpha_vault",
-            args={"amount": 1000000000, "netuid": 1},
+            args={"amount": 1000000000, "netuid": 1}, value=0,
         )
 
     @patch("tusdt_cli.client.SubstrateInterface")

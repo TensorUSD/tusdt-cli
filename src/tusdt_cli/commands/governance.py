@@ -521,9 +521,6 @@ def set_council_cmd(
 @click.option("--collateral-ratio", type=int, default=None, help="Collateral ratio (e.g. 150 for 150%%)")
 @click.option("--liquidation-ratio", type=int, default=None, help="Liquidation ratio (e.g. 120 for 120%%)")
 @click.option(
-    "--interest-rate", type=int, default=None, help="Interest rate in basis points (e.g. 1000 for 10%%)"
-)
-@click.option(
     "--liquidation-fee", type=int, default=None, help="Liquidation fee in basis points (e.g. 1100 for 11%%)"
 )
 @wallet_option
@@ -534,7 +531,6 @@ def gov_vault_set_params_cmd(
     netuid: int,
     collateral_ratio: int | None,
     liquidation_ratio: int | None,
-    interest_rate: int | None,
     liquidation_fee: int | None,
     wallet_name: str | None,
     network: str | None,
@@ -543,13 +539,13 @@ def gov_vault_set_params_cmd(
 
     \b
     Per-netuid params: collateral_ratio, liquidation_ratio,
-    interest_rate (bps), liquidation_fee (bps).
+    liquidation_fee (bps).
     Global params use `vault-set-global-params`.
 
     \b
     Examples:
       tusdt governance vault-set-params --netuid 1 --collateral-ratio 150 --wallet-name MyWallet
-      tusdt governance vault-set-params --netuid 42 --interest-rate 1000 --wallet-name MyWallet
+      tusdt governance vault-set-params --netuid 42 --liquidation-fee 1200 --wallet-name MyWallet
     """
     state: CLIContext = ctx.obj
     state.network = network or state.network
@@ -560,8 +556,6 @@ def gov_vault_set_params_cmd(
         params["collateral_ratio"] = collateral_ratio
     if liquidation_ratio is not None:
         params["liquidation_ratio"] = liquidation_ratio
-    if interest_rate is not None:
-        params["interest_rate"] = interest_rate
     if liquidation_fee is not None:
         params["liquidation_fee"] = liquidation_fee
 

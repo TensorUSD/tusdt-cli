@@ -18,7 +18,6 @@ _VAULT_ADVANCED = {
     "params",
     "total-collateral",
     "total-count",
-    "accrue-interest",
     "trigger-liquidation",
     "settle-liquidation",
     "governance",
@@ -294,7 +293,7 @@ def vault_info(
             "Netuid": vault_data.get("netuid", "?"),
             "Collateral": format_balance(vault_data.get("collateral_balance", 0), decimals),
             "Borrowed (principal)": format_balance(vault_data.get("borrowed_token_balance", 0), decimals),
-            "Debt (principal + interest)": format_balance(vault_data.get("debt_balance", 0), decimals),
+            "Borrowed": format_balance(vault_data.get("borrowed_token_balance", 0), decimals),
             "Interest accrued": format_balance(vault_data.get("total_interest_accrued", 0), decimals),
             "Created at": vault_data.get("created_at", "?"),
             "Interest accrued at": vault_data.get("last_interest_accrued_at", "?"),
@@ -354,7 +353,7 @@ def list_vaults(
                 str(v.get("netuid", "?")),
                 format_balance(v.get("collateral_balance", 0), decimals),
                 format_balance(v.get("borrowed_token_balance", 0), decimals),
-                format_balance(v.get("debt_balance", 0), decimals),
+                format_balance(v.get("borrowed_token_balance", 0), decimals),
                 str(v.get("created_at", "?")),
             ]
         )
@@ -362,7 +361,7 @@ def list_vaults(
     state.output.info(f"Total vaults: {total}  |  Page: {page}")
     state.output.table(
         f"Vaults for {owner[:12]}...{owner[-6:]}",
-        ["ID", "Netuid", "Collateral", "Borrowed", "Debt", "Created"],
+        ["ID", "Netuid", "Collateral", "Borrowed", "Created"],
         rows,
     )
 
@@ -599,7 +598,7 @@ def list_all_vaults(ctx: click.Context, page: int, network: str | None) -> None:
                 str(v.get("owner", "?")),
                 format_balance(v.get("collateral_balance", 0), decimals),
                 format_balance(v.get("borrowed_token_balance", 0), decimals),
-                format_balance(v.get("debt_balance", 0), decimals),
+                format_balance(v.get("borrowed_token_balance", 0), decimals),
                 str(v.get("created_at", "?")),
             ]
         )
@@ -607,7 +606,7 @@ def list_all_vaults(ctx: click.Context, page: int, network: str | None) -> None:
     state.output.info(f"Total vaults: {total}  |  Page: {page}")
     state.output.table(
         "All Vaults",
-        ["ID", "Netuid", "Owner", "Collateral", "Borrowed", "Debt", "Created"],
+        ["ID", "Netuid", "Owner", "Collateral", "Borrowed", "Created"],
         rows,
     )
 
@@ -700,38 +699,6 @@ def total_count(ctx: click.Context, network: str | None) -> None:
     count = state.run_read(lambda c: c.get_total_vaults_count(kp))
 
     state.output.detail("Total Vaults", {"Count": count})
-
-
-# ------------------------------------------------------------------
-# accrue-interest
-# ------------------------------------------------------------------
-
-
-@vault_group.command("accrue-interest")
-@click.argument("vault_id", type=int, metavar="<vault-id>")
-@click.option("--owner", required=True, help="Vault owner SS58 address or wallet name")
-@wallet_option
-@network_option
-@click.pass_context
-def accrue_interest(
-    ctx: click.Context, vault_id: int, owner: str, wallet_name: str | None, network: str | None
-) -> None:
-    """Accrue interest on a vault.
-
-    \b
-    VAULT_ID is the numeric ID of the vault.
-    Examples:
-      tusdt vault accrue-interest 0 --owner 5GrwvaEF... --wallet-name MyWallet
-    """
-    state: CLIContext = ctx.obj
-    state.network = network or state.network
-    state.wallet_name = wallet_name or state.wallet_name
-    cfg = state.make_config()
-
-    owner = resolve_ss58(owner, cfg.get("wallet_path"))
-    state.output.info(f"Accruing interest on vault {vault_id} (owner: {owner})...")
-    state.submit(lambda c, kp: c.accrue_interest(kp, owner, vault_id))
-    state.output.success("Interest accrued!")
 
 
 # ------------------------------------------------------------------
@@ -983,9 +950,6 @@ def unpause_contract(ctx: click.Context, wallet_name: str | None, network: str |
 @click.option("--collateral-ratio", type=int, default=None, help="Collateral ratio (e.g. 150 for 150%%)")
 @click.option("--liquidation-ratio", type=int, default=None, help="Liquidation ratio (e.g. 120 for 120%%)")
 @click.option(
-    "--interest-rate", type=int, default=None, help="Interest rate in basis points (e.g. 1000 for 10%%)"
-)
-@click.option(
     "--liquidation-fee", type=int, default=None, help="Liquidation fee in basis points (e.g. 1100 for 11%%)"
 )
 @wallet_option
@@ -996,7 +960,6 @@ def set_params(
     netuid: int,
     collateral_ratio: int | None,
     liquidation_ratio: int | None,
-    interest_rate: int | None,
     liquidation_fee: int | None,
     wallet_name: str | None,
     network: str | None,
@@ -1023,8 +986,6 @@ def set_params(
         params["collateral_ratio"] = collateral_ratio
     if liquidation_ratio is not None:
         params["liquidation_ratio"] = liquidation_ratio
-    if interest_rate is not None:
-        params["interest_rate"] = interest_rate
     if liquidation_fee is not None:
         params["liquidation_fee"] = liquidation_fee
 

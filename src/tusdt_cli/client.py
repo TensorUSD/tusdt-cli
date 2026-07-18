@@ -500,18 +500,21 @@ class TUSDTClient:
     # VAULT OPERATIONS
     # ==================================================================
 
-    def create_alpha_vault(self, keypair: Keypair, amount: int, netuid: int) -> dict[str, Any] | DryRunResult:
+    def create_alpha_vault(
+        self, keypair: Keypair, amount: int, netuid: int, value: int = 0
+    ) -> dict[str, Any] | DryRunResult:
         """Create a new vault, pulling *amount* alpha stake on *netuid* as collateral.
 
         Uses the caller-forwarded ``caller_transfer_stake`` chain extension
         (function 25) to atomically pull the caller's alpha into the contract's
-        coldkey.
+        coldkey. The *value* parameter pays the vault creation fee in native TAO.
         """
         return self._exec(
             self.vault,
             keypair,
             "create_alpha_vault",
             args={"amount": amount, "netuid": netuid},
+            value=value,
         )
 
     def add_alpha_collateral(
@@ -619,10 +622,6 @@ class TUSDTClient:
         result = self._read(self.vault, keypair, "get_contract_params", args={"netuid": netuid})
         raw = unwrap_plain(result)
         return raw if isinstance(raw, dict) else raw
-
-    def accrue_interest(self, keypair: Keypair, owner: str, vault_id: int) -> dict[str, Any] | DryRunResult:
-        """Accrue interest on a vault."""
-        return self._exec(self.vault, keypair, "accrue_interest", args={"owner": owner, "vault_id": vault_id})
 
     def trigger_liquidation(
         self, keypair: Keypair, owner: str, vault_id: int

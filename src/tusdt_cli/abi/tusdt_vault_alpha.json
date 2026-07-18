@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xa077ea9d292c14d257cc39d656f7302bf1c608f1ddcb4cca6e81bc1060e4a828",
+    "hash": "0x323fe43bd13a75cbbceeda3b84cf3fe49a5e2b8409e66ec340f8dcd95b0c963f",
     "language": "ink! 5.1.1",
     "compiler": "rustc 1.91.1",
     "build_info": {
@@ -1588,17 +1588,6 @@
               ],
               "type": 4
             }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "transaction_fee",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
           }
         ],
         "docs": [
@@ -1606,7 +1595,7 @@
         ],
         "label": "TokensRepaid",
         "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0xe11c88de1af2c4787d5ce47b80816c6ec7b7780637ea93c5d178e116d4a8192f"
+        "signature_topic": "0xa22358280da53ef96c37f9cb59b4d27b8a530b444e954a3816229235cf85a87f"
       },
       {
         "args": [
@@ -1685,17 +1674,6 @@
               ],
               "type": 4
             }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "transaction_fee",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
           }
         ],
         "docs": [
@@ -1703,7 +1681,7 @@
         ],
         "label": "TokensBorrowed",
         "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0xd775a1237b32075dc9df9854ae98ebab6cdcd965c2f0ce6ec26b0050345c2956"
+        "signature_topic": "0xef408f7426ce09f14f19c91265cc2ee4df89c6ac79710581f4fa4f3d957ba479"
       },
       {
         "args": [
@@ -1747,71 +1725,6 @@
         "label": "CollateralAdded",
         "module_path": "tusdt_vault_alpha::vault",
         "signature_topic": "0xd2baf654d21478b4b14e965ed7450712fe5e68eca1c409f7d3e5855720c235aa"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "owner",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "vault_id",
-            "type": {
-              "displayName": [
-                "u32"
-              ],
-              "type": 20
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "previous_debt_balance",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "debt_balance",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "accrued_at",
-            "type": {
-              "displayName": [
-                "u64"
-              ],
-              "type": 4
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when interest is accrued onto a vault's debt balance."
-        ],
-        "label": "InterestAccrued",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0x9817c420516028890e5664c711e23e8ffd15d13460b1ba1e7b93512b6684dbb1"
       },
       {
         "args": [
@@ -2475,12 +2388,15 @@
           " atomically pulling `amount` of the CALLER's alpha stake (held under this",
           " vault's hotkey) into the contract's custody via the caller-forwarded",
           " `caller_transfer_stake` chain extension. No prior deposit intent or external",
-          " `transfer_stake` extrinsic is needed — the pull and the vault creation happen",
-          " in one message, so deposits are always attributed to the caller."
+          " `transfer_stake` extrinsic is needed.",
+          "",
+          " A vault creation fee (in native TAO) is charged to deter spam. The fee amount",
+          " is governed by [`VaultGlobalParams::vault_creation_fee`]. Any excess transferred",
+          " value is refunded to the caller."
         ],
         "label": "create_alpha_vault",
         "mutates": true,
-        "payable": false,
+        "payable": true,
         "returnType": {
           "displayName": [
             "ink",
@@ -2554,9 +2470,9 @@
         ],
         "default": false,
         "docs": [
-          " Borrows TUSDT against the vault's alpha collateral. Deducts a transaction fee",
-          " (minted to the treasury) and mints the net amount to the caller. Validates that",
-          " the resulting debt does not exceed the maximum allowed by the collateral ratio."
+          " Borrows TUSDT against the vault's alpha collateral. Mints the full",
+          " amount to the caller. Validates that the resulting borrowed balance",
+          " does not exceed the maximum allowed by the collateral ratio."
         ],
         "label": "borrow_token",
         "mutates": true,
@@ -2593,8 +2509,9 @@
         ],
         "default": false,
         "docs": [
-          " Repays borrowed TUSDT on an alpha vault. Burns the caller's tokens and routes",
-          " the interest portion and transaction fee to the treasury."
+          " Repays borrowed TUSDT on an alpha vault. Burns the caller's tokens",
+          " and decrements the borrowed balance. No transaction fee is charged",
+          " on repayments."
         ],
         "label": "repay_token",
         "mutates": true,
@@ -2607,43 +2524,6 @@
           "type": 59
         },
         "selector": "0xddbf65cb"
-      },
-      {
-        "args": [
-          {
-            "label": "owner",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "label": "vault_id",
-            "type": {
-              "displayName": [
-                "u32"
-              ],
-              "type": 20
-            }
-          }
-        ],
-        "default": false,
-        "docs": [
-          " Accrues any elapsed interest for a vault, returning the updated debt balance."
-        ],
-        "label": "accrue_interest",
-        "mutates": true,
-        "payable": false,
-        "returnType": {
-          "displayName": [
-            "ink",
-            "MessageResult"
-          ],
-          "type": 65
-        },
-        "selector": "0xde62814a"
       },
       {
         "args": [
@@ -2803,7 +2683,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 67
+          "type": 65
         },
         "selector": "0x4f96cf6c"
       },
@@ -2821,7 +2701,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 69
+          "type": 67
         },
         "selector": "0xc004fc23"
       },
@@ -2839,7 +2719,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 69
+          "type": 67
         },
         "selector": "0x3518b48d"
       },
@@ -2857,7 +2737,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 69
+          "type": 67
         },
         "selector": "0xdc4c0ffe"
       },
@@ -2875,7 +2755,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 69
+          "type": 67
         },
         "selector": "0x9f90cf17"
       },
@@ -2893,7 +2773,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 69
+          "type": 67
         },
         "selector": "0xa9b78461"
       },
@@ -2911,7 +2791,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 69
+          "type": 67
         },
         "selector": "0x2b86e96a"
       },
@@ -2957,7 +2837,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 70
+          "type": 68
         },
         "selector": "0xb89cc086"
       },
@@ -2975,7 +2855,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 71
+          "type": 69
         },
         "selector": "0xc65d30fc"
       },
@@ -3003,7 +2883,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 72
+          "type": 70
         },
         "selector": "0xacf1f313"
       },
@@ -3040,7 +2920,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 74
+          "type": 72
         },
         "selector": "0x69aef621"
       },
@@ -3058,7 +2938,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 76
+          "type": 74
         },
         "selector": "0x3452f0c5"
       },
@@ -3086,7 +2966,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 76
+          "type": 74
         },
         "selector": "0x5a81c550"
       },
@@ -3123,7 +3003,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 65
+          "type": 75
         },
         "selector": "0x26fc3175"
       },
@@ -3161,7 +3041,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 65
+          "type": 75
         },
         "selector": "0x378eeec9"
       },
@@ -3552,25 +3432,6 @@
                               "name": "Ratio"
                             }
                           },
-                          "name": "interest_rate"
-                        },
-                        {
-                          "layout": {
-                            "struct": {
-                              "fields": [
-                                {
-                                  "layout": {
-                                    "leaf": {
-                                      "key": "0x4092da42",
-                                      "ty": 14
-                                    }
-                                  },
-                                  "name": "0"
-                                }
-                              ],
-                              "name": "Ratio"
-                            }
-                          },
                           "name": "liquidation_fee"
                         }
                       ],
@@ -3610,15 +3471,6 @@
                                     }
                                   },
                                   "name": "liquidation_ratio"
-                                },
-                                {
-                                  "layout": {
-                                    "leaf": {
-                                      "key": "0x095043d0",
-                                      "ty": 20
-                                    }
-                                  },
-                                  "name": "interest_rate"
                                 },
                                 {
                                   "layout": {
@@ -3694,6 +3546,15 @@
                         }
                       },
                       "name": "max_oracle_age_ms"
+                    },
+                    {
+                      "layout": {
+                        "leaf": {
+                          "key": "0x00000000",
+                          "ty": 4
+                        }
+                      },
+                      "name": "vault_creation_fee"
                     }
                   ],
                   "name": "VaultGlobalParams"
@@ -3747,6 +3608,15 @@
                                             }
                                           },
                                           "name": "max_oracle_age_ms"
+                                        },
+                                        {
+                                          "layout": {
+                                            "leaf": {
+                                              "key": "0x00000000",
+                                              "ty": 4
+                                            }
+                                          },
+                                          "name": "vault_creation_fee"
                                         }
                                       ],
                                       "name": "VaultGlobalParamsConfig"
@@ -3835,34 +3705,7 @@
                               "ty": 4
                             }
                           },
-                          "name": "debt_balance"
-                        },
-                        {
-                          "layout": {
-                            "leaf": {
-                              "key": "0x12f1aaba",
-                              "ty": 4
-                            }
-                          },
-                          "name": "total_interest_accrued"
-                        },
-                        {
-                          "layout": {
-                            "leaf": {
-                              "key": "0x12f1aaba",
-                              "ty": 4
-                            }
-                          },
                           "name": "created_at"
-                        },
-                        {
-                          "layout": {
-                            "leaf": {
-                              "key": "0x12f1aaba",
-                              "ty": 4
-                            }
-                          },
-                          "name": "last_interest_accrued_at"
                         }
                       ],
                       "name": "Vault"
@@ -4239,11 +4082,6 @@
                 "typeName": "Ratio"
               },
               {
-                "name": "interest_rate",
-                "type": 17,
-                "typeName": "Ratio"
-              },
-              {
                 "name": "liquidation_fee",
                 "type": 17,
                 "typeName": "Ratio"
@@ -4398,11 +4236,6 @@
                 "typeName": "u32"
               },
               {
-                "name": "interest_rate",
-                "type": 20,
-                "typeName": "u32"
-              },
-              {
                 "name": "liquidation_fee",
                 "type": 20,
                 "typeName": "u32"
@@ -4530,22 +4363,7 @@
                 "typeName": "Balance"
               },
               {
-                "name": "debt_balance",
-                "type": 4,
-                "typeName": "Balance"
-              },
-              {
-                "name": "total_interest_accrued",
-                "type": 4,
-                "typeName": "Balance"
-              },
-              {
                 "name": "created_at",
-                "type": 4,
-                "typeName": "u64"
-              },
-              {
-                "name": "last_interest_accrued_at",
                 "type": 4,
                 "typeName": "u64"
               }
@@ -5203,6 +5021,11 @@
                 "name": "max_oracle_age_ms",
                 "type": 4,
                 "typeName": "u64"
+              },
+              {
+                "name": "vault_creation_fee",
+                "type": 4,
+                "typeName": "Balance"
               }
             ]
           }
@@ -5293,6 +5116,11 @@
                 "name": "max_oracle_age_ms",
                 "type": 4,
                 "typeName": "u64"
+              },
+              {
+                "name": "vault_creation_fee",
+                "type": 4,
+                "typeName": "Balance"
               }
             ]
           }
@@ -5606,6 +5434,10 @@
               {
                 "index": 32,
                 "name": "TokenContractCallFailed"
+              },
+              {
+                "index": 33,
+                "name": "VaultCreationFeeNotMet"
               }
             ]
           }
@@ -5792,90 +5624,6 @@
           "variant": {
             "variants": [
               {
-                "fields": [
-                  {
-                    "type": 4
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 61
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 4
-          },
-          {
-            "name": "E",
-            "type": 61
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 67,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 68
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 58
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 68
-          },
-          {
-            "name": "E",
-            "type": 58
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 68,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
                 "index": 0,
                 "name": "None"
               },
@@ -5903,7 +5651,7 @@
       }
     },
     {
-      "id": 69,
+      "id": 67,
       "type": {
         "def": {
           "variant": {
@@ -5945,7 +5693,7 @@
       }
     },
     {
-      "id": 70,
+      "id": 68,
       "type": {
         "def": {
           "variant": {
@@ -5987,7 +5735,7 @@
       }
     },
     {
-      "id": 71,
+      "id": 69,
       "type": {
         "def": {
           "variant": {
@@ -6025,6 +5773,81 @@
         ],
         "path": [
           "Result"
+        ]
+      }
+    },
+    {
+      "id": 70,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 71
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 58
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 71
+          },
+          {
+            "name": "E",
+            "type": 58
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 71,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 22
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 22
+          }
+        ],
+        "path": [
+          "Option"
         ]
       }
     },
@@ -6083,7 +5906,7 @@
               {
                 "fields": [
                   {
-                    "type": 22
+                    "type": 4
                   }
                 ],
                 "index": 1,
@@ -6095,7 +5918,7 @@
         "params": [
           {
             "name": "T",
-            "type": 22
+            "type": 4
           }
         ],
         "path": [
@@ -6112,7 +5935,7 @@
               {
                 "fields": [
                   {
-                    "type": 75
+                    "type": 4
                   }
                 ],
                 "index": 0,
@@ -6133,7 +5956,7 @@
         "params": [
           {
             "name": "T",
-            "type": 75
+            "type": 4
           },
           {
             "name": "E",
@@ -6152,17 +5975,22 @@
           "variant": {
             "variants": [
               {
+                "fields": [
+                  {
+                    "type": 76
+                  }
+                ],
                 "index": 0,
-                "name": "None"
+                "name": "Ok"
               },
               {
                 "fields": [
                   {
-                    "type": 4
+                    "type": 58
                   }
                 ],
                 "index": 1,
-                "name": "Some"
+                "name": "Err"
               }
             ]
           }
@@ -6170,11 +5998,15 @@
         "params": [
           {
             "name": "T",
-            "type": 4
+            "type": 76
+          },
+          {
+            "name": "E",
+            "type": 58
           }
         ],
         "path": [
-          "Option"
+          "Result"
         ]
       }
     },
@@ -6196,7 +6028,7 @@
               {
                 "fields": [
                   {
-                    "type": 58
+                    "type": 61
                   }
                 ],
                 "index": 1,
@@ -6212,7 +6044,7 @@
           },
           {
             "name": "E",
-            "type": 58
+            "type": 61
           }
         ],
         "path": [

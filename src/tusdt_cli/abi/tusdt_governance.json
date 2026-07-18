@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x28df46cf598896f8b6119340d88c8db60f9eb072323b8042375f31367145c9e3",
+    "hash": "0x98c3f0c40a3766fea9d2cee286934083d2dcd62ef71a41d4a4baf87925e03e16",
     "language": "ink! 5.1.1",
     "compiler": "rustc 1.91.1",
     "build_info": {
@@ -2360,17 +2360,6 @@
               ],
               "type": 5
             }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "transaction_fee",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
           }
         ],
         "docs": [
@@ -2378,7 +2367,7 @@
         ],
         "label": "TokensRepaid",
         "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0xe11c88de1af2c4787d5ce47b80816c6ec7b7780637ea93c5d178e116d4a8192f"
+        "signature_topic": "0xa22358280da53ef96c37f9cb59b4d27b8a530b444e954a3816229235cf85a87f"
       },
       {
         "args": [
@@ -2457,17 +2446,6 @@
               ],
               "type": 5
             }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "transaction_fee",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
           }
         ],
         "docs": [
@@ -2475,7 +2453,7 @@
         ],
         "label": "TokensBorrowed",
         "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0xd775a1237b32075dc9df9854ae98ebab6cdcd965c2f0ce6ec26b0050345c2956"
+        "signature_topic": "0xef408f7426ce09f14f19c91265cc2ee4df89c6ac79710581f4fa4f3d957ba479"
       },
       {
         "args": [
@@ -2519,71 +2497,6 @@
         "label": "CollateralAdded",
         "module_path": "tusdt_vault_alpha::vault",
         "signature_topic": "0xd2baf654d21478b4b14e965ed7450712fe5e68eca1c409f7d3e5855720c235aa"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "owner",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "vault_id",
-            "type": {
-              "displayName": [
-                "u32"
-              ],
-              "type": 6
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "previous_debt_balance",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "debt_balance",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "accrued_at",
-            "type": {
-              "displayName": [
-                "u64"
-              ],
-              "type": 5
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when interest is accrued onto a vault's debt balance."
-        ],
-        "label": "InterestAccrued",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0x9817c420516028890e5664c711e23e8ffd15d13460b1ba1e7b93512b6684dbb1"
       },
       {
         "args": [
@@ -5989,11 +5902,6 @@
                 "typeName": "u32"
               },
               {
-                "name": "interest_rate",
-                "type": 6,
-                "typeName": "u32"
-              },
-              {
                 "name": "liquidation_fee",
                 "type": 6,
                 "typeName": "u32"
@@ -6028,6 +5936,11 @@
                 "name": "max_oracle_age_ms",
                 "type": 5,
                 "typeName": "u64"
+              },
+              {
+                "name": "vault_creation_fee",
+                "type": 5,
+                "typeName": "Balance"
               }
             ]
           }
