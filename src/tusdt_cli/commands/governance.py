@@ -18,6 +18,9 @@ _GOVERNANCE_ADVANCED = {
     "vault-cancel-update",
     "vault-update-treasury",
     "vault-update-platform",
+    "vault-set-token-controller",
+    "vault-update-auction-address",
+    "vault-update-oracle-address",
     "vault-unpause",
     "vault-pause",
     "vault-claim-excess-alpha",
@@ -31,6 +34,10 @@ _GOVERNANCE_ADVANCED = {
     "oracle-set-min-submitter-stake",
     "auction-set-admin",
     "update-params",
+    "update-vault-address",
+    "update-auction-address",
+    "update-oracle-address",
+    "update-treasury-address",
     "submit-proposal",
     "vote",
     "finalize-proposal",
@@ -1443,3 +1450,224 @@ def gov_election_set_netuid(
     state.output.info(f"Setting election netuid to {netuid}...")
     state.submit(lambda c, kp: c.election_set_netuid(kp, netuid))
     state.output.success(f"Election netuid set to {netuid}!")
+
+
+# ------------------------------------------------------------------
+# vault-set-token-controller
+# ------------------------------------------------------------------
+
+
+@governance_group.command("vault-set-token-controller")
+@click.argument("address", type=str, metavar="<new-controller-address>")
+@wallet_option
+@network_option
+@click.pass_context
+def gov_vault_set_token_controller(
+    ctx: click.Context, address: str, wallet_name: str | None, network: str | None
+) -> None:
+    """Transfer the ERC20 token controller via governance (maintainer only).
+
+    Calls through to the vault's set_token_controller, which cross-calls
+    the ERC20 contract to update the controller and minter set.
+    """
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Transferring token controller to {address}...")
+    state.submit(lambda c, kp: c.gov_vault_set_token_controller(kp, address))
+    state.output.success(f"Token controller transferred to {address}!")
+
+
+# ------------------------------------------------------------------
+# vault-update-auction-address
+# ------------------------------------------------------------------
+
+
+@governance_group.command("vault-update-auction-address")
+@click.argument("address", type=str, metavar="<new-auction-address>")
+@wallet_option
+@network_option
+@click.pass_context
+def gov_vault_update_auction_address(
+    ctx: click.Context, address: str, wallet_name: str | None, network: str | None
+) -> None:
+    """Update the vault's stored auction contract address via governance (maintainer only)."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Updating vault auction address to {address}...")
+    state.submit(lambda c, kp: c.gov_vault_update_auction_address(kp, address))
+    state.output.success(f"Vault auction address updated to {address}!")
+
+
+# ------------------------------------------------------------------
+# vault-update-oracle-address
+# ------------------------------------------------------------------
+
+
+@governance_group.command("vault-update-oracle-address")
+@click.argument("address", type=str, metavar="<new-oracle-address>")
+@wallet_option
+@network_option
+@click.pass_context
+def gov_vault_update_oracle_address(
+    ctx: click.Context, address: str, wallet_name: str | None, network: str | None
+) -> None:
+    """Update the vault's stored oracle contract address via governance (maintainer only)."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Updating vault oracle address to {address}...")
+    state.submit(lambda c, kp: c.gov_vault_update_oracle_address(kp, address))
+    state.output.success(f"Vault oracle address updated to {address}!")
+
+
+# ------------------------------------------------------------------
+# update-vault-address
+# ------------------------------------------------------------------
+
+
+@governance_group.command("update-vault-address")
+@click.argument("address", type=str, metavar="<new-vault-address>")
+@wallet_option
+@network_option
+@click.pass_context
+def gov_update_vault_address(
+    ctx: click.Context, address: str, wallet_name: str | None, network: str | None
+) -> None:
+    """Update the stored vault contract address in governance (maintainer only).
+
+    Used after a vault upgrade to point governance at the new vault instance.
+    """
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Updating governance vault address to {address}...")
+    state.submit(lambda c, kp: c.gov_update_vault_address(kp, address))
+    state.output.success(f"Governance vault address updated to {address}!")
+
+
+# ------------------------------------------------------------------
+# update-auction-address
+# ------------------------------------------------------------------
+
+
+@governance_group.command("update-auction-address")
+@click.argument("address", type=str, metavar="<new-auction-address>")
+@wallet_option
+@network_option
+@click.pass_context
+def gov_update_auction_address(
+    ctx: click.Context, address: str, wallet_name: str | None, network: str | None
+) -> None:
+    """Update the stored auction contract address in governance (maintainer only)."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Updating governance auction address to {address}...")
+    state.submit(lambda c, kp: c.gov_update_auction_address(kp, address))
+    state.output.success(f"Governance auction address updated to {address}!")
+
+
+# ------------------------------------------------------------------
+# update-oracle-address
+# ------------------------------------------------------------------
+
+
+@governance_group.command("update-oracle-address")
+@click.argument("address", type=str, metavar="<new-oracle-address>")
+@wallet_option
+@network_option
+@click.pass_context
+def gov_update_oracle_address(
+    ctx: click.Context, address: str, wallet_name: str | None, network: str | None
+) -> None:
+    """Update the stored oracle contract address in governance (maintainer only)."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Updating governance oracle address to {address}...")
+    state.submit(lambda c, kp: c.gov_update_oracle_address(kp, address))
+    state.output.success(f"Governance oracle address updated to {address}!")
+
+
+# ------------------------------------------------------------------
+# update-treasury-address
+# ------------------------------------------------------------------
+
+
+@governance_group.command("update-treasury-address")
+@click.argument("address", type=str, metavar="<new-treasury-address>")
+@wallet_option
+@network_option
+@click.pass_context
+def gov_update_treasury_address(
+    ctx: click.Context, address: str, wallet_name: str | None, network: str | None
+) -> None:
+    """Update the stored treasury contract address in governance (maintainer only)."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Updating governance treasury address to {address}...")
+    state.submit(lambda c, kp: c.gov_update_treasury_address(kp, address))
+    state.output.success(f"Governance treasury address updated to {address}!")
+
+
+# ------------------------------------------------------------------
+# vault-address (read)
+# ------------------------------------------------------------------
+
+
+@governance_group.command("vault-address")
+@wallet_option
+@network_option
+@click.pass_context
+def gov_vault_address(ctx: click.Context, wallet_name: str | None, network: str | None) -> None:
+    """Show the vault contract address from the governance contract."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    kp = state.get_reader_keypair()
+    state.make_config()
+    result = state.run_read(lambda c: c.get_vault_address(kp))
+    state.output.detail("Vault Address", {"Address": result})
+
+
+# ------------------------------------------------------------------
+# auction-address (read)
+# ------------------------------------------------------------------
+
+
+@governance_group.command("auction-address")
+@wallet_option
+@network_option
+@click.pass_context
+def gov_auction_address(ctx: click.Context, wallet_name: str | None, network: str | None) -> None:
+    """Show the auction contract address from the governance contract."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    kp = state.get_reader_keypair()
+    state.make_config()
+    result = state.run_read(lambda c: c.get_governance_auction_address(kp))
+    state.output.detail("Auction Address", {"Address": result})
+
+
+# ------------------------------------------------------------------
+# oracle-address (read)
+# ------------------------------------------------------------------
+
+
+@governance_group.command("oracle-address")
+@wallet_option
+@network_option
+@click.pass_context
+def gov_oracle_address(ctx: click.Context, wallet_name: str | None, network: str | None) -> None:
+    """Show the oracle contract address from the governance contract."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    kp = state.get_reader_keypair()
+    state.make_config()
+    result = state.run_read(lambda c: c.get_governance_oracle_address(kp))
+    state.output.detail("Oracle Address", {"Address": result})

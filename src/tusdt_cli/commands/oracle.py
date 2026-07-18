@@ -30,6 +30,7 @@ _ORACLE_ADVANCED = {
     "max-submissions",
     "set-netuid",
     "set-min-submitter-stake",
+    "set-controller",
     "set-validator",
     "set-max-deviation",
     "update-governance",
@@ -786,3 +787,29 @@ def update_governance(
     state.output.info(f"Updating oracle governance to {address}...")
     state.submit(lambda c, kp: c.oracle_update_governance(kp, address))
     state.output.success("Oracle governance updated!")
+
+
+# ------------------------------------------------------------------
+# set-controller
+# ------------------------------------------------------------------
+
+
+@oracle_group.command("set-controller")
+@click.argument("address", type=str, metavar="<new-controller-address>")
+@wallet_option
+@network_option
+@click.pass_context
+def oracle_set_controller_cmd(
+    ctx: click.Context, address: str, wallet_name: str | None, network: str | None
+) -> None:
+    """Transfer the oracle controller role to a new vault (governance only).
+
+    Used during vault upgrades to hand off control of this oracle
+    contract to a new vault instance.
+    """
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Transferring oracle controller to {address}...")
+    state.submit(lambda c, kp: c.oracle_set_controller(kp, address))
+    state.output.success(f"Oracle controller transferred to {address}!")

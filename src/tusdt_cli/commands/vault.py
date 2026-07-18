@@ -47,6 +47,10 @@ _VAULT_ADVANCED = {
     "set-approved-netuid",
     "is-approved-netuid",
     "claim-excess-alpha",
+    "set-token-controller",
+    "update-auction-address",
+    "update-oracle-address",
+    "update-token-address",
 }
 
 
@@ -1521,3 +1525,95 @@ def claim_excess_alpha(ctx: click.Context, netuid: int, wallet_name: str | None,
     state.output.info(f"Claiming excess alpha on netuid {netuid}...")
     state.submit(lambda c, kp: c.claim_excess_alpha(kp, netuid))
     state.output.success(f"Excess alpha claimed on netuid {netuid}!")
+
+
+# ------------------------------------------------------------------
+# set-token-controller
+# ------------------------------------------------------------------
+
+
+@vault_group.command("set-token-controller")
+@click.argument("address", type=str, metavar="<new-controller-address>")
+@wallet_option
+@network_option
+@click.pass_context
+def vault_set_token_controller(
+    ctx: click.Context, address: str, wallet_name: str | None, network: str | None
+) -> None:
+    """Transfer the ERC20 token controller to a new account (governance only).
+
+    Cross-calls the ERC20 contract to update the controller and migrate
+    the minter set from the old controller to the new one.
+    """
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Transferring token controller to {address}...")
+    state.submit(lambda c, kp: c.vault_set_token_controller(kp, address))
+    state.output.success(f"Token controller transferred to {address}!")
+
+
+# ------------------------------------------------------------------
+# update-auction-address
+# ------------------------------------------------------------------
+
+
+@vault_group.command("update-auction-address")
+@click.argument("address", type=str, metavar="<new-auction-address>")
+@wallet_option
+@network_option
+@click.pass_context
+def vault_update_auction_address(
+    ctx: click.Context, address: str, wallet_name: str | None, network: str | None
+) -> None:
+    """Update the stored auction contract address (governance only)."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Updating auction address to {address}...")
+    state.submit(lambda c, kp: c.vault_update_auction_address(kp, address))
+    state.output.success(f"Auction address updated to {address}!")
+
+
+# ------------------------------------------------------------------
+# update-oracle-address
+# ------------------------------------------------------------------
+
+
+@vault_group.command("update-oracle-address")
+@click.argument("address", type=str, metavar="<new-oracle-address>")
+@wallet_option
+@network_option
+@click.pass_context
+def vault_update_oracle_address(
+    ctx: click.Context, address: str, wallet_name: str | None, network: str | None
+) -> None:
+    """Update the stored oracle contract address (governance only)."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Updating oracle address to {address}...")
+    state.submit(lambda c, kp: c.vault_update_oracle_address(kp, address))
+    state.output.success(f"Oracle address updated to {address}!")
+
+
+# ------------------------------------------------------------------
+# update-token-address
+# ------------------------------------------------------------------
+
+
+@vault_group.command("update-token-address")
+@click.argument("address", type=str, metavar="<new-token-address>")
+@wallet_option
+@network_option
+@click.pass_context
+def vault_update_token_address(
+    ctx: click.Context, address: str, wallet_name: str | None, network: str | None
+) -> None:
+    """Update the stored token (ERC20) contract address (governance only)."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Updating token address to {address}...")
+    state.submit(lambda c, kp: c.vault_update_token_address(kp, address))
+    state.output.success(f"Token address updated to {address}!")

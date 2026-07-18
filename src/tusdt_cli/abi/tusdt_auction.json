@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x40ffdd853c54c297eff647205100638c6e905b6ba8666b9313f2e96587be41b1",
+    "hash": "0x8085af2cac86f6984230807844ac11a7cb82c00f960c85ac2ca6226c6825915b",
     "language": "ink! 5.1.1",
     "compiler": "rustc 1.91.1",
     "build_info": {
@@ -153,6 +153,38 @@
         "label": "WinningBidTransferred",
         "module_path": "tusdt_auction::auction",
         "signature_topic": "0x2453946cbe1f6032b08342168446e55733a50984aaed83e6915336a88b93032e"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "old_controller",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_controller",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the controller (vault) address is updated by governance."
+        ],
+        "label": "AuctionControllerUpdated",
+        "module_path": "tusdt_auction::auction",
+        "signature_topic": "0x21719275308e2033f8805c41f70b3228e4234619a3c32cfe056be85b16cd7e7e"
       },
       {
         "args": [
@@ -586,7 +618,7 @@
         ],
         "default": false,
         "docs": [
-          " Creates a new liquidation auction for a vault with specified collateral and debt, returning the auction ID."
+          " Creates a new liquidation auction for a vault (controller/vault only). Returns the new auction ID."
         ],
         "label": "create_auction",
         "mutates": true,
@@ -659,6 +691,36 @@
       {
         "args": [
           {
+            "label": "new_controller",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Transfers the controller (vault) role to a new account. Governance-only.",
+          " Used during vault upgrades to hand off control of this auction to a new",
+          " vault instance."
+        ],
+        "label": "set_controller",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 46
+        },
+        "selector": "0xc5e161ea"
+      },
+      {
+        "args": [
+          {
             "label": "auction_id",
             "type": {
               "displayName": [
@@ -688,7 +750,7 @@
         ],
         "default": false,
         "docs": [
-          " Places a bid on an auction, transferring the bid amount and updating the highest bid if applicable."
+          " Places a bid on an auction, transferring the bid amount and updating the highest bid if applicable. Permissionless — any account may bid."
         ],
         "label": "place_bid",
         "mutates": true,
@@ -716,7 +778,7 @@
         ],
         "default": false,
         "docs": [
-          " Finalizes an auction after it has ended, marking the highest bidder as winner."
+          " Finalizes an auction after it has ended, marking the highest bidder as winner. Permissionless — anyone may call once the deadline passes."
         ],
         "label": "finalize_auction",
         "mutates": true,

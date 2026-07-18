@@ -802,6 +802,30 @@ class TUSDTClient:
         """Emergency drain native balance from the vault (TESTNET ONLY, governance)."""
         return self._exec(self.vault, keypair, "emergency_drain", args={"recipient": recipient})
 
+    # ---- Vault: upgrade / migration ----
+
+    def vault_set_token_controller(
+        self, keypair: Keypair, new_controller: str
+    ) -> dict[str, Any] | DryRunResult:
+        """Transfer the ERC20 token controller to a new account (vault governance only)."""
+        return self._exec(
+            self.vault, keypair, "set_token_controller", args={"new_controller": new_controller}
+        )
+
+    def vault_update_auction_address(
+        self, keypair: Keypair, new_auction: str
+    ) -> dict[str, Any] | DryRunResult:
+        """Update the stored auction contract address (vault governance only)."""
+        return self._exec(self.vault, keypair, "update_auction_address", args={"new_auction": new_auction})
+
+    def vault_update_oracle_address(self, keypair: Keypair, new_oracle: str) -> dict[str, Any] | DryRunResult:
+        """Update the stored oracle contract address (vault governance only)."""
+        return self._exec(self.vault, keypair, "update_oracle_address", args={"new_oracle": new_oracle})
+
+    def vault_update_token_address(self, keypair: Keypair, new_token: str) -> dict[str, Any] | DryRunResult:
+        """Update the stored token contract address (vault governance only)."""
+        return self._exec(self.vault, keypair, "update_token_address", args={"new_token": new_token})
+
     # ==================================================================
     # GOVERNANCE OPERATIONS
     # ==================================================================
@@ -959,6 +983,71 @@ class TUSDTClient:
         """Update the vault platform address via governance."""
         return self._exec(
             self.governance, keypair, "vault_update_platform", args={"new_platform": new_platform}
+        )
+
+    # ---- Governance: vault upgrade / migration ----
+
+    def gov_vault_set_token_controller(
+        self, keypair: Keypair, new_controller: str
+    ) -> dict[str, Any] | DryRunResult:
+        """Transfer the ERC20 token controller via governance (maintainer only)."""
+        return self._exec(
+            self.governance, keypair, "vault_set_token_controller", args={"new_controller": new_controller}
+        )
+
+    def gov_vault_update_auction_address(
+        self, keypair: Keypair, new_auction: str
+    ) -> dict[str, Any] | DryRunResult:
+        """Update the vault's auction contract address via governance (maintainer only)."""
+        return self._exec(
+            self.governance, keypair, "vault_update_auction_address", args={"new_auction": new_auction}
+        )
+
+    def gov_vault_update_oracle_address(
+        self, keypair: Keypair, new_oracle: str
+    ) -> dict[str, Any] | DryRunResult:
+        """Update the vault's oracle contract address via governance (maintainer only)."""
+        return self._exec(
+            self.governance, keypair, "vault_update_oracle_address", args={"new_oracle": new_oracle}
+        )
+
+    # ---- Governance: own address management (maintainer only) ----
+
+    def get_vault_address(self, keypair: Keypair) -> str:
+        """Return the vault contract address from governance."""
+        result = self._read(self.governance, keypair, "vault_address")
+        return unwrap_plain(result)
+
+    def get_governance_auction_address(self, keypair: Keypair) -> str:
+        """Return the auction contract address from governance."""
+        result = self._read(self.governance, keypair, "auction_address")
+        return unwrap_plain(result)
+
+    def get_governance_oracle_address(self, keypair: Keypair) -> str:
+        """Return the oracle contract address from governance."""
+        result = self._read(self.governance, keypair, "oracle_address")
+        return unwrap_plain(result)
+
+    def gov_update_vault_address(self, keypair: Keypair, new_vault: str) -> dict[str, Any] | DryRunResult:
+        """Update the vault address in governance (maintainer only)."""
+        return self._exec(self.governance, keypair, "update_vault_address", args={"new_vault": new_vault})
+
+    def gov_update_auction_address(self, keypair: Keypair, new_auction: str) -> dict[str, Any] | DryRunResult:
+        """Update the auction address in governance (maintainer only)."""
+        return self._exec(
+            self.governance, keypair, "update_auction_address", args={"new_auction": new_auction}
+        )
+
+    def gov_update_oracle_address(self, keypair: Keypair, new_oracle: str) -> dict[str, Any] | DryRunResult:
+        """Update the oracle address in governance (maintainer only)."""
+        return self._exec(self.governance, keypair, "update_oracle_address", args={"new_oracle": new_oracle})
+
+    def gov_update_treasury_address(
+        self, keypair: Keypair, new_treasury: str
+    ) -> dict[str, Any] | DryRunResult:
+        """Update the treasury address in governance (maintainer only)."""
+        return self._exec(
+            self.governance, keypair, "update_treasury_address", args={"new_treasury": new_treasury}
         )
 
     def gov_vault_unpause(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
@@ -1307,6 +1396,10 @@ class TUSDTClient:
         result = self._read(self.auction, keypair, "admin")
         return unwrap_option(result)
 
+    def auction_set_controller(self, keypair: Keypair, new_controller: str) -> dict[str, Any] | DryRunResult:
+        """Transfer the auction controller role to a new vault (governance only)."""
+        return self._exec(self.auction, keypair, "set_controller", args={"new_controller": new_controller})
+
     def create_auction(
         self,
         keypair: Keypair,
@@ -1497,6 +1590,10 @@ class TUSDTClient:
     ) -> dict[str, Any] | DryRunResult:
         """Transfer oracle governance to a new account (controller only)."""
         return self._exec(self.oracle, keypair, "update_governance", args={"new_governance": new_governance})
+
+    def oracle_set_controller(self, keypair: Keypair, new_controller: str) -> dict[str, Any] | DryRunResult:
+        """Transfer the oracle controller role to a new vault (governance only)."""
+        return self._exec(self.oracle, keypair, "set_controller", args={"new_controller": new_controller})
 
     # ==================================================================
     # TREASURY OPERATIONS

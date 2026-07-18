@@ -19,6 +19,7 @@ _AUCTION_ADVANCED = {
     "bid-info",
     "create",
     "set-admin",
+    "set-controller",
     "update-governance",
     "transfer-winning-bid",
 }
@@ -836,3 +837,29 @@ def active_count(ctx: click.Context, network: str | None) -> None:
     kp = get_reader_keypair(cfg)
     count = state.run_read(lambda c: c.get_active_auctions_count(kp))
     state.output.detail("Active Auctions", {"Count": count})
+
+
+# ------------------------------------------------------------------
+# set-controller
+# ------------------------------------------------------------------
+
+
+@auction_group.command("set-controller")
+@click.argument("address", type=str, metavar="<new-controller-address>")
+@wallet_option
+@network_option
+@click.pass_context
+def auction_set_controller_cmd(
+    ctx: click.Context, address: str, wallet_name: str | None, network: str | None
+) -> None:
+    """Transfer the auction controller role to a new vault (governance only).
+
+    Used during vault upgrades to hand off control of this auction
+    contract to a new vault instance.
+    """
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info(f"Transferring auction controller to {address}...")
+    state.submit(lambda c, kp: c.auction_set_controller(kp, address))
+    state.output.success(f"Auction controller transferred to {address}!")
