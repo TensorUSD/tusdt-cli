@@ -24,6 +24,9 @@ _GOVERNANCE_ADVANCED = {
     "vault-unpause",
     "vault-pause",
     "vault-claim-excess-alpha",
+    "vault-hotkey",
+    "vault-set-hotkey",
+    "vault-transfer-native-balance",
     "vault-set-approved-netuid",
     "vault-set-global-params",
     "vault-cancel-global-update",
@@ -1307,6 +1310,90 @@ def gov_vault_claim_excess_alpha(
 
 
 # ------------------------------------------------------------------
+# vault-hotkey
+# ------------------------------------------------------------------
+
+
+@governance_group.command("vault-hotkey")
+@network_option
+@click.pass_context
+def gov_vault_hotkey_cmd(ctx: click.Context, network: str | None) -> None:
+    """Show the vault's staking hotkey address from governance."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    addr = state.run_read(lambda c: c.gov_get_vault_hotkey(kp))
+    state.output.detail("Vault Hotkey", {"Address": addr})
+
+
+# ------------------------------------------------------------------
+# vault-set-hotkey
+# ------------------------------------------------------------------
+
+
+@governance_group.command("vault-set-hotkey")
+@click.argument("new_hotkey", type=str, metavar="<new-hotkey-address>")
+@click.option(
+    "--netuid",
+    "netuids",
+    multiple=True,
+    type=int,
+    required=True,
+    help="Subnet netuid(s) to migrate stake from (repeatable).",
+)
+@wallet_option
+@network_option
+@click.pass_context
+def gov_vault_set_hotkey_cmd(
+    ctx: click.Context,
+    new_hotkey: str,
+    netuids: tuple[int, ...],
+    wallet_name: str | None,
+    network: str | None,
+) -> None:
+    """Migrate the vault's staking hotkey via governance (maintainer only).
+
+    Moves all alpha stake on the specified subnets from the current hotkey
+    to NEW_HOTKEY. Reverts if any liquidation auction is active.
+    """
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    nu_list = list(netuids)
+    state.output.info(
+        f"Migrating vault hotkey to {new_hotkey} via governance on netuids {nu_list}..."
+    )
+    state.submit(lambda c, kp: c.gov_set_vault_hotkey(kp, new_hotkey, nu_list))
+    state.output.success(f"Vault hotkey migrated to {new_hotkey}!")
+
+
+# ------------------------------------------------------------------
+# vault-transfer-native-balance
+# ------------------------------------------------------------------
+
+
+@governance_group.command("vault-transfer-native-balance")
+@wallet_option
+@network_option
+@click.pass_context
+def gov_vault_transfer_native_balance_cmd(
+    ctx: click.Context, wallet_name: str | None, network: str | None
+) -> None:
+    """Transfer the vault's native TAO to the treasury via governance (maintainer only).
+
+    Transfers the full contract balance. Reverts if any liquidation auction
+    is active.
+    """
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info("Transferring vault native balance to treasury via governance...")
+    state.submit(lambda c, kp: c.gov_transfer_native_to_treasury(kp))
+    state.output.success("Vault native balance transferred to treasury!")
+
+
+# ------------------------------------------------------------------
 # vault-set-approved-netuid
 # ------------------------------------------------------------------
 
@@ -1343,6 +1430,9 @@ def gov_vault_set_approved_netuid(
 @click.option("--transaction-fee", type=int, default=None, help="Transaction fee in basis points")
 @click.option("--auction-duration-ms", type=int, default=None, help="Auction duration in milliseconds")
 @click.option("--max-oracle-age-ms", type=int, default=None, help="Max oracle price age in milliseconds")
+@click.option(
+    "--vault-creation-fee", type=str, default=None, help="Vault creation fee in TAO (e.g. 0.005)"
+)
 @wallet_option
 @network_option
 @click.pass_context
@@ -1351,6 +1441,7 @@ def gov_vault_set_global_params(
     transaction_fee: int | None,
     auction_duration_ms: int | None,
     max_oracle_age_ms: int | None,
+    vault_creation_fee: str | None,
     wallet_name: str | None,
     network: str | None,
 ) -> None:
@@ -1358,6 +1449,8 @@ def gov_vault_set_global_params(
     state: CLIContext = ctx.obj
     state.network = network or state.network
     state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
 
     config: dict = {}
     if transaction_fee is not None:
@@ -1366,6 +1459,8 @@ def gov_vault_set_global_params(
         config["auction_duration_ms"] = auction_duration_ms
     if max_oracle_age_ms is not None:
         config["max_oracle_age_ms"] = max_oracle_age_ms
+    if vault_creation_fee is not None:
+        config["vault_creation_fee"] = parse_balance(vault_creation_fee, decimals)
 
     if not config:
         state.output.error("Provide at least one global parameter to update")

@@ -315,6 +315,61 @@ class TestERC20MinterMethods:
             args={"new_controller": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"},
         )
 
+    # ── Hotkey getter ──
+
+    @patch("tusdt_cli.client.SubstrateInterface")
+    @patch("tusdt_cli.client.ContractMetadata")
+    @patch("tusdt_cli.client.ContractInstance")
+    def test_get_vault_hotkey(self, MockCI, MockMeta, MockSub, minimal_config):
+        client = TUSDTClient(minimal_config)
+        client._read = MagicMock()
+        mock_kp = MagicMock()
+        with patch("tusdt_cli.client.unwrap_plain", return_value="5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"):
+            result = client.get_vault_hotkey(mock_kp)
+            assert result == "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+        client._read.assert_called_once_with(client.vault, mock_kp, "get_vault_hotkey")
+
+    @patch("tusdt_cli.client.SubstrateInterface")
+    @patch("tusdt_cli.client.ContractMetadata")
+    @patch("tusdt_cli.client.ContractInstance")
+    def test_get_active_liquidation_count(self, MockCI, MockMeta, MockSub, minimal_config):
+        client = TUSDTClient(minimal_config)
+        client._read = MagicMock()
+        mock_kp = MagicMock()
+        with patch("tusdt_cli.client.unwrap_plain", return_value=3):
+            result = client.get_active_liquidation_count(mock_kp)
+            assert result == 3
+        client._read.assert_called_once_with(client.vault, mock_kp, "get_active_liquidation_count")
+
+    # ── Change hotkey ──
+
+    @patch("tusdt_cli.client.SubstrateInterface")
+    @patch("tusdt_cli.client.ContractMetadata")
+    @patch("tusdt_cli.client.ContractInstance")
+    def test_set_vault_hotkey(self, MockCI, MockMeta, MockSub, minimal_config):
+        client = TUSDTClient(minimal_config)
+        client._exec = MagicMock()
+        mock_kp = MagicMock()
+        client.set_vault_hotkey(mock_kp, "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", [1, 3])
+        client._exec.assert_called_once_with(
+            client.vault, mock_kp, "set_vault_hotkey",
+            args={"new_hotkey": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", "netuids": [1, 3]},
+        )
+
+    # ── Transfer native to treasury ──
+
+    @patch("tusdt_cli.client.SubstrateInterface")
+    @patch("tusdt_cli.client.ContractMetadata")
+    @patch("tusdt_cli.client.ContractInstance")
+    def test_transfer_native_to_treasury(self, MockCI, MockMeta, MockSub, minimal_config):
+        client = TUSDTClient(minimal_config)
+        client._exec = MagicMock()
+        mock_kp = MagicMock()
+        client.transfer_native_to_treasury(mock_kp)
+        client._exec.assert_called_once_with(
+            client.vault, mock_kp, "transfer_native_to_treasury", args={},
+        )
+
 
 class TestGovernanceNewForwarders:
     """Tests for new governance forwarder methods."""
@@ -431,4 +486,45 @@ class TestGovernanceNewForwarders:
         client._exec.assert_called_once_with(
             client.governance, mock_kp, "vault_cancel_contract_params_update",
             args={"netuid": 1},
+        )
+
+    # ── New governance forwarders ──
+
+    @patch("tusdt_cli.client.SubstrateInterface")
+    @patch("tusdt_cli.client.ContractMetadata")
+    @patch("tusdt_cli.client.ContractInstance")
+    def test_gov_get_vault_hotkey(self, MockCI, MockMeta, MockSub, minimal_config):
+        client = TUSDTClient(minimal_config)
+        client._read = MagicMock()
+        mock_kp = MagicMock()
+        with patch("tusdt_cli.client.unwrap_plain", return_value="5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"):
+            result = client.gov_get_vault_hotkey(mock_kp)
+            assert result == "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+        client._read.assert_called_once_with(client.governance, mock_kp, "vault_get_hotkey")
+
+    @patch("tusdt_cli.client.SubstrateInterface")
+    @patch("tusdt_cli.client.ContractMetadata")
+    @patch("tusdt_cli.client.ContractInstance")
+    def test_gov_set_vault_hotkey(self, MockCI, MockMeta, MockSub, minimal_config):
+        client = TUSDTClient(minimal_config)
+        client._exec = MagicMock()
+        mock_kp = MagicMock()
+        client.gov_set_vault_hotkey(
+            mock_kp, "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", [1, 3]
+        )
+        client._exec.assert_called_once_with(
+            client.governance, mock_kp, "vault_set_hotkey",
+            args={"new_hotkey": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", "netuids": [1, 3]},
+        )
+
+    @patch("tusdt_cli.client.SubstrateInterface")
+    @patch("tusdt_cli.client.ContractMetadata")
+    @patch("tusdt_cli.client.ContractInstance")
+    def test_gov_transfer_native_to_treasury(self, MockCI, MockMeta, MockSub, minimal_config):
+        client = TUSDTClient(minimal_config)
+        client._exec = MagicMock()
+        mock_kp = MagicMock()
+        client.gov_transfer_native_to_treasury(mock_kp)
+        client._exec.assert_called_once_with(
+            client.governance, mock_kp, "vault_transfer_native_to_treasury", args={},
         )

@@ -46,6 +46,8 @@ _VAULT_ADVANCED = {
     "set-approved-netuid",
     "is-approved-netuid",
     "claim-excess-alpha",
+    "set-hotkey",
+    "transfer-native-balance",
     "set-token-controller",
     "update-auction-address",
     "update-oracle-address",
@@ -292,11 +294,8 @@ def vault_info(
             "Owner": vault_data.get("owner", owner),
             "Netuid": vault_data.get("netuid", "?"),
             "Collateral": format_balance(vault_data.get("collateral_balance", 0), decimals),
-            "Borrowed (principal)": format_balance(vault_data.get("borrowed_token_balance", 0), decimals),
             "Borrowed": format_balance(vault_data.get("borrowed_token_balance", 0), decimals),
-            "Interest accrued": format_balance(vault_data.get("total_interest_accrued", 0), decimals),
             "Created at": vault_data.get("created_at", "?"),
-            "Interest accrued at": vault_data.get("last_interest_accrued_at", "?"),
         },
     )
 
@@ -352,7 +351,6 @@ def list_vaults(
                 str(v.get("id", "?")),
                 str(v.get("netuid", "?")),
                 format_balance(v.get("collateral_balance", 0), decimals),
-                format_balance(v.get("borrowed_token_balance", 0), decimals),
                 format_balance(v.get("borrowed_token_balance", 0), decimals),
                 str(v.get("created_at", "?")),
             ]
@@ -598,7 +596,6 @@ def list_all_vaults(ctx: click.Context, page: int, network: str | None) -> None:
                 str(v.get("owner", "?")),
                 format_balance(v.get("collateral_balance", 0), decimals),
                 format_balance(v.get("borrowed_token_balance", 0), decimals),
-                format_balance(v.get("borrowed_token_balance", 0), decimals),
                 str(v.get("created_at", "?")),
             ]
         )
@@ -781,6 +778,42 @@ def governance(ctx: click.Context, network: str | None) -> None:
     kp = get_reader_keypair(cfg)
     addr = state.run_read(lambda c: c.get_governance(kp))
     state.output.detail("Governance", {"Address": addr})
+
+
+# ------------------------------------------------------------------
+# hotkey
+# ------------------------------------------------------------------
+
+
+@vault_group.command("hotkey")
+@network_option
+@click.pass_context
+def vault_hotkey_cmd(ctx: click.Context, network: str | None) -> None:
+    """Show the vault's staking hotkey address."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    addr = state.run_read(lambda c: c.get_vault_hotkey(kp))
+    state.output.detail("Vault Hotkey", {"Address": addr})
+
+
+# ------------------------------------------------------------------
+# active-liquidation-count
+# ------------------------------------------------------------------
+
+
+@vault_group.command("active-liquidation-count")
+@network_option
+@click.pass_context
+def active_liquidation_count_cmd(ctx: click.Context, network: str | None) -> None:
+    """Show the number of vaults in active liquidation auctions."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    count = state.run_read(lambda c: c.get_active_liquidation_count(kp))
+    state.output.detail("Active Liquidation Count", {"Count": str(count)})
 
 
 # ------------------------------------------------------------------
@@ -968,14 +1001,13 @@ def set_params(
 
     \b
     Per-netuid params: collateral_ratio, liquidation_ratio,
-    interest_rate (bps), liquidation_fee (bps).
-    Global params (transaction_fee, auction_duration_ms, max_oracle_age_ms)
-    use the separate `set-global-params` command.
+    liquidation_fee (bps).
+    Global params (transaction_fee, auction_duration_ms, max_oracle_age_ms,
+    vault_creation_fee) use the separate `set-global-params` command.
 
     \b
     Examples:
       tusdt vault set-params --netuid 1 --collateral-ratio 150 --liquidation-ratio 120 --wallet-name MyWallet
-      tusdt vault set-params --netuid 42 --interest-rate 1000 --wallet-name MyWallet
     """
     state: CLIContext = ctx.obj
     state.network = network or state.network
@@ -1314,6 +1346,9 @@ def vault_emergency_drain_cmd(
 )
 @click.option("--auction-duration-ms", type=int, default=None, help="Auction duration in milliseconds")
 @click.option("--max-oracle-age-ms", type=int, default=None, help="Max oracle price age in milliseconds")
+@click.option(
+    "--vault-creation-fee", type=str, default=None, help="Vault creation fee in TAO (e.g. 0.005)"
+)
 @wallet_option
 @network_option
 @click.pass_context
@@ -1322,17 +1357,20 @@ def set_global_params(
     transaction_fee: int | None,
     auction_duration_ms: int | None,
     max_oracle_age_ms: int | None,
+    vault_creation_fee: str | None,
     wallet_name: str | None,
     network: str | None,
 ) -> None:
     """Schedule a global parameters update (24h timelock).
 
     Global params affect all subnets: transaction_fee (bps),
-    auction_duration_ms, max_oracle_age_ms.
+    auction_duration_ms, max_oracle_age_ms, vault_creation_fee.
     """
     state: CLIContext = ctx.obj
     state.network = network or state.network
     state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
 
     config: dict = {}
     if transaction_fee is not None:
@@ -1341,6 +1379,8 @@ def set_global_params(
         config["auction_duration_ms"] = auction_duration_ms
     if max_oracle_age_ms is not None:
         config["max_oracle_age_ms"] = max_oracle_age_ms
+    if vault_creation_fee is not None:
+        config["vault_creation_fee"] = parse_balance(vault_creation_fee, decimals)
 
     if not config:
         state.output.error("Provide at least one global parameter to update")
@@ -1486,6 +1526,74 @@ def claim_excess_alpha(ctx: click.Context, netuid: int, wallet_name: str | None,
     state.output.info(f"Claiming excess alpha on netuid {netuid}...")
     state.submit(lambda c, kp: c.claim_excess_alpha(kp, netuid))
     state.output.success(f"Excess alpha claimed on netuid {netuid}!")
+
+
+# ------------------------------------------------------------------
+# set-hotkey
+# ------------------------------------------------------------------
+
+
+@vault_group.command("set-hotkey")
+@click.argument("new_hotkey", type=str, metavar="<new-hotkey-address>")
+@click.option(
+    "--netuid",
+    "netuids",
+    multiple=True,
+    type=int,
+    required=True,
+    help="Subnet netuid(s) to migrate stake from (repeatable).",
+)
+@wallet_option
+@network_option
+@click.pass_context
+def set_hotkey_cmd(
+    ctx: click.Context,
+    new_hotkey: str,
+    netuids: tuple[int, ...],
+    wallet_name: str | None,
+    network: str | None,
+) -> None:
+    """Migrate the vault's staking hotkey to a new address (governance only).
+
+    Moves all alpha stake on the specified subnets from the current hotkey
+    to NEW_HOTKEY. Reverts if any liquidation auction is active.
+
+    Use --netuid once per subnet (e.g., --netuid 1 --netuid 3).
+    """
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    nu_list = list(netuids)
+    state.output.info(
+        f"Migrating vault hotkey to {new_hotkey} on netuids {nu_list}..."
+    )
+    state.submit(lambda c, kp: c.set_vault_hotkey(kp, new_hotkey, nu_list))
+    state.output.success(f"Vault hotkey migrated to {new_hotkey}!")
+
+
+# ------------------------------------------------------------------
+# transfer-native-balance
+# ------------------------------------------------------------------
+
+
+@vault_group.command("transfer-native-balance")
+@wallet_option
+@network_option
+@click.pass_context
+def transfer_native_balance_cmd(
+    ctx: click.Context, wallet_name: str | None, network: str | None
+) -> None:
+    """Transfer the vault's native TAO balance to the treasury (governance only).
+
+    Transfers the full contract balance. Reverts if any liquidation auction
+    is active.
+    """
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.output.info("Transferring vault native balance to treasury...")
+    state.submit(lambda c, kp: c.transfer_native_to_treasury(kp))
+    state.output.success("Native balance transferred to treasury!")
 
 
 # ------------------------------------------------------------------

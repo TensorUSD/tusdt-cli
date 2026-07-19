@@ -673,6 +673,16 @@ class TUSDTClient:
         result = self._read(self.vault, keypair, "governance")
         return unwrap_plain(result)
 
+    def get_vault_hotkey(self, keypair: Keypair) -> str:
+        """Return the vault's staking hotkey address."""
+        result = self._read(self.vault, keypair, "get_vault_hotkey")
+        return unwrap_plain(result)
+
+    def get_active_liquidation_count(self, keypair: Keypair) -> int:
+        """Return the number of vaults currently in active liquidation auctions."""
+        result = self._read(self.vault, keypair, "get_active_liquidation_count")
+        return unwrap_plain(result)
+
     def get_platform(self, keypair: Keypair) -> str:
         """Return the current platform account address."""
         result = self._read(self.vault, keypair, "platform")
@@ -765,6 +775,27 @@ class TUSDTClient:
         unstaked to native TAO and transferred to the treasury.
         """
         return self._exec(self.vault, keypair, "claim_excess_alpha", args={"netuid": netuid})
+
+    def set_vault_hotkey(
+        self, keypair: Keypair, new_hotkey: str, netuids: list[int]
+    ) -> dict[str, Any] | DryRunResult:
+        """Migrate the vault's staking hotkey to a new address (governance only).
+
+        Moves all alpha stake on the specified netuids from the current hotkey
+        to *new_hotkey* using chain-extension ``move_stake``. Reverts if any
+        liquidation auction is active.
+        """
+        return self._exec(
+            self.vault, keypair, "set_vault_hotkey",
+            args={"new_hotkey": new_hotkey, "netuids": netuids},
+        )
+
+    def transfer_native_to_treasury(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
+        """Transfer the vault's entire native TAO balance to the treasury (governance only).
+
+        Reverts if any liquidation auction is active.
+        """
+        return self._exec(self.vault, keypair, "transfer_native_to_treasury", args={})
 
     def set_global_params(self, keypair: Keypair, config: dict[str, Any]) -> dict[str, Any] | DryRunResult:
         """Schedule a global params update with timelock (governance only)."""
@@ -937,6 +968,24 @@ class TUSDTClient:
     def gov_vault_claim_excess_alpha(self, keypair: Keypair, netuid: int) -> dict[str, Any] | DryRunResult:
         """Claim excess alpha staking rewards on *netuid* via governance (maintainer only)."""
         return self._exec(self.governance, keypair, "vault_claim_excess_alpha", args={"netuid": netuid})
+
+    def gov_get_vault_hotkey(self, keypair: Keypair) -> str:
+        """Return the vault's staking hotkey address via governance."""
+        result = self._read(self.governance, keypair, "vault_get_hotkey")
+        return unwrap_plain(result)
+
+    def gov_set_vault_hotkey(
+        self, keypair: Keypair, new_hotkey: str, netuids: list[int]
+    ) -> dict[str, Any] | DryRunResult:
+        """Migrate the vault's staking hotkey via governance (maintainer only)."""
+        return self._exec(
+            self.governance, keypair, "vault_set_hotkey",
+            args={"new_hotkey": new_hotkey, "netuids": netuids},
+        )
+
+    def gov_transfer_native_to_treasury(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
+        """Transfer the vault's native TAO to the treasury via governance (maintainer only)."""
+        return self._exec(self.governance, keypair, "vault_transfer_native_to_treasury", args={})
 
     def gov_vault_set_approved_netuid(
         self, keypair: Keypair, netuid: int, approved: bool

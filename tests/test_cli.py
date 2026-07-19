@@ -131,6 +131,10 @@ class TestVaultAlphaCommands:
             "set-approved-netuid",
             "is-approved-netuid",
             "claim-excess-alpha",
+            "hotkey",
+            "active-liquidation-count",
+            "set-hotkey",
+            "transfer-native-balance",
         ],
     )
     def test_vault_command_help(self, command, runner):
@@ -156,6 +160,9 @@ class TestGovernanceNewForwarders:
         "command",
         [
             "vault-claim-excess-alpha",
+            "vault-hotkey",
+            "vault-set-hotkey",
+            "vault-transfer-native-balance",
             "vault-set-approved-netuid",
             "vault-set-global-params",
             "vault-cancel-global-update",
