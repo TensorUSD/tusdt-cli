@@ -1361,9 +1361,7 @@ def gov_vault_set_hotkey_cmd(
     state.network = network or state.network
     state.wallet_name = wallet_name or state.wallet_name
     nu_list = list(netuids)
-    state.output.info(
-        f"Migrating vault hotkey to {new_hotkey} via governance on netuids {nu_list}..."
-    )
+    state.output.info(f"Migrating vault hotkey to {new_hotkey} via governance on netuids {nu_list}...")
     state.submit(lambda c, kp: c.gov_set_vault_hotkey(kp, new_hotkey, nu_list))
     state.output.success(f"Vault hotkey migrated to {new_hotkey}!")
 
@@ -1430,9 +1428,7 @@ def gov_vault_set_approved_netuid(
 @click.option("--transaction-fee", type=int, default=None, help="Transaction fee in basis points")
 @click.option("--auction-duration-ms", type=int, default=None, help="Auction duration in milliseconds")
 @click.option("--max-oracle-age-ms", type=int, default=None, help="Max oracle price age in milliseconds")
-@click.option(
-    "--vault-creation-fee", type=str, default=None, help="Vault creation fee in TAO (e.g. 0.005)"
-)
+@click.option("--vault-creation-fee", type=str, default=None, help="Vault creation fee in TAO (e.g. 0.005)")
 @wallet_option
 @network_option
 @click.pass_context

@@ -1346,9 +1346,7 @@ def vault_emergency_drain_cmd(
 )
 @click.option("--auction-duration-ms", type=int, default=None, help="Auction duration in milliseconds")
 @click.option("--max-oracle-age-ms", type=int, default=None, help="Max oracle price age in milliseconds")
-@click.option(
-    "--vault-creation-fee", type=str, default=None, help="Vault creation fee in TAO (e.g. 0.005)"
-)
+@click.option("--vault-creation-fee", type=str, default=None, help="Vault creation fee in TAO (e.g. 0.005)")
 @wallet_option
 @network_option
 @click.pass_context
@@ -1564,9 +1562,7 @@ def set_hotkey_cmd(
     state.network = network or state.network
     state.wallet_name = wallet_name or state.wallet_name
     nu_list = list(netuids)
-    state.output.info(
-        f"Migrating vault hotkey to {new_hotkey} on netuids {nu_list}..."
-    )
+    state.output.info(f"Migrating vault hotkey to {new_hotkey} on netuids {nu_list}...")
     state.submit(lambda c, kp: c.set_vault_hotkey(kp, new_hotkey, nu_list))
     state.output.success(f"Vault hotkey migrated to {new_hotkey}!")
 
@@ -1580,9 +1576,7 @@ def set_hotkey_cmd(
 @wallet_option
 @network_option
 @click.pass_context
-def transfer_native_balance_cmd(
-    ctx: click.Context, wallet_name: str | None, network: str | None
-) -> None:
+def transfer_native_balance_cmd(ctx: click.Context, wallet_name: str | None, network: str | None) -> None:
     """Transfer the vault's native TAO balance to the treasury (governance only).
 
     Transfers the full contract balance. Reverts if any liquidation auction

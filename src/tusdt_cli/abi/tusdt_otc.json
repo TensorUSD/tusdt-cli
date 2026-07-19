@@ -64,7 +64,14 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          "Initializes the OTC marketplace with an owner, hotkey, TUSDT token",
+          "address, and a fee rate in basis points (e.g. 30 = 0.3%).",
+          "",
+          "The contract starts in the unpaused state. The `fee_rate_bps` is",
+          "stored as an internal [`Ratio`] and is capped by the maximum",
+          "basis-point value (10_000 = 100%)."
+        ],
         "label": "new",
         "payable": false,
         "returnType": {
@@ -207,14 +214,18 @@
       },
       {
         "args": [],
-        "docs": [],
+        "docs": [
+          "Emitted when the contract is paused by the owner."
+        ],
         "label": "Paused",
         "module_path": "tusdt_otc::otc",
         "signature_topic": "0x0bc7e2d93f816c37cebc39f8cd9f6461f8bd945f23b847e07a39e77b4b0c8820"
       },
       {
         "args": [],
-        "docs": [],
+        "docs": [
+          "Emitted when the contract is unpaused by the owner."
+        ],
         "label": "Unpaused",
         "module_path": "tusdt_otc::otc",
         "signature_topic": "0x653e02ba17d9461415af0142fe0b7aafa9aac6f207b5f1479c13eb1883fc92b0"
@@ -255,7 +266,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when a new order is created."
+        ],
         "label": "OrderCreated",
         "module_path": "tusdt_otc::otc",
         "signature_topic": "0x62b31afff087200177cd5d08fa615969ab4a70f8f7468363feeb5712970798d4"
@@ -285,7 +298,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when ownership is transferred to a new account."
+        ],
         "label": "OwnerUpdated",
         "module_path": "tusdt_otc::otc",
         "signature_topic": "0x0892be9b363f4a05a0a745bad93ec767db313f943170eadbd14494a51ce343a7"
@@ -315,7 +330,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when the fee rate is changed by the owner."
+        ],
         "label": "FeeRateUpdated",
         "module_path": "tusdt_otc::otc",
         "signature_topic": "0xc80c3e0e6c8aae611908342c433cc8ac94aaab5dea017faf4d10f17e90c6b85d"
@@ -345,7 +362,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when a maker cancels their active order."
+        ],
         "label": "OrderCancelled",
         "module_path": "tusdt_otc::otc",
         "signature_topic": "0xf47883082a827d09f4c989fafe33d710b4d8bc0ebac8ebd2d7a2b22a564f90fd"
@@ -386,7 +405,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when an active order is fulfilled by a taker."
+        ],
         "label": "OrderFulfilled",
         "module_path": "tusdt_otc::otc",
         "signature_topic": "0x1a084eb1ce726af74c413e336d31a3417ba3f73913c19682661223176e33e08a"
@@ -438,7 +459,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when excess alpha is unstaked and native TAO is sent to a recipient."
+        ],
         "label": "ExcessAlphaClaimed",
         "module_path": "tusdt_otc::otc",
         "signature_topic": "0xb45c08105785947e3d5185b24b39fac7e56eb6a333787a1e59eda6ee63d12372"
@@ -602,7 +625,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Transfers contract ownership to a new account. Callable only by the current owner."
+        ],
         "label": "update_owner",
         "mutates": true,
         "payable": false,
@@ -628,7 +653,10 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Updates the protocol fee rate. Callable only by the owner.",
+          " `fee_rate_bps` is in basis points (e.g. 30 = 0.3%)."
+        ],
         "label": "update_fee_rate",
         "mutates": true,
         "payable": false,
@@ -644,7 +672,9 @@
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Pauses the contract, blocking all trading operations. Owner only."
+        ],
         "label": "pause",
         "mutates": true,
         "payable": false,
@@ -660,7 +690,9 @@
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Unpauses the contract, re-enabling trading operations. Owner only."
+        ],
         "label": "unpause",
         "mutates": true,
         "payable": false,
@@ -727,7 +759,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the full `Order` struct for a given order ID, or `None` if not found."
+        ],
         "label": "get_order",
         "mutates": false,
         "payable": false,
@@ -743,7 +777,9 @@
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the next available order ID (auto-increment counter)."
+        ],
         "label": "get_next_order_id",
         "mutates": false,
         "payable": false,
@@ -759,7 +795,9 @@
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the contract owner account ID."
+        ],
         "label": "owner",
         "mutates": false,
         "payable": false,
@@ -775,7 +813,9 @@
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the hotkey used for alpha stake operations."
+        ],
         "label": "hotkey",
         "mutates": false,
         "payable": false,
@@ -791,7 +831,9 @@
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns `true` if the contract is currently paused."
+        ],
         "label": "is_paused",
         "mutates": false,
         "payable": false,
@@ -807,7 +849,9 @@
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the current fee rate in basis points (e.g. 30 = 0.3%)."
+        ],
         "label": "fee_rate_bps",
         "mutates": false,
         "payable": false,
@@ -833,7 +877,10 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the total amount of alpha (in RAO) reserved by active Sell",
+          " orders on a subnet."
+        ],
         "label": "get_reserved_alpha",
         "mutates": false,
         "payable": false,

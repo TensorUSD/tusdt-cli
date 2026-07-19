@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x90ea5f31a10d33b405758acee35081e8c5fc5cca63535a8a4ed8e31b553d91b6",
+    "hash": "0x2ca49b1c92a900d46fcfb46f0fb4624b1c559a9fc3e4c93d38c70ee1154be1ef",
     "language": "ink! 5.1.1",
     "compiler": "rustc 1.91.1",
     "build_info": {
@@ -221,7 +221,7 @@
         ],
         "default": false,
         "docs": [
-          " Transfers the controller role to a new account. Callable only once by the current",
+          " Transfers the controller role to a new account. Callable only by the current",
           " controller. Removes the old controller from minters and adds the new one."
         ],
         "label": "set_controller",

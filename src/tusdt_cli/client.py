@@ -786,7 +786,9 @@ class TUSDTClient:
         liquidation auction is active.
         """
         return self._exec(
-            self.vault, keypair, "set_vault_hotkey",
+            self.vault,
+            keypair,
+            "set_vault_hotkey",
             args={"new_hotkey": new_hotkey, "netuids": netuids},
         )
 
@@ -979,7 +981,9 @@ class TUSDTClient:
     ) -> dict[str, Any] | DryRunResult:
         """Migrate the vault's staking hotkey via governance (maintainer only)."""
         return self._exec(
-            self.governance, keypair, "vault_set_hotkey",
+            self.governance,
+            keypair,
+            "vault_set_hotkey",
             args={"new_hotkey": new_hotkey, "netuids": netuids},
         )
 
