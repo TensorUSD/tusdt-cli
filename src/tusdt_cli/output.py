@@ -110,6 +110,7 @@ class Output:
             payload: dict[str, Any] = {
                 "method": result.method,
                 "signer": result.signer,
+                "value": result.value,
                 "gas_required": result.gas_required,
                 "gas_consumed": result.gas_consumed,
                 "gas_ratio": result.gas_ratio,
@@ -126,6 +127,10 @@ class Output:
         lines: list[str] = []
         lines.append(f"  Method:       [cyan]{result.method}[/cyan]")
         lines.append(f"  Signer:       [cyan]{result.signer}[/cyan]")
+
+        # Value transferred
+        if result.value:
+            lines.append(f"  Value:        [cyan]{format_balance(result.value)} TAO[/cyan]")
 
         # Gas
         if result.gas_consumed is not None and result.gas_required is not None:

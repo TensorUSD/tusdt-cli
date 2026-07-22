@@ -5,13 +5,11 @@ import click
 from tusdt_cli.context import CLIContext
 from tusdt_cli.globals import network_option, wallet_option
 from tusdt_cli.utils import (
-    ModeAwareGroup,
+    HelpfulGroup,
     format_balance,
     parse_balance,
 )
 from tusdt_cli.wallet import get_reader_keypair
-
-_TREASURY_ADVANCED = {"set-governance", "distribute", "release"}
 
 _FUND_CHOICE = click.Choice(
     ["emergency", "operation", "insurance", "dividend", "buyback", "voting"],
@@ -21,7 +19,7 @@ _FUND_CHOICE = click.Choice(
 _TOKEN_KIND_CHOICE = click.Choice(["tusdt", "native"], case_sensitive=False)
 
 
-@click.group("treasury", cls=ModeAwareGroup, advanced_commands=_TREASURY_ADVANCED)
+@click.group("treasury", cls=HelpfulGroup)
 def treasury_group() -> None:
     """Treasury operations for the TUSDT system."""
 

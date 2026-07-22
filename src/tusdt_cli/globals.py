@@ -63,9 +63,9 @@ dry_run_option = click.option(
 
 signer_backend_option = click.option(
     "--signer-backend",
-    type=click.Choice(["wallet", "ledger"], case_sensitive=False),
+    type=click.Choice(["wallet", "ledger", "extension"], case_sensitive=False),
     default=None,
-    help="Signing backend: wallet (default) or ledger",
+    help="Signing backend: wallet (default), ledger, or extension",
 )
 
 ledger_option = click.option(
@@ -87,4 +87,27 @@ ledger_index_option = click.option(
     type=int,
     default=0,
     help="Ledger derivation address index (m/44'/354'/account'/0'/INDEX). Default 0.",
+)
+
+# -- extension signing options (matches btcli's pattern) -----------------------
+
+extension_source_option = click.option(
+    "--extension-source",
+    type=str,
+    default=None,
+    help="Filter extension accounts by source (e.g. polkadot-js, talisman)",
+)
+
+extension_browser_option = click.option(
+    "--extension-browser",
+    type=str,
+    default=None,
+    help="Browser to open the bridge page in (e.g. Firefox, 'Google Chrome')",
+)
+
+signer_address_option = click.option(
+    "--signer-address",
+    type=str,
+    default=None,
+    help="Specific extension account address to use (skips interactive picker)",
 )

@@ -1,20 +1,26 @@
 """Ledger hardware wallet support for the TUSDT CLI.
 
-Provides :class:`LedgerSigner` (device communication via USB HID) and
-:class:`LedgerKeypair` (a :class:`substrateinterface.Keypair` subclass that
-delegates signing to the hardware device).
+Provides :class:`LedgerSigner` (device communication via USB HID) that satisfies
+the :class:`~tusdt_cli.signing.Signer` protocol, and :class:`LedgerKeypair`
+(a :class:`substrateinterface.Keypair` subclass for backward compatibility).
 
 Based on the Polkadot generic Ledger app (SLIP-44 coin type 354, derivation
-path ``m/44'/354'/ACCOUNT'/0'/INDEX'``).
+path ``m/44'/354'/ACCOUNT'/0'/INDEX'``). Follows btcli's Ledger architecture.
 
 Usage::
 
     from tusdt_cli.ledger import LedgerSigner, LedgerKeypair, find_ledger_device
 
+    # Direct Signer protocol usage (preferred):
+    signer = LedgerSigner(account=0, index=0)
+    address = signer.ss58_address
+    pubkey = signer.public_key
+    sig = signer.sign(payload)
+
+    # Backward-compatible Keypair adapter:
     device = find_ledger_device()
     signer = LedgerSigner(device, account=0, index=0)
     keypair = LedgerKeypair(signer, signer.ss58_address, signer.get_public_key())
-    # keypair.sign(data) now delegates to the Ledger device
 
 The ``hid`` dependency is optional — install with ``pip install tusdt-cli[ledger]``.
 """
@@ -50,6 +56,12 @@ _COIN_TYPE_POLKADOT = 354
 # SW (status word) codes
 _SW_OK = 0x9000
 _SW_USER_REFUSED = 0x6986
+
+# Chain constants baked into the runtime's metadata hash
+# (matches btcli: SS58Format=42, Decimals=9, TokenSymbol="TAO")
+_SS58_FORMAT = 42
+_DECIMALS = 9
+_TOKEN_SYMBOL = "TAO"
 
 
 class LedgerError(TUSDTError):
@@ -161,17 +173,27 @@ def _hid_read(device: Any, timeout_ms: int = 30000) -> bytes:
 class LedgerSigner:
     """Signs payloads via a connected Ledger hardware device.
 
-    Manages the HID connection lifecycle and wraps the APDU protocol for
-    public-key retrieval and signing.  The Polkadot generic app must be open
-    on the device.
+    Satisfies the :class:`~tusdt_cli.signing.Signer` protocol. Manages the
+    HID connection lifecycle and wraps the APDU protocol for public-key
+    retrieval, address confirmation, and signing. The Polkadot generic app
+    must be open on the device.
+
+    Follows btcli's Ledger architecture with:
+    - ``crypto_type = 0`` (ed25519 — what the generic app signs with)
+    - ``_SS58_FORMAT = 42``, ``_DECIMALS = 9``, ``_TOKEN_SYMBOL = "TAO"``
 
     Parameters:
         device: An open ``hid.device`` instance (from :func:`find_ledger_device`).
+                If None, ``find_ledger_device()`` is called automatically.
         account: BIP44 account index (default 0).
         index: BIP44 address index (default 0).
     """
 
-    def __init__(self, device: Any, account: int = 0, index: int = 0) -> None:
+    crypto_type = 0  # ed25519 — what the generic app uses
+
+    def __init__(self, device: Any = None, account: int = 0, index: int = 0) -> None:
+        if device is None:
+            device = find_ledger_device()
         self._device = device
         self.account = account
         self.index = index
@@ -184,10 +206,28 @@ class LedgerSigner:
     def derivation_path(self) -> str:
         return f"m/44'/{_COIN_TYPE_POLKADOT}'/{self.account}'/0'/{self.index}'"
 
+    # -- app version -------------------------------------------------------
+
+    def app_version(self) -> tuple[int, int, int]:
+        """The generic app's version — also an "is the app open?" probe."""
+        apdu = _apdu_command(POLKADOT_INS_GET_VERSION)
+        _hid_write(self._device, apdu)
+
+        data, sw = _apdu_response(_hid_read(self._device))
+        if sw != _SW_OK:
+            raise LedgerError(f"Ledger APDU error (GET_VERSION): SW={sw:#06x}")
+
+        if len(data) < 3:
+            raise LedgerError(f"Truncated version response ({len(data)} bytes)")
+        return data[0], data[1], data[2]
+
     # -- public key --------------------------------------------------------
 
     def get_public_key(self) -> bytes:
-        """Retrieve the compressed public key from the device (cached)."""
+        """Retrieve the compressed public key from the device (cached).
+
+        Returns the 32-byte ed25519 public key.
+        """
         if self._public_key is not None:
             return self._public_key
 
@@ -205,12 +245,40 @@ class LedgerSigner:
         return self._public_key
 
     @property
+    def public_key(self) -> bytes:
+        """Public key as bytes (Signer protocol)."""
+        return self.get_public_key()
+
+    @property
     def ss58_address(self) -> str:
         """The SS58 address derived from the device (lazy, cached)."""
         if self._ss58_address is None:
             self.get_public_key()
         assert self._ss58_address is not None
         return self._ss58_address
+
+    @property
+    def ss58_format(self) -> int:
+        return _SS58_FORMAT
+
+    def confirm_address(self) -> str:
+        """Re-derive the address with on-device display and return it after
+        the user approves. Use to verify the address on the trusted screen.
+
+        Follows btcli's pattern: calls GET_PUBKEY with p2=0x01 (confirm).
+        """
+        path_bytes = _derive_path_bytes(self.account, self.index)
+        apdu = _apdu_command(POLKADOT_INS_GET_PUBKEY, path_bytes, p2=0x01)
+        _hid_write(self._device, apdu)
+
+        data, sw = _apdu_response(_hid_read(self._device))
+        if sw == _SW_USER_REFUSED:
+            raise LedgerError("User refused address confirmation on the Ledger device")
+        if sw != _SW_OK:
+            raise LedgerError(f"Ledger APDU error (CONFIRM_ADDRESS): SW={sw:#06x}")
+
+        address = data[32:].decode("utf-8", errors="replace")
+        return address
 
     # -- signing -----------------------------------------------------------
 
@@ -219,6 +287,11 @@ class LedgerSigner:
 
         The device will display the transaction for user approval.
         Returns the 64-byte signature.
+
+        Note: This performs blind-signing via the Polkadot generic app.
+        When the transport layer supports metadata proofs, prefer
+        ``sign_unsigned_extrinsic`` for clear-signing with on-screen
+        transaction details (matching btcli's security model).
         """
         path_bytes = _derive_path_bytes(self.account, self.index)
         payload = path_bytes + data
@@ -243,6 +316,9 @@ class LedgerSigner:
 
         with contextlib.suppress(Exception):
             self._device.close()
+
+    def __repr__(self) -> str:
+        return f"LedgerSigner({self.ss58_address}, path=m/44'/354'/{self.account}'/0'/{self.index}')"
 
 
 # ---------------------------------------------------------------------------

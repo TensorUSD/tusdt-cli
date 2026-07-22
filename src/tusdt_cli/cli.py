@@ -21,14 +21,18 @@ from tusdt_cli.config import CONFIG_FILE, NETWORKS, load_config, save_config
 from tusdt_cli.context import CLIContext
 from tusdt_cli.globals import (
     dry_run_option,
+    extension_browser_option,
+    extension_source_option,
     json_option,
     ledger_account_option,
     ledger_index_option,
     ledger_option,
     network_option,
     quiet_option,
+    signer_address_option,
     signer_backend_option,
     verbose_option,
+    yes_option,
 )
 from tusdt_cli.utils import HelpfulGroup, console, print_dict, print_info, print_success
 from tusdt_cli.wallet import get_default_wallet_path, list_wallets
@@ -44,7 +48,11 @@ from tusdt_cli.wallet import get_default_wallet_path, list_wallets
 @quiet_option
 @verbose_option
 @dry_run_option
+@yes_option
 @signer_backend_option
+@signer_address_option
+@extension_source_option
+@extension_browser_option
 @ledger_option
 @ledger_account_option
 @ledger_index_option
@@ -55,7 +63,11 @@ def cli(
     quiet: bool = False,
     verbosity: int = 0,
     dry_run: bool = False,
+    assume_yes: bool = False,
     signer_backend: str | None = None,
+    signer_address: str | None = None,
+    extension_source: str | None = None,
+    extension_browser: str | None = None,
     ledger: bool = False,
     ledger_account: int = 0,
     ledger_index: int = 0,
@@ -74,9 +86,13 @@ def cli(
     ctx.obj = CLIContext(
         use_json=use_json,
         quiet=quiet,
+        assume_yes=assume_yes,
         verbosity=verbosity,
         dry_run=dry_run,
         signer_backend=backend,
+        signer_address=signer_address,
+        extension_source=extension_source,
+        extension_browser=extension_browser,
         ledger_account=ledger_account,
         ledger_index=ledger_index,
         network=saved_network,
@@ -130,13 +146,6 @@ def config_show(ctx: click.Context, network: str | None) -> None:
 @click.option("--wallet-hotkey", default=None, help="Bittensor hotkey name (default: 'default')")
 @click.option("--wallet-path", default=None, help="Path to bittensor wallets directory")
 @click.option("--decimals", default=None, type=int, help="Decimal places for balance display")
-@click.option(
-    "--access-mode",
-    "access_mode",
-    type=click.Choice(["user", "dev"], case_sensitive=False),
-    default=None,
-    help="Command visibility: 'user' (basic) or 'dev' (all commands)",
-)
 def config_set(
     network: str | None,
     rpc: str | None,
@@ -159,7 +168,6 @@ def config_set(
     wallet_hotkey: str | None,
     wallet_path: str | None,
     decimals: int | None,
-    access_mode: str | None,
 ) -> None:
     """Update configuration values.  Only provided options are changed."""
     # Read only the raw saved overrides — not the full resolved config.
@@ -227,7 +235,6 @@ def config_set(
         ("wallet_hotkey", wallet_hotkey),
         ("wallet_path", wallet_path),
         ("decimals", decimals),
-        ("access_mode", access_mode),
     ]
     for key, value in pairs:
         if value is not None:
@@ -333,6 +340,49 @@ def completion_fish() -> None:
 eval (env _{prog.upper()}_COMPLETE=fish_source {prog})
 """
     console.print(script.strip())
+
+
+# ======================================================================
+# ======================================================================
+# extension commands — browser extension bridge management
+# ======================================================================
+
+
+@cli.group("extension", cls=HelpfulGroup)
+def extension_group() -> None:
+    """Manage the browser extension bridge for signing."""
+
+
+@extension_group.command("start")
+@click.option("--browser", type=str, default=None, help="Browser to open the bridge page in")
+def extension_start(browser: str | None) -> None:
+    """Start the extension bridge daemon and open the bridge page."""
+    from tusdt_cli.extension import ensure_bridge
+
+    print_info("Starting extension bridge...")
+    ensure_bridge(browser=browser, fresh=True)
+    print_success("Extension bridge started! A browser tab should have opened.")
+    print_info("Run 'tusdt --signer-backend extension <command>' to sign via the extension.")
+
+
+@extension_group.command("stop")
+def extension_stop() -> None:
+    """Stop the extension bridge daemon."""
+    from tusdt_cli.extension import stop_bridge_daemon
+
+    stop_bridge_daemon()
+    print_success("Extension bridge stopped.")
+
+
+@extension_group.command("status")
+def extension_status() -> None:
+    """Check if the extension bridge is running."""
+    from tusdt_cli.extension.session import bridge_is_reachable
+
+    if bridge_is_reachable():
+        print_success("Extension bridge is running on ws://127.0.0.1:39295")
+    else:
+        print_info("Extension bridge is not running.")
 
 
 # ======================================================================

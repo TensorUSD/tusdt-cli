@@ -139,6 +139,7 @@ class DryRunResult:
 
     method: str
     signer: str
+    value: int = 0
     gas_required: dict[str, int] | None = None
     gas_consumed: dict[str, int] | None = None
     gas_ratio: float | None = None
@@ -433,6 +434,7 @@ class TUSDTClient:
             return DryRunResult(
                 method=method,
                 signer=keypair.ss58_address,
+                value=value,
                 is_success=False,
                 return_value=str(exc),
                 debug_info=debug_info,
@@ -445,6 +447,7 @@ class TUSDTClient:
         return DryRunResult(
             method=method,
             signer=keypair.ss58_address,
+            value=value,
             gas_required=gas_required,
             gas_consumed=gas_consumed,
             gas_ratio=gas_ratio,

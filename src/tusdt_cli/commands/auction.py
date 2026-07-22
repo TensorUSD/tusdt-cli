@@ -5,28 +5,16 @@ import click
 from tusdt_cli.context import CLIContext
 from tusdt_cli.globals import network_option, wallet_option
 from tusdt_cli.utils import (
-    ModeAwareGroup,
+    HelpfulGroup,
     format_balance,
     parse_balance,
 )
 from tusdt_cli.wallet import get_reader_keypair, load_hotkey, resolve_ss58
 
-_AUCTION_ADVANCED = {
-    "list-all",
-    "total-count",
-    "vault-auction",
-    "bids",
-    "bid-info",
-    "create",
-    "set-admin",
-    "set-controller",
-    "update-governance",
-    "transfer-winning-bid",
-}
 _AUCTION_BASIC_READS = {"controller", "governance", "admin-address"}
 
 
-@click.group("auction", cls=ModeAwareGroup, advanced_commands=_AUCTION_ADVANCED)
+@click.group("auction", cls=HelpfulGroup)
 def auction_group() -> None:
     """Liquidation auction operations."""
 

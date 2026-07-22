@@ -6,52 +6,14 @@ from tusdt_cli.context import CLIContext
 from tusdt_cli.globals import network_option, wallet_option
 from tusdt_cli.utils import (
     HelpfulCommand,
-    ModeAwareGroup,
+    HelpfulGroup,
     format_balance,
     parse_balance,
 )
 from tusdt_cli.wallet import get_reader_keypair
 
-_GOVERNANCE_ADVANCED = {
-    "set-council",
-    "vault-set-params",
-    "vault-cancel-update",
-    "vault-update-treasury",
-    "vault-update-platform",
-    "vault-set-token-controller",
-    "vault-update-auction-address",
-    "vault-update-oracle-address",
-    "vault-unpause",
-    "vault-pause",
-    "vault-claim-excess-alpha",
-    "vault-hotkey",
-    "vault-set-hotkey",
-    "vault-transfer-native-balance",
-    "vault-set-approved-netuid",
-    "vault-set-global-params",
-    "vault-cancel-global-update",
-    "oracle-set-validator",
-    "oracle-set-deviation",
-    "oracle-commit-round",
-    "oracle-set-netuid",
-    "oracle-set-min-submitter-stake",
-    "auction-set-admin",
-    "update-params",
-    "update-vault-address",
-    "update-auction-address",
-    "update-oracle-address",
-    "update-treasury-address",
-    "submit-proposal",
-    "vote",
-    "finalize-proposal",
-    "execute-proposal",
-    "submit-snapshot",
-    "elect-maintainer",
-    "election-set-netuid",
-}
 
-
-@click.group("governance", cls=ModeAwareGroup, advanced_commands=_GOVERNANCE_ADVANCED)
+@click.group("governance", cls=HelpfulGroup)
 def governance_group() -> None:
     """Governance operations for the TUSDT system."""
 
