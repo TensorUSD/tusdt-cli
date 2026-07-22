@@ -72,7 +72,6 @@ class TestDefaultConfig:
             "wallet_hotkey",
             "wallet_path",
             "decimals",
-            "access_mode",
         ]
         for key in expected_keys:
             assert key in DEFAULT_CONFIG, f"Missing {key} in DEFAULT_CONFIG"
@@ -82,9 +81,6 @@ class TestDefaultConfig:
 
     def test_default_decimals_is_9(self):
         assert DEFAULT_CONFIG["decimals"] == 9
-
-    def test_default_access_mode_is_user(self):
-        assert DEFAULT_CONFIG["access_mode"] == "user"
 
 
 class TestApplyNetworkOverride:
@@ -122,11 +118,10 @@ class TestLoadConfig:
         assert cfg["decimals"] == 9
 
     def test_merges_saved_values(self, tmp_config_file):
-        saved = {"decimals": 6, "access_mode": "dev"}
+        saved = {"decimals": 6}
         tmp_config_file.write_text(json.dumps(saved))
         cfg = load_config()
         assert cfg["decimals"] == 6
-        assert cfg["access_mode"] == "dev"
         # Defaults still present
         assert cfg["network"] == "finney"
 

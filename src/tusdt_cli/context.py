@@ -49,6 +49,10 @@ class CLIContext:
     signer_backend: str | None = None
     ledger_account: int = 0
     ledger_index: int = 0
+    # Extension signing options (matches btcli's pattern)
+    signer_address: str | None = None
+    extension_source: str | None = None
+    extension_browser: str | None = None
     output: Output = field(default_factory=Output)
     _ledger_signer: Any | None = field(default=None, repr=False)
 
@@ -63,6 +67,14 @@ class CLIContext:
         """Return True if the signer backend is set to 'ledger'."""
         return (self.signer_backend or "").strip().lower() == "ledger"
 
+    def uses_extension(self) -> bool:
+        """Return True if the signer backend is set to 'extension'."""
+        return (self.signer_backend or "").strip().lower() == "extension"
+
+    def uses_external_signer(self) -> bool:
+        """Return True if signing via a device or extension (not local wallet)."""
+        return self.uses_ledger() or self.uses_extension()
+
     def ledger_signer(self):
         """Return the singleton LedgerSigner for this invocation (lazy, cached)."""
         if self._ledger_signer is None:
@@ -76,6 +88,30 @@ class CLIContext:
                     f"({self._ledger_signer.derivation_path})"
                 )
         return self._ledger_signer
+
+    def extension_signer(self):
+        """Return an ExtensionSigner connected via the browser extension bridge.
+
+        Starts the bridge daemon if needed, opens the bridge page, and
+        returns a ready-to-use signer. Async — blocks until connected.
+        """
+        import asyncio
+
+        from tusdt_cli.extension import (
+            ensure_bridge,
+            open_extension_signer,
+        )
+
+        ensure_bridge(
+            browser=self.extension_browser,
+            fresh=False,
+        )
+        return asyncio.run(
+            open_extension_signer(
+                address=self.signer_address,
+                source=self.extension_source,
+            )
+        )
 
     def make_config(self) -> dict[str, Any]:
         """Resolve the full config for this invocation.
@@ -134,8 +170,14 @@ class CLIContext:
         """
         config = self.make_config()
 
-        # --- resolve signer: hardware wallet or software keypair ---
-        if self.uses_ledger():
+        # --- resolve signer: extension > ledger > local wallet ---
+        if self.uses_extension():
+            ext_signer = self.extension_signer()
+            from tusdt_cli.ledger import LedgerKeypair
+
+            # Wrap extension signer as a Keypair adapter for substrate-interface.
+            keypair = LedgerKeypair(ext_signer, ext_signer.ss58_address, ext_signer.public_key)
+        elif self.uses_ledger():
             from tusdt_cli.ledger import LedgerKeypair
 
             signer = self.ledger_signer()

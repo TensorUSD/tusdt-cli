@@ -41,34 +41,6 @@ class HelpfulGroup(click.Group):
     command_class = HelpfulCommand
 
 
-class ModeAwareGroup(HelpfulGroup):
-    """Group that hides advanced commands when access_mode is 'user'."""
-
-    def __init__(self, *args: Any, advanced_commands: set[str] | None = None, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
-        self._advanced: set[str] = set(advanced_commands or [])
-
-    def _is_user_mode(self) -> bool:
-        try:
-            from tusdt_cli.config import load_config  # local import avoids circular dependency
-
-            return load_config().get("access_mode", "user") == "user"
-        except Exception:
-            return True
-
-    def list_commands(self, ctx: click.Context) -> list[str]:
-        commands = super().list_commands(ctx)
-        if self._advanced and self._is_user_mode():
-            return [c for c in commands if c not in self._advanced]
-        return commands
-
-    def format_commands(self, ctx: click.Context, formatter: click.HelpFormatter) -> None:
-        super().format_commands(ctx, formatter)
-        if self._advanced and self._is_user_mode():
-            with formatter.section(""):
-                formatter.write_text("Tip: run 'tusdt config set --access-mode dev' to show all commands.")
-
-
 # ---------------------------------------------------------------------------
 # Balance conversion
 # ---------------------------------------------------------------------------

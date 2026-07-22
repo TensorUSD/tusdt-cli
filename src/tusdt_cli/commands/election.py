@@ -8,17 +8,11 @@ import click
 from tusdt_cli.context import CLIContext
 from tusdt_cli.globals import network_option, wallet_option
 from tusdt_cli.utils import (
-    ModeAwareGroup,
+    HelpfulGroup,
     format_balance,
     parse_balance,
 )
 from tusdt_cli.wallet import get_reader_keypair
-
-_ELECTION_ADVANCED = {
-    "cast-approval",
-    "trigger-emergency-election",
-    "cancel-cycle",
-}
 
 
 def _format_phase(raw: Any) -> str:
@@ -32,7 +26,7 @@ def _format_phase(raw: Any) -> str:
     return str(raw)
 
 
-@click.group("election", cls=ModeAwareGroup, advanced_commands=_ELECTION_ADVANCED)
+@click.group("election", cls=HelpfulGroup)
 def election_group() -> None:
     """Election operations for the TUSDT system."""
 

@@ -5,57 +5,14 @@ import click
 from tusdt_cli.context import CLIContext
 from tusdt_cli.globals import network_option, wallet_option
 from tusdt_cli.utils import (
-    ModeAwareGroup,
+    HelpfulGroup,
     format_balance,
     parse_balance,
 )
 from tusdt_cli.wallet import get_reader_keypair, resolve_ss58
 
-_VAULT_ADVANCED = {
-    "total-debt",
-    "liquidation-auction",
-    "list-all",
-    "params",
-    "total-collateral",
-    "total-count",
-    "trigger-liquidation",
-    "settle-liquidation",
-    "governance",
-    "platform",
-    "paused",
-    "pending-update",
-    "update-governance",
-    "update-platform",
-    "pause",
-    "unpause",
-    "set-params",
-    "execute-update",
-    "cancel-update",
-    "claim-surplus",
-    "token-address",
-    "auction-address",
-    "oracle-address",
-    "collateral-balance",
-    "treasury-address",
-    "update-treasury",
-    "emergency-drain",
-    "set-global-params",
-    "execute-global-update",
-    "cancel-global-update",
-    "get-global-params",
-    "set-approved-netuid",
-    "is-approved-netuid",
-    "claim-excess-alpha",
-    "set-hotkey",
-    "transfer-native-balance",
-    "set-token-controller",
-    "update-auction-address",
-    "update-oracle-address",
-    "update-token-address",
-}
 
-
-@click.group("vault", cls=ModeAwareGroup, advanced_commands=_VAULT_ADVANCED)
+@click.group("vault", cls=HelpfulGroup)
 def vault_group() -> None:
     """Manage collateral vaults."""
 
@@ -80,6 +37,9 @@ def create_vault(
     atomically via the caller_transfer_stake chain extension — no prior
     transfer step is needed.
 
+    A vault creation fee in native TAO is charged (read from the contract's
+    global params). Use --yes/-y to skip the confirmation prompt.
+
     \b
     Examples:
       tusdt vault create --amount 1.5 --netuid 1 --wallet-name MyWallet
@@ -92,8 +52,22 @@ def create_vault(
     decimals = cfg.get("decimals", 9)
     raw_amount = parse_balance(amount, decimals)
 
+    # --- Read vault creation fee from contract global params ---
+    kp = get_reader_keypair(cfg)
+    params = state.run_read(lambda c: c.get_global_params(kp))
+    fee = params.get("vault_creation_fee", 0) if isinstance(params, dict) else 0
+
+    # --- Show fee info and prompt for confirmation ---
+    if fee > 0:
+        fee_tao = format_balance(fee)
+        state.output.info(f"A vault creation fee of {fee_tao} TAO ({fee:,} rao) will be charged.")
+        if not state.assume_yes:
+            if not click.confirm("Continue?"):
+                state.output.info("Vault creation cancelled.")
+                return
+
     state.output.info(f"Pulling {amount} alpha (netuid {netuid}) as collateral...")
-    state.submit(lambda c, kp: c.create_alpha_vault(kp, raw_amount, netuid))
+    state.submit(lambda c, kp: c.create_alpha_vault(kp, raw_amount, netuid, value=fee))
     state.output.success("Vault created successfully!")
 
 

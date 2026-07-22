@@ -6,26 +6,14 @@ from tusdt_cli.context import CLIContext
 from tusdt_cli.globals import network_option, wallet_option
 from tusdt_cli.utils import (
     HelpfulCommand,
-    ModeAwareGroup,
+    HelpfulGroup,
     format_balance,
     parse_balance,
 )
 from tusdt_cli.wallet import get_reader_keypair, resolve_ss58
 
-_TOKEN_ADVANCED = {
-    "mint",
-    "burn",
-    "increase-allowance",
-    "decrease-allowance",
-    "transfer-from",
-    "set-controller",
-    "add-minter",
-    "remove-minter",
-    "is-minter",
-}
 
-
-@click.group("token", cls=ModeAwareGroup, advanced_commands=_TOKEN_ADVANCED)
+@click.group("token", cls=HelpfulGroup)
 def token_group() -> None:
     """TUSDT token operations."""
 

@@ -6,38 +6,14 @@ from tusdt_cli.context import CLIContext
 from tusdt_cli.globals import network_option, wallet_option
 from tusdt_cli.utils import (
     HelpfulCommand,
-    ModeAwareGroup,
+    HelpfulGroup,
     format_balance,
     parse_balance,
 )
 from tusdt_cli.wallet import get_reader_keypair, load_hotkey, resolve_ss58
 
-_ORACLE_ADVANCED = {
-    "submit-price",
-    "commit-round",
-    "commit-round-gov",
-    "round-price",
-    "history",
-    "history-count",
-    "submissions",
-    "summary",
-    "get-netuid",
-    "get-min-submitter-stake",
-    "controller",
-    "governance",
-    "validator",
-    "max-deviation",
-    "max-submissions",
-    "set-netuid",
-    "set-min-submitter-stake",
-    "set-controller",
-    "set-validator",
-    "set-max-deviation",
-    "update-governance",
-}
 
-
-@click.group("oracle", cls=ModeAwareGroup, advanced_commands=_ORACLE_ADVANCED)
+@click.group("oracle", cls=HelpfulGroup)
 def oracle_group() -> None:
     """Oracle price-feed operations."""
 
