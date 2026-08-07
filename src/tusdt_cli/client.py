@@ -178,6 +178,7 @@ class TUSDTClient:
         self._governance: ContractInstance | None = None
         self._treasury: ContractInstance | None = None
         self._election: ContractInstance | None = None
+        self._lending: ContractInstance | None = None
 
     # ------------------------------------------------------------------
     # Connection management
@@ -297,6 +298,19 @@ class TUSDTClient:
                 )
             self._election = self._load_contract(addr, meta)
         return self._election
+
+    @property
+    def lending(self) -> ContractInstance:
+        if self._lending is None:
+            addr = self.config.get("lending_address")
+            meta = self.config.get("lending_metadata")
+            if not addr or not meta:
+                raise ValueError(
+                    "Lending pool contract not configured. Run:\n"
+                    "  tusdt config set --lending <address> --lending-metadata <path>"
+                )
+            self._lending = self._load_contract(addr, meta)
+        return self._lending
 
     # ------------------------------------------------------------------
     # Generic helpers
@@ -1097,6 +1111,15 @@ class TUSDTClient:
         """Update the oracle address in governance (maintainer only)."""
         return self._exec(self.governance, keypair, "update_oracle_address", args={"new_oracle": new_oracle})
 
+    def gov_get_pool_address(self, keypair: Keypair) -> str:
+        """Get the lending pool address from the governance contract."""
+        result = self._read(self.governance, keypair, "pool_address")
+        return unwrap_plain(result)
+
+    def gov_update_pool_address(self, keypair: Keypair, new_pool: str) -> dict[str, Any] | DryRunResult:
+        """Update the lending pool address in governance (maintainer only)."""
+        return self._exec(self.governance, keypair, "update_pool_address", args={"new_pool": new_pool})
+
     def gov_update_treasury_address(
         self, keypair: Keypair, new_treasury: str
     ) -> dict[str, Any] | DryRunResult:
@@ -1876,3 +1899,525 @@ class TUSDTClient:
     def cancel_cycle(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
         """Cancel the current election cycle (incumbent only)."""
         return self._exec(self.election, keypair, "cancel_cycle")
+
+    # ==================================================================
+    # Lending pool — supply / withdraw
+    # ==================================================================
+
+    def lending_supply_tao(self, keypair: Keypair, amount: int) -> dict[str, Any] | DryRunResult:
+        """Supply native TAO to the lending pool, receiving lTAO."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "supply_tao",
+            args={"amount": amount},
+            value=amount,
+        )
+
+    def lending_supply_tusdt(self, keypair: Keypair, amount: int) -> dict[str, Any] | DryRunResult:
+        """Supply TUSDT to the lending pool, receiving lTUSDT. Requires pre-approval."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "supply_tusdt",
+            args={"amount": amount},
+        )
+
+    def lending_withdraw_tao(self, keypair: Keypair, ltoken_amount: int) -> dict[str, Any] | DryRunResult:
+        """Withdraw native TAO from the lending pool by burning lTAO."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "withdraw_tao",
+            args={"ltoken_amount": ltoken_amount},
+        )
+
+    def lending_withdraw_tusdt(self, keypair: Keypair, ltoken_amount: int) -> dict[str, Any] | DryRunResult:
+        """Withdraw TUSDT from the lending pool by burning lTUSDT."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "withdraw_tusdt",
+            args={"ltoken_amount": ltoken_amount},
+        )
+
+    # ==================================================================
+    # Lending pool — borrow / repay
+    # ==================================================================
+
+    def lending_borrow_tao(self, keypair: Keypair, amount: int) -> dict[str, Any] | DryRunResult:
+        """Borrow native TAO against alpha collateral."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "borrow_tao",
+            args={"amount": amount},
+        )
+
+    def lending_borrow_tusdt(self, keypair: Keypair, amount: int) -> dict[str, Any] | DryRunResult:
+        """Borrow TUSDT against alpha collateral."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "borrow_tusdt",
+            args={"amount": amount},
+        )
+
+    def lending_repay_tao(self, keypair: Keypair, amount: int) -> dict[str, Any] | DryRunResult:
+        """Repay a native TAO loan. Attach native TAO via value=amount."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "repay_tao",
+            args={"amount": amount},
+            value=amount,
+        )
+
+    def lending_repay_tusdt(self, keypair: Keypair, amount: int) -> dict[str, Any] | DryRunResult:
+        """Repay a TUSDT loan. Requires pre-approval."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "repay_tusdt",
+            args={"amount": amount},
+        )
+
+    # ==================================================================
+    # Lending pool — alpha collateral
+    # ==================================================================
+
+    def lending_deposit_alpha(
+        self, keypair: Keypair, netuid: int, amount: int
+    ) -> dict[str, Any] | DryRunResult:
+        """Deposit alpha stake as collateral into the lending pool."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "deposit_alpha",
+            args={"netuid": netuid, "amount": amount},
+        )
+
+    def lending_withdraw_alpha(
+        self, keypair: Keypair, netuid: int, amount: int, dest_coldkey: str
+    ) -> dict[str, Any] | DryRunResult:
+        """Withdraw alpha collateral from the lending pool."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "withdraw_alpha",
+            args={"netuid": netuid, "amount": amount, "dest_coldkey": dest_coldkey},
+        )
+
+    # ==================================================================
+    # Lending pool — liquidation
+    # ==================================================================
+
+    def lending_liquidate(
+        self,
+        keypair: Keypair,
+        borrower: str,
+        debt_market: int,
+        debt_to_cover: int,
+        collateral_netuid: int,
+        value: int = 0,
+    ) -> dict[str, Any] | DryRunResult:
+        """Liquidate an underwater borrower. Attach native TAO when debt_market=0."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "liquidate",
+            args={
+                "borrower": borrower,
+                "debt_market": debt_market,
+                "debt_to_cover": debt_to_cover,
+                "collateral_netuid": collateral_netuid,
+            },
+            value=value,
+        )
+
+    # ==================================================================
+    # Lending pool — permissionless claims
+    # ==================================================================
+
+    def lending_claim_alpha_yield(self, keypair: Keypair, netuid: int) -> dict[str, Any] | DryRunResult:
+        """Claim alpha yield for a netuid (permissionless)."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "claim_alpha_yield",
+            args={"netuid": netuid},
+        )
+
+    def lending_claim_reserve(self, keypair: Keypair, market_id: int) -> dict[str, Any] | DryRunResult:
+        """Claim accrued protocol reserve for a market (permissionless)."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "claim_reserve",
+            args={"market_id": market_id},
+        )
+
+    # ==================================================================
+    # Lending pool — governance: alpha market management
+    # ==================================================================
+
+    def lending_set_approved_netuid(
+        self, keypair: Keypair, netuid: int, approved: bool
+    ) -> dict[str, Any] | DryRunResult:
+        """Approve or revoke a subnet for alpha collateral."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "set_approved_netuid",
+            args={"netuid": netuid, "approved": approved},
+        )
+
+    def lending_set_alpha_params(
+        self, keypair: Keypair, netuid: int, config: dict[str, Any]
+    ) -> dict[str, Any] | DryRunResult:
+        """Schedule an alpha market params update (60s timelock)."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "set_alpha_params",
+            args={"netuid": netuid, "config": config},
+        )
+
+    def lending_execute_alpha_params_update(
+        self, keypair: Keypair, netuid: int
+    ) -> dict[str, Any] | DryRunResult:
+        """Execute a pending alpha params update (permissionless, time-gated)."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "execute_alpha_params_update",
+            args={"netuid": netuid},
+        )
+
+    def lending_cancel_alpha_params_update(
+        self, keypair: Keypair, netuid: int
+    ) -> dict[str, Any] | DryRunResult:
+        """Cancel a pending alpha params update."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "cancel_alpha_params_update",
+            args={"netuid": netuid},
+        )
+
+    # ==================================================================
+    # Lending pool — governance: interest rate params
+    # ==================================================================
+
+    def lending_set_market_params(
+        self, keypair: Keypair, market_id: int, config: dict[str, Any]
+    ) -> dict[str, Any] | DryRunResult:
+        """Schedule an interest rate params update for a market (60s timelock)."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "set_market_params",
+            args={"market_id": market_id, "config": config},
+        )
+
+    def lending_execute_market_params_update(
+        self, keypair: Keypair, market_id: int
+    ) -> dict[str, Any] | DryRunResult:
+        """Execute a pending market params update (permissionless, time-gated)."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "execute_market_params_update",
+            args={"market_id": market_id},
+        )
+
+    def lending_cancel_market_params_update(
+        self, keypair: Keypair, market_id: int
+    ) -> dict[str, Any] | DryRunResult:
+        """Cancel a pending market params update."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "cancel_market_params_update",
+            args={"market_id": market_id},
+        )
+
+    # ==================================================================
+    # Lending pool — governance: global params
+    # ==================================================================
+
+    def lending_set_global_params(
+        self, keypair: Keypair, config: dict[str, Any]
+    ) -> dict[str, Any] | DryRunResult:
+        """Schedule a global params update (60s timelock)."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "set_global_params",
+            args={"config": config},
+        )
+
+    def lending_execute_global_params_update(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
+        """Execute a pending global params update (permissionless, time-gated)."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "execute_global_params_update",
+        )
+
+    def lending_cancel_global_params_update(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
+        """Cancel a pending global params update."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "cancel_global_params_update",
+        )
+
+    # ==================================================================
+    # Lending pool — governance: roles & addresses
+    # ==================================================================
+
+    def lending_update_governance(
+        self, keypair: Keypair, new_governance: str
+    ) -> dict[str, Any] | DryRunResult:
+        """Transfer the lending pool governance role."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "update_governance",
+            args={"new_governance": new_governance},
+        )
+
+    def lending_update_treasury(self, keypair: Keypair, new_treasury: str) -> dict[str, Any] | DryRunResult:
+        """Update the lending pool treasury address."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "update_treasury",
+            args={"new_treasury": new_treasury},
+        )
+
+    def lending_update_platform(self, keypair: Keypair, new_platform: str) -> dict[str, Any] | DryRunResult:
+        """Update the lending pool platform (pause operator) address."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "update_platform",
+            args={"new_platform": new_platform},
+        )
+
+    def lending_update_oracle_address(
+        self, keypair: Keypair, new_oracle: str
+    ) -> dict[str, Any] | DryRunResult:
+        """Update the lending pool oracle address."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "update_oracle_address",
+            args={"new_oracle": new_oracle},
+        )
+
+    def lending_update_ltoken_address(
+        self, keypair: Keypair, market_id: int, new_ltoken: str
+    ) -> dict[str, Any] | DryRunResult:
+        """Update an lToken child contract address."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "update_ltoken_address",
+            args={"market_id": market_id, "new_ltoken": new_ltoken},
+        )
+
+    def lending_update_pool_hotkey(
+        self, keypair: Keypair, new_hotkey: str, netuids: list[int]
+    ) -> dict[str, Any] | DryRunResult:
+        """Migrate all alpha stake to a new pool hotkey."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "update_pool_hotkey",
+            args={"new_hotkey": new_hotkey, "netuids": netuids},
+        )
+
+    def lending_claim_surplus_tusdt(self, keypair: Keypair, amount: int) -> dict[str, Any] | DryRunResult:
+        """Claim surplus TUSDT held by the lending pool to the treasury."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "claim_surplus_tusdt",
+            args={"amount": amount},
+        )
+
+    # ==================================================================
+    # Lending pool — emergency pause
+    # ==================================================================
+
+    def lending_pause(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
+        """Pause the lending pool (governance or platform)."""
+        return self._exec(self.lending, keypair, "pause")
+
+    def lending_unpause(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
+        """Unpause the lending pool (governance only)."""
+        return self._exec(self.lending, keypair, "unpause")
+
+    # ==================================================================
+    # Lending pool — native sweep
+    # ==================================================================
+
+    def lending_transfer_native_to_treasury(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
+        """Sweep native TAO balance of the lending pool to the treasury."""
+        return self._exec(self.lending, keypair, "transfer_native_to_treasury")
+
+    # ==================================================================
+    # Lending pool — queries / getters
+    # ==================================================================
+
+    def lending_get_market_state(self, keypair: Keypair, market_id: int) -> dict | None:
+        """Get market state for a lending market."""
+        result = self._read(self.lending, keypair, "get_market_state", args={"market_id": market_id})
+        return unwrap_option(result)
+
+    def lending_get_position(self, keypair: Keypair, market_id: int, user: str) -> dict | None:
+        """Get a user's position in a lending market."""
+        result = self._read(
+            self.lending, keypair, "get_position", args={"market_id": market_id, "user": user}
+        )
+        return unwrap_option(result)
+
+    def lending_get_exchange_rate(self, keypair: Keypair, market_id: int) -> int | None:
+        """Get lToken exchange rate for a market (1e18 scale)."""
+        result = self._read(self.lending, keypair, "get_exchange_rate", args={"market_id": market_id})
+        return unwrap_option(result)
+
+    def lending_get_borrow_index(self, keypair: Keypair, market_id: int) -> int | None:
+        """Get borrow index for a market (1e18 scale)."""
+        result = self._read(self.lending, keypair, "get_borrow_index", args={"market_id": market_id})
+        return unwrap_option(result)
+
+    def lending_get_utilization(self, keypair: Keypair, market_id: int) -> int | None:
+        """Get utilization ratio for a market (1e18 scale)."""
+        result = self._read(self.lending, keypair, "get_utilization", args={"market_id": market_id})
+        return unwrap_option(result)
+
+    def lending_get_borrow_rate(self, keypair: Keypair, market_id: int) -> int | None:
+        """Get current borrow rate for a market (1e18 scale)."""
+        result = self._read(self.lending, keypair, "get_borrow_rate", args={"market_id": market_id})
+        return unwrap_option(result)
+
+    def lending_get_supply_rate(self, keypair: Keypair, market_id: int) -> int | None:
+        """Get current supply rate for a market (1e18 scale)."""
+        result = self._read(self.lending, keypair, "get_supply_rate", args={"market_id": market_id})
+        return unwrap_option(result)
+
+    def lending_get_underlying_balance(self, keypair: Keypair, market_id: int, user: str) -> int:
+        """Get a user's underlying balance in a market."""
+        result = self._read(
+            self.lending, keypair, "get_underlying_balance", args={"market_id": market_id, "user": user}
+        )
+        return unwrap_plain(result)
+
+    def lending_get_user_debt(self, keypair: Keypair, market_id: int, user: str) -> int:
+        """Get a user's debt in a market."""
+        result = self._read(
+            self.lending, keypair, "get_user_debt", args={"market_id": market_id, "user": user}
+        )
+        return unwrap_plain(result)
+
+    def lending_get_alpha_markets(self, keypair: Keypair) -> list:
+        """Get all approved alpha markets with their params."""
+        result = self._read(self.lending, keypair, "get_alpha_markets")
+        return unwrap_plain(result)
+
+    def lending_get_user_alpha_position(self, keypair: Keypair, user: str, netuid: int) -> int | None:
+        """Get a user's alpha collateral position for a netuid."""
+        result = self._read(
+            self.lending, keypair, "get_user_alpha_position", args={"user": user, "netuid": netuid}
+        )
+        return unwrap_option(result)
+
+    def lending_get_alpha_yield_index(self, keypair: Keypair, netuid: int) -> int | None:
+        """Get the yield index for a netuid (1e18 scale)."""
+        result = self._read(self.lending, keypair, "get_alpha_yield_index", args={"netuid": netuid})
+        return unwrap_option(result)
+
+    def lending_get_netuid_total_collateral(self, keypair: Keypair, netuid: int) -> int | None:
+        """Get total alpha collateral deposited for a netuid."""
+        result = self._read(self.lending, keypair, "get_netuid_total_collateral", args={"netuid": netuid})
+        return unwrap_option(result)
+
+    def lending_is_approved_netuid(self, keypair: Keypair, netuid: int) -> bool:
+        """Check if a subnet is approved for alpha collateral."""
+        result = self._read(self.lending, keypair, "is_approved_netuid", args={"netuid": netuid})
+        return unwrap_plain(result)
+
+    def lending_get_active_netuids_count(self, keypair: Keypair) -> int:
+        """Get the number of approved alpha netuids."""
+        result = self._read(self.lending, keypair, "get_active_netuids_count")
+        return unwrap_plain(result)
+
+    def lending_get_positions(self, keypair: Keypair, user: str, page: int = 0) -> list:
+        """Get paginated positions for a user."""
+        result = self._read(self.lending, keypair, "get_positions", args={"user": user, "page": page})
+        return unwrap_plain(result)
+
+    def lending_get_all_positions(self, keypair: Keypair, page: int = 0) -> list:
+        """Get all paginated positions across all users."""
+        result = self._read(self.lending, keypair, "get_all_positions", args={"page": page})
+        return unwrap_plain(result)
+
+    def lending_get_pending_alpha_params_update(self, keypair: Keypair, netuid: int) -> dict | None:
+        """Get pending alpha params update for a netuid."""
+        result = self._read(self.lending, keypair, "get_pending_alpha_params_update", args={"netuid": netuid})
+        return unwrap_option(result)
+
+    def lending_get_pending_market_params_update(self, keypair: Keypair, market_id: int) -> dict | None:
+        """Get pending market params update for a market."""
+        result = self._read(
+            self.lending, keypair, "get_pending_market_params_update", args={"market_id": market_id}
+        )
+        return unwrap_option(result)
+
+    def lending_get_pending_global_params_update(self, keypair: Keypair) -> dict | None:
+        """Get pending global params update."""
+        result = self._read(self.lending, keypair, "get_pending_global_params_update")
+        return unwrap_option(result)
+
+    def lending_get_governance(self, keypair: Keypair) -> str:
+        """Get the lending pool governance address."""
+        result = self._read(self.lending, keypair, "governance")
+        return unwrap_plain(result)
+
+    def lending_get_treasury(self, keypair: Keypair) -> str:
+        """Get the lending pool treasury address."""
+        result = self._read(self.lending, keypair, "treasury")
+        return unwrap_plain(result)
+
+    def lending_get_platform(self, keypair: Keypair) -> str:
+        """Get the lending pool platform address."""
+        result = self._read(self.lending, keypair, "platform")
+        return unwrap_plain(result)
+
+    def lending_is_paused(self, keypair: Keypair) -> bool:
+        """Check if the lending pool is paused."""
+        result = self._read(self.lending, keypair, "paused")
+        return unwrap_plain(result)
+
+    def lending_get_oracle_address(self, keypair: Keypair) -> str:
+        """Get the lending pool oracle address."""
+        result = self._read(self.lending, keypair, "get_oracle_address")
+        return unwrap_plain(result)
+
+    def lending_get_tusdt_address(self, keypair: Keypair) -> str:
+        """Get the lending pool TUSDT address."""
+        result = self._read(self.lending, keypair, "get_tusdt_address")
+        return unwrap_plain(result)
+
+    def lending_get_ltoken_address(self, keypair: Keypair, market_id: int) -> str | None:
+        """Get an lToken child contract address."""
+        result = self._read(self.lending, keypair, "get_ltoken_address", args={"market": market_id})
+        return unwrap_option(result)
+
+    def lending_get_pool_hotkey(self, keypair: Keypair) -> str:
+        """Get the lending pool hotkey address."""
+        result = self._read(self.lending, keypair, "get_pool_hotkey")
+        return unwrap_plain(result)

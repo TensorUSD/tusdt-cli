@@ -1718,3 +1718,44 @@ def gov_oracle_address(ctx: click.Context, wallet_name: str | None, network: str
     state.make_config()
     result = state.run_read(lambda c: c.get_governance_oracle_address(kp))
     state.output.detail("Oracle Address", {"Address": result})
+
+
+# ------------------------------------------------------------------
+# pool-address (read)
+# ------------------------------------------------------------------
+
+
+@governance_group.command("pool-address")
+@wallet_option
+@network_option
+@click.pass_context
+def pool_address(ctx: click.Context, wallet_name: str | None, network: str | None) -> None:
+    """Show the lending pool contract address from the governance contract."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    kp = state.get_reader_keypair()
+    state.make_config()
+    result = state.run_read(lambda c: c.gov_get_pool_address(kp))
+    state.output.detail("Lending Pool Address", {"Address": result})
+
+
+# ------------------------------------------------------------------
+# update-pool-address (write, maintainer-gated)
+# ------------------------------------------------------------------
+
+
+@governance_group.command("update-pool-address")
+@click.argument("new_pool")
+@wallet_option
+@network_option
+@click.pass_context
+def update_pool_address(
+    ctx: click.Context, new_pool: str, wallet_name: str | None, network: str | None
+) -> None:
+    """Update the lending pool contract address in governance. Maintainer only."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.make_config()
+    state.submit(lambda c, kp: c.gov_update_pool_address(kp, new_pool))

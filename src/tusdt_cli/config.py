@@ -25,6 +25,7 @@ NETWORKS: dict[str, dict[str, str]] = {
         "treasury_address": "5FBcioi6uRMNPMyVZDQSb6BD3JwGjaZs8mkPeSp6JLxNfLgq",
         "election_address": "5CYCj8LcCpZqQ9dgBpwQZsVWsmcstBu1TWqyg68N2kU6TWtr",
         "otc_address": "5DkJErFks6frQifg28dVbd2pqd8NdhD7ycUKhpVJQbj5u2ik",
+        "lending_address": "",
     },
     "testnet": {
         "rpc": "wss://test.finney.opentensor.ai:443",
@@ -36,6 +37,7 @@ NETWORKS: dict[str, dict[str, str]] = {
         "treasury_address": "5HTZWsj7j6Suzu49j1HUKi19RC81m9B2D9R7443oCFVFN7Li",
         "election_address": "5DkJErFks6frQifg28dVbd2pqd8NdhD7ycUKhpVJQbj5u2ik",
         "otc_address": "5DkJErFks6frQifg28dVbd2pqd8NdhD7ycUKhpVJQbj5u2ik",
+        "lending_address": "",
     },
 }
 EXPLORER_URLS: dict[str, str] = {
@@ -54,6 +56,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "treasury_address": NETWORKS["finney"]["treasury_address"],
     "election_address": NETWORKS["finney"]["election_address"],
     "otc_address": NETWORKS["finney"]["otc_address"],
+    "lending_address": NETWORKS["finney"]["lending_address"],
     "vault_metadata": str(_ABI_DIR / "tusdt_vault_alpha.json"),
     "token_metadata": str(_ABI_DIR / "tusdt_erc20.json"),
     "auction_metadata": str(_ABI_DIR / "tusdt_auction.json"),
@@ -62,6 +65,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "treasury_metadata": str(_ABI_DIR / "tusdt_treasury.json"),
     "election_metadata": str(_ABI_DIR / "tusdt_election.json"),
     "otc_metadata": str(_ABI_DIR / "tusdt_otc.json"),
+    "lending_metadata": str(_ABI_DIR / "tusdt_lending_pool.json"),
     "signer": None,
     "wallet_name": None,
     "wallet_hotkey": "default",
@@ -118,6 +122,7 @@ def load_config(network: str | None = None) -> dict[str, Any]:
                 "governance_metadata",
                 "treasury_metadata",
                 "election_metadata",
+                "lending_metadata",
             ):
                 if key in saved and not Path(saved[key]).exists():
                     del saved[key]

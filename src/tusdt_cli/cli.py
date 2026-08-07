@@ -13,6 +13,7 @@ from tusdt_cli import __version__
 from tusdt_cli.commands.auction import auction_group
 from tusdt_cli.commands.election import election_group
 from tusdt_cli.commands.governance import governance_group
+from tusdt_cli.commands.lending import lending_group
 from tusdt_cli.commands.oracle import oracle_group
 from tusdt_cli.commands.token import token_group
 from tusdt_cli.commands.treasury import treasury_group
@@ -134,6 +135,7 @@ def config_show(ctx: click.Context, network: str | None) -> None:
 @click.option("--governance", "governance_address", default=None, help="Governance contract SS58 address")
 @click.option("--treasury", "treasury_address", default=None, help="Treasury contract SS58 address")
 @click.option("--election", "election_address", default=None, help="Election contract SS58 address")
+@click.option("--lending", "lending_address", default=None, help="Lending pool contract SS58 address")
 @click.option("--vault-metadata", default=None, help="Path to tusdt_vault.json ABI")
 @click.option("--token-metadata", default=None, help="Path to tusdt_erc20.json ABI")
 @click.option("--auction-metadata", default=None, help="Path to tusdt_auction.json ABI")
@@ -141,6 +143,7 @@ def config_show(ctx: click.Context, network: str | None) -> None:
 @click.option("--governance-metadata", default=None, help="Path to tusdt_governance.json ABI")
 @click.option("--treasury-metadata", default=None, help="Path to tusdt_treasury.json ABI")
 @click.option("--election-metadata", default=None, help="Path to tusdt_election.json ABI")
+@click.option("--lending-metadata", default=None, help="Path to tusdt_lending_pool.json ABI")
 @click.option("--signer", default=None, help="Mnemonic seed phrase or path to keyfile")
 @click.option("--wallet-name", default=None, help="Bittensor wallet name to use for signing")
 @click.option("--wallet-hotkey", default=None, help="Bittensor hotkey name (default: 'default')")
@@ -156,6 +159,7 @@ def config_set(
     governance_address: str | None,
     treasury_address: str | None,
     election_address: str | None,
+    lending_address: str | None,
     vault_metadata: str | None,
     token_metadata: str | None,
     auction_metadata: str | None,
@@ -163,6 +167,7 @@ def config_set(
     governance_metadata: str | None,
     treasury_metadata: str | None,
     election_metadata: str | None,
+    lending_metadata: str | None,
     signer: str | None,
     wallet_name: str | None,
     wallet_hotkey: str | None,
@@ -201,6 +206,7 @@ def config_set(
                 "governance_address",
                 "treasury_address",
                 "election_address",
+                "lending_address",
             ):
                 saved_overrides.pop(key, None)
             for key in (
@@ -211,6 +217,7 @@ def config_set(
                 "governance_metadata",
                 "treasury_metadata",
                 "election_metadata",
+                "lending_metadata",
             ):
                 saved_overrides.pop(key, None)
 
@@ -223,6 +230,7 @@ def config_set(
         ("governance_address", governance_address),
         ("treasury_address", treasury_address),
         ("election_address", election_address),
+        ("lending_address", lending_address),
         ("vault_metadata", vault_metadata),
         ("token_metadata", token_metadata),
         ("auction_metadata", auction_metadata),
@@ -230,6 +238,7 @@ def config_set(
         ("governance_metadata", governance_metadata),
         ("treasury_metadata", treasury_metadata),
         ("election_metadata", election_metadata),
+        ("lending_metadata", lending_metadata),
         ("signer", signer),
         ("wallet_name", wallet_name),
         ("wallet_hotkey", wallet_hotkey),
@@ -295,6 +304,7 @@ cli.add_command(token_group)
 cli.add_command(auction_group)
 cli.add_command(oracle_group)
 cli.add_command(governance_group)
+cli.add_command(lending_group)
 cli.add_command(treasury_group)
 cli.add_command(election_group)
 

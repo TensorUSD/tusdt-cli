@@ -1,0 +1,7468 @@
+{
+  "source": {
+    "hash": "0x4ea1a07c7929818272f6cc5c86c827f5cd4ce603f22266730536654a24eef916",
+    "language": "ink! 5.1.1",
+    "compiler": "rustc 1.91.1",
+    "build_info": {
+      "build_mode": "Release",
+      "cargo_contract_version": "5.0.3",
+      "rust_toolchain": "stable-x86_64-unknown-linux-gnu",
+      "wasm_opt_settings": {
+        "keep_debug_symbols": false,
+        "optimization_passes": "Z"
+      }
+    }
+  },
+  "contract": {
+    "name": "tusdt-lending-pool",
+    "version": "0.1.0",
+    "authors": [
+      "tensorusd admin@tensorusd.com"
+    ],
+    "license": "MIT-0"
+  },
+  "image": null,
+  "spec": {
+    "constructors": [
+      {
+        "args": [
+          {
+            "label": "treasury",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "tusdt_address",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "oracle_address",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "ltoken_code_hash",
+            "type": {
+              "displayName": [
+                "Hash"
+              ],
+              "type": 72
+            }
+          },
+          {
+            "label": "pool_hotkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          "Creates a new lending pool.",
+          "",
+          "Spawns two lToken children (lTAO and lTUSDT) using the provided `ltoken_code_hash`",
+          "(which should be the `tusdt-erc20` code hash). The deployer becomes the initial",
+          "governance and platform."
+        ],
+        "label": "new",
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink_primitives",
+            "ConstructorResult"
+          ],
+          "type": 73
+        },
+        "selector": "0x9bae9d5e"
+      },
+      {
+        "args": [
+          {
+            "label": "treasury",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "tusdt_address",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "oracle_address",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "ltao_address",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "ltusdt_address",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "pool_hotkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          "Upgrade constructor: deploys a new pool reusing existing lToken children."
+        ],
+        "label": "new_upgrade",
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink_primitives",
+            "ConstructorResult"
+          ],
+          "type": 73
+        },
+        "selector": "0xf3c2cbb8"
+      }
+    ],
+    "docs": [],
+    "environment": {
+      "accountId": {
+        "displayName": [
+          "AccountId"
+        ],
+        "type": 0
+      },
+      "balance": {
+        "displayName": [
+          "Balance"
+        ],
+        "type": 4
+      },
+      "blockNumber": {
+        "displayName": [
+          "BlockNumber"
+        ],
+        "type": 17
+      },
+      "chainExtension": {
+        "displayName": [
+          "ChainExtension"
+        ],
+        "type": 112
+      },
+      "hash": {
+        "displayName": [
+          "Hash"
+        ],
+        "type": 72
+      },
+      "maxEventTopics": 4,
+      "staticBufferSize": 16384,
+      "timestamp": {
+        "displayName": [
+          "Timestamp"
+        ],
+        "type": 4
+      }
+    },
+    "events": [
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "owner",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "spender",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "value",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [
+          "Emitted whenever an owner sets or updates a spender's allowance."
+        ],
+        "label": "Approval",
+        "module_path": "tusdt_erc20::tusdt",
+        "signature_topic": "0x1a35e726f5feffda199144f6097b2ba23713e549bfcbe090c0981e3bcdfbcc1d"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "from",
+            "type": {
+              "displayName": [
+                "Option"
+              ],
+              "type": 107
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "to",
+            "type": {
+              "displayName": [
+                "Option"
+              ],
+              "type": 107
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "value",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [
+          "Emitted on token movement; `from = None` denotes a mint, `to = None` denotes a burn."
+        ],
+        "label": "Transfer",
+        "module_path": "tusdt_erc20::tusdt",
+        "signature_topic": "0xb5b61a3e6a21a16be4f044b517c28ac692492f73c5bfd3f60178ad98c767f4cb"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [],
+        "label": "Borrowed",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xa30f1d7af7086c847984425ec213baab9fafaa570d922339457e05be2b6785a4"
+      },
+      {
+        "args": [],
+        "docs": [],
+        "label": "Unpaused",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x653e02ba17d9461415af0142fe0b7aafa9aac6f207b5f1479c13eb1883fc92b0"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "collateral_netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "debt_market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "debt_covered",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "collateral_alpha",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "liquidator",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [],
+        "label": "Liquidated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x53b00c58bf25adde0c0c6aceba3e7fa27e8774dc382118b8e2482496cd55473a"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "dt_hours",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "utilization",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "borrow_rate",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "supply_rate",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "reserve_delta",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [],
+        "label": "MarketAccrued",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x4408d540b331ea678c6707d409ae90af5a3931bccfd0c3e16eecaf256befd75d"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "approved",
+            "type": {
+              "displayName": [
+                "bool"
+              ],
+              "type": 3
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "Option"
+              ],
+              "type": 108
+            }
+          }
+        ],
+        "docs": [],
+        "label": "NetuidApproved",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x12963c53cceef935121e6b48e91981778ae3dee569e51a62fbfd3a68518a27d4"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [],
+        "label": "ReserveClaimed",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xfaadc011c05216b2df7758319be5cfca55c59fc47f48e8291acf9766aeedc608"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "ltoken_scaled",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [
+          "Events emitted by the lending pool."
+        ],
+        "label": "LiquidDeposited",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x49962792151d0ebcdcb657607072c9b6228edc96e5bee720acef482dff982ac3"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "ltoken_scaled",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [],
+        "label": "LiquidWithdrawn",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xd68f230963998b8116106e5a183bb3b45c464a848c4d7a7c74b2f8102b15233e"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "excess_alpha",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "performance_fee_alpha",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "tao_received",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "index_before",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "index_after",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [],
+        "label": "AlphaYieldClaimed",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x93aa5327c9c318ecaf23f729d64ca2066fb3106758c684c2471ae90d5593f9e0"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "old_hotkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_hotkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [],
+        "label": "PoolHotkeyChanged",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xe34339f8e15901da07a53ad3fa956ac94884866fc9ada507a26b91412f114444"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          }
+        ],
+        "docs": [],
+        "label": "AlphaParamsUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x6c11a8b3e424961845b6e6faa262d2233174f351643aab3404237a39aa3c14f2"
+      },
+      {
+        "args": [],
+        "docs": [],
+        "label": "GlobalParamsUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x53ff499b7903e9014abbae06fabe1de32e3ae6b546010672470dec79b3a5b347"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "docs": [],
+        "label": "MarketParamsUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x589d066c7363c63d6d84abefe005ebd902764c159e83a2fe09e1d0a4a218ea4c"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "previous",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "new",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [],
+        "label": "PoolPlatformUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x568223596c72c1f6d2a35ab0a7c2b86e8ef7597b770306487deeb8294bdb7d59"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "previous",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "new",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [],
+        "label": "PoolTreasuryUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x17b853c8aa30347f1bd906dd8c0311e8965e6ef93430bbdc376c5f68c5ef015f"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "recipient",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [],
+        "label": "SurplusTusdtClaimed",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xd968cc90a991bfdee52bb15a281eca58a07b94210cdc1679eb32dd6e2cae9f05"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "previous",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "new",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [],
+        "label": "TusdtAddressUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x963c9f4f7e7eccfc87af511d757d31de7980a3d12f001f5ff37a605c3d40aa58"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "old_ltoken",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "new_ltoken",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [],
+        "label": "LTokenAddressUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x64095aa2b22793236d5fd9f2934153dab41a7b1cecd55c1c26f3747df5cf93a2"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "previous",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "new",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [],
+        "label": "OracleAddressUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x3b3a187012fbab58f7b1ddc880011b906c7833d9917b9f1006df358e03ce298b"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "previous",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "new",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [],
+        "label": "PoolGovernanceUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x959f919be7d41d9f2ef1bae199585baa2bbecb515e60b088562aeb24679c1f3f"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "docs": [],
+        "label": "AlphaCollateralDeposited",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x6c80e71928776bffbd3124b5c2f581db2364290beca46806e6d2a84cc4b4ce42"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "effective",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "dest_coldkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [],
+        "label": "AlphaCollateralWithdrawn",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x97601ff4e663dda1b818dc6bd97ac91a119f48209830683e3c765f09f4ffd9f7"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          }
+        ],
+        "docs": [],
+        "label": "AlphaParamsUpdateCancelled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x9bca74a7cb2287aa2c42792c3198b38c463030a1664b7deefc2ed126d96ce753"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "execute_after",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [],
+        "label": "AlphaParamsUpdateScheduled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xc9e850ed568e5ed59d6f29a82afc0ec0cde5f6fe1a30751c2dbe288f0d13c239"
+      },
+      {
+        "args": [],
+        "docs": [],
+        "label": "GlobalParamsUpdateCancelled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x3202e87bd4f46591dfeb78b1c78f4f22faae7f2d9cc8ef4e5d2692264043d426"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "execute_after",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [],
+        "label": "GlobalParamsUpdateScheduled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xdf475581dad5c4cbc47334803a30f6b0cdf2b1d425c2ac20c6ee4eee891b0980"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "docs": [],
+        "label": "MarketParamsUpdateCancelled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xd4fc8e97e2835b40ff889805e3665ab4176e4ebd71ad8ebbeae4499792ebe5a8"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "execute_after",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [],
+        "label": "MarketParamsUpdateScheduled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xc77d1260303597bd048815ecb64423776f649a3ccf12a923a9c34634db1849df"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [],
+        "label": "NativeTransferredToTreasury",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x1bcbec1e39cd53547c245f99e5012cf5319ad2dd83d48d941688c65200069af1"
+      },
+      {
+        "args": [],
+        "docs": [],
+        "label": "Paused",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x0bc7e2d93f816c37cebc39f8cd9f6461f8bd945f23b847e07a39e77b4b0c8820"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [],
+        "label": "Repaid",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x7f7d77c30df883b8f0350d34594cf3c836695d0d681e69382b958fc91502ecd0"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "old_controller",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_controller",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the controller (vault) address is updated by governance."
+        ],
+        "label": "OracleControllerUpdated",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0x55d38df882b90edfd62fbebb6af44c6f3dd73129e23e9d1b6e6907d845646c29"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "previous_governance",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_governance",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when oracle governance is transferred to a new account."
+        ],
+        "label": "OracleGovernanceUpdated",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0x8076edb2c7ad187c70699e83a771437602b58b5145ad1c777bb879abe3f990c8"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "max_price_deviation",
+            "type": {
+              "displayName": [
+                "Ratio"
+              ],
+              "type": 8
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the maximum allowed price deviation is changed."
+        ],
+        "label": "MaxPriceDeviationUpdated",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0xdf92cfe8304a7dfe48998ca021158b2d606b3dd9d86bab86d14c4c2b0d2a2259"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "min_submitter_stake",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the minimum required submitter stake is changed."
+        ],
+        "label": "MinSubmitterStakeUpdated",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0x862f9b8f733953c288061b3a21bb6955a625374e5f24afe32da33fd31a38aa7f"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the governing subnet netuid is updated."
+        ],
+        "label": "NetuidUpdated",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0xb62491ff2dec7341b9b30f90adc6a7fcd382e6284c444b7f9622622efbd4aad7"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "round_id",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 17
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "reporter",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "price",
+            "type": {
+              "displayName": [
+                "Ratio"
+              ],
+              "type": 8
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "metadata",
+            "type": {
+              "displayName": [
+                "PriceSubmissionMetadata"
+              ],
+              "type": 109
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "replaced_existing",
+            "type": {
+              "displayName": [
+                "bool"
+              ],
+              "type": 3
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a reporter submits (or replaces) a price for the current round."
+        ],
+        "label": "PriceSubmitted",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0x497680a9a4c789ade85efa9afe6ea64b9412ae83fe310b3bba847320c2263059"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "round_id",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 17
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "committed_price",
+            "type": {
+              "displayName": [
+                "Ratio"
+              ],
+              "type": 8
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "median_price",
+            "type": {
+              "displayName": [
+                "Ratio"
+              ],
+              "type": 8
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "reporter_count",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 17
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "was_overridden",
+            "type": {
+              "displayName": [
+                "bool"
+              ],
+              "type": 3
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a round is committed and a new latest price is recorded."
+        ],
+        "label": "RoundCommitted",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0xe1b90df25e0fce7ca266a459bd155d63871c00c2f7e4247c092a175ab900c081"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "validator",
+            "type": {
+              "displayName": [
+                "Option"
+              ],
+              "type": 107
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the validator account is set or cleared."
+        ],
+        "label": "ValidatorUpdated",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0x9b9e984a30cbf16f16b8bb47b35802825876301f2562ae285a379d3e2b0cef05"
+      }
+    ],
+    "lang_error": {
+      "displayName": [
+        "ink",
+        "LangError"
+      ],
+      "type": 74
+    },
+    "messages": [
+      {
+        "args": [
+          {
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Supplies TAO into the pool. Caller must send native TAO via `transferred_value`.",
+          " Mints lTAO receipt tokens at the current exchange rate."
+        ],
+        "label": "supply_tao",
+        "mutates": true,
+        "payable": true,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0x0515fac7"
+      },
+      {
+        "args": [
+          {
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Supplies TUSDT into the pool. Pulls TUSDT from caller via `transfer_from`.",
+          " Mints lTUSDT receipt tokens at the current exchange rate."
+        ],
+        "label": "supply_tusdt",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0x480ea41f"
+      },
+      {
+        "args": [
+          {
+            "label": "ltoken_amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Withdraws TAO by burning lTAO tokens. Transfers native TAO to caller."
+        ],
+        "label": "withdraw_tao",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0x2158083f"
+      },
+      {
+        "args": [
+          {
+            "label": "ltoken_amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Withdraws TUSDT by burning lTUSDT tokens. Transfers TUSDT to caller."
+        ],
+        "label": "withdraw_tusdt",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0x4bc10c7f"
+      },
+      {
+        "args": [
+          {
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Borrows TAO against the caller's alpha collateral."
+        ],
+        "label": "borrow_tao",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0x0adb5295"
+      },
+      {
+        "args": [
+          {
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Borrows TUSDT against the caller's alpha collateral."
+        ],
+        "label": "borrow_tusdt",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0xf9111622"
+      },
+      {
+        "args": [
+          {
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Repays TAO debt. Caller sends native TAO via `transferred_value`."
+        ],
+        "label": "repay_tao",
+        "mutates": true,
+        "payable": true,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0xa1fa9168"
+      },
+      {
+        "args": [
+          {
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Repays TUSDT debt. Pulls TUSDT from caller via transfer_from."
+        ],
+        "label": "repay_tusdt",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0xb1a2684b"
+      },
+      {
+        "args": [
+          {
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          },
+          {
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Deposits alpha stake as collateral. Uses chain extension func 25 to atomically",
+          " pull the caller's stake from under `pool_hotkey` to the pool contract."
+        ],
+        "label": "deposit_alpha",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 78
+        },
+        "selector": "0x7bfb2b17"
+      },
+      {
+        "args": [
+          {
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          },
+          {
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "label": "dest_coldkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Withdraws alpha collateral. Only allowed if the user remains healthy after withdrawal."
+        ],
+        "label": "withdraw_alpha",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0xd6108f6e"
+      },
+      {
+        "args": [
+          {
+            "label": "borrower",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "debt_market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "label": "debt_to_cover",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "label": "collateral_netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Liquidates an underwater position. The liquidator repays debt on behalf of the",
+          " borrower and receives alpha collateral at a discount (liquidation bonus)."
+        ],
+        "label": "liquidate",
+        "mutates": true,
+        "payable": true,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0x4e3c6966"
+      },
+      {
+        "args": [
+          {
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Claims accumulated alpha staking yield. 25% (performance fee) is unstaked to TAO",
+          " and sent to the treasury. 75% is credited to the per-netuid yield index, increasing",
+          " all borrowers' effective collateral proportionally."
+        ],
+        "label": "claim_alpha_yield",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0xa3454707"
+      },
+      {
+        "args": [
+          {
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Claims accumulated protocol reserve fees for a supply/borrow market.",
+          " Sends the fees to the treasury. Permissionless."
+        ],
+        "label": "claim_reserve",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0x584c0dc7"
+      },
+      {
+        "args": [
+          {
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          },
+          {
+            "label": "approved",
+            "type": {
+              "displayName": [
+                "bool"
+              ],
+              "type": 3
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Adds or removes a subnet from the approved alpha markets list."
+        ],
+        "label": "set_approved_netuid",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0x16af1e00"
+      },
+      {
+        "args": [
+          {
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          },
+          {
+            "label": "config",
+            "type": {
+              "displayName": [
+                "AlphaMarketParamsConfig"
+              ],
+              "type": 44
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Sets alpha market parameters (schedules timelocked update)."
+        ],
+        "label": "set_alpha_params",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0x8286b23d"
+      },
+      {
+        "args": [
+          {
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Executes a scheduled alpha params update (permissionless, time-gated)."
+        ],
+        "label": "execute_alpha_params_update",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0x891a2e88"
+      },
+      {
+        "args": [
+          {
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Cancels a scheduled alpha params update."
+        ],
+        "label": "cancel_alpha_params_update",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0xbd3fdc88"
+      },
+      {
+        "args": [
+          {
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "label": "config",
+            "type": {
+              "displayName": [
+                "InterestRateParamsConfig"
+              ],
+              "type": 39
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "set_market_params",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0x59499fd5"
+      },
+      {
+        "args": [
+          {
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "execute_market_params_update",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0x6ace992a"
+      },
+      {
+        "args": [
+          {
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "cancel_market_params_update",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0xc57d958e"
+      },
+      {
+        "args": [
+          {
+            "label": "config",
+            "type": {
+              "displayName": [
+                "PoolGlobalParamsConfig"
+              ],
+              "type": 71
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "set_global_params",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0x0f0976e0"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [],
+        "label": "execute_global_params_update",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0x5c7c2987"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [],
+        "label": "cancel_global_params_update",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0x238a6656"
+      },
+      {
+        "args": [
+          {
+            "label": "new_governance",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "update_governance",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0xc33c8b6a"
+      },
+      {
+        "args": [
+          {
+            "label": "new_treasury",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "update_treasury",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0xef6ee141"
+      },
+      {
+        "args": [
+          {
+            "label": "new_platform",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "update_platform",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0xa59697ab"
+      },
+      {
+        "args": [
+          {
+            "label": "new_oracle",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "update_oracle_address",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0x90a92fb5"
+      },
+      {
+        "args": [
+          {
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "label": "new_ltoken",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "update_ltoken_address",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0x94073a3f"
+      },
+      {
+        "args": [
+          {
+            "label": "new_hotkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "netuids",
+            "type": {
+              "displayName": [
+                "Vec"
+              ],
+              "type": 80
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Migrates the pool's staking hotkey, moving all alpha stake to a new hotkey."
+        ],
+        "label": "update_pool_hotkey",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0x4b6f69a2"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [],
+        "label": "pause",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0x81e0c604"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [],
+        "label": "unpause",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0x67616649"
+      },
+      {
+        "args": [
+          {
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "claim_surplus_tusdt",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0x3b645db8"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [],
+        "label": "transfer_native_to_treasury",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 75
+        },
+        "selector": "0x9f08997a"
+      },
+      {
+        "args": [
+          {
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "get_market_state",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 81
+        },
+        "selector": "0xc34cbbfc"
+      },
+      {
+        "args": [
+          {
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "get_position",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 83
+        },
+        "selector": "0x941d9844"
+      },
+      {
+        "args": [
+          {
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "get_exchange_rate",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 85
+        },
+        "selector": "0x1fa71131"
+      },
+      {
+        "args": [
+          {
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "get_borrow_index",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 85
+        },
+        "selector": "0xf552dc5b"
+      },
+      {
+        "args": [
+          {
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "get_utilization",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 85
+        },
+        "selector": "0x858f986c"
+      },
+      {
+        "args": [
+          {
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "get_borrow_rate",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 85
+        },
+        "selector": "0xffc4f680"
+      },
+      {
+        "args": [
+          {
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "get_supply_rate",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 85
+        },
+        "selector": "0x1988d6be"
+      },
+      {
+        "args": [
+          {
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "get_underlying_balance",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 87
+        },
+        "selector": "0xc4a89c1d"
+      },
+      {
+        "args": [
+          {
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "get_user_debt",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 87
+        },
+        "selector": "0x75715311"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [],
+        "label": "get_alpha_markets",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 89
+        },
+        "selector": "0x7f442e12"
+      },
+      {
+        "args": [
+          {
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "get_user_alpha_position",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 87
+        },
+        "selector": "0x00baec12"
+      },
+      {
+        "args": [
+          {
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "get_alpha_yield_index",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 85
+        },
+        "selector": "0x0dd24140"
+      },
+      {
+        "args": [
+          {
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "get_netuid_total_collateral",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 87
+        },
+        "selector": "0x4a70f9b9"
+      },
+      {
+        "args": [
+          {
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "is_approved_netuid",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 92
+        },
+        "selector": "0x43efc996"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [],
+        "label": "get_active_netuids_count",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 93
+        },
+        "selector": "0xc8ff3f8c"
+      },
+      {
+        "args": [
+          {
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "page",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 17
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "get_positions",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 94
+        },
+        "selector": "0x55b8003e"
+      },
+      {
+        "args": [
+          {
+            "label": "page",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 17
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "get_all_positions",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 97
+        },
+        "selector": "0x44c07acf"
+      },
+      {
+        "args": [
+          {
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "get_pending_alpha_params_update",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 100
+        },
+        "selector": "0x76ba5a01"
+      },
+      {
+        "args": [
+          {
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "get_pending_market_params_update",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 102
+        },
+        "selector": "0x3f13c376"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [],
+        "label": "get_pending_global_params_update",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 104
+        },
+        "selector": "0x9259f07d"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [],
+        "label": "governance",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 105
+        },
+        "selector": "0x9f90cf17"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [],
+        "label": "treasury",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 105
+        },
+        "selector": "0xa9b78461"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [],
+        "label": "platform",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 105
+        },
+        "selector": "0x2b86e96a"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [],
+        "label": "paused",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 92
+        },
+        "selector": "0xd8fea916"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [],
+        "label": "get_oracle_address",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 105
+        },
+        "selector": "0xdc4c0ffe"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [],
+        "label": "get_tusdt_address",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 105
+        },
+        "selector": "0x0edac3bf"
+      },
+      {
+        "args": [
+          {
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "get_ltoken_address",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 106
+        },
+        "selector": "0x59c8f9ea"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [],
+        "label": "get_pool_hotkey",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 105
+        },
+        "selector": "0x0801118d"
+      }
+    ]
+  },
+  "storage": {
+    "root": {
+      "layout": {
+        "struct": {
+          "fields": [
+            {
+              "layout": {
+                "leaf": {
+                  "key": "0x00000000",
+                  "ty": 0
+                }
+              },
+              "name": "governance"
+            },
+            {
+              "layout": {
+                "leaf": {
+                  "key": "0x00000000",
+                  "ty": 0
+                }
+              },
+              "name": "treasury"
+            },
+            {
+              "layout": {
+                "leaf": {
+                  "key": "0x00000000",
+                  "ty": 0
+                }
+              },
+              "name": "platform"
+            },
+            {
+              "layout": {
+                "leaf": {
+                  "key": "0x00000000",
+                  "ty": 3
+                }
+              },
+              "name": "paused"
+            },
+            {
+              "layout": {
+                "leaf": {
+                  "key": "0x00000000",
+                  "ty": 3
+                }
+              },
+              "name": "busy"
+            },
+            {
+              "layout": {
+                "struct": {
+                  "fields": [
+                    {
+                      "layout": {
+                        "struct": {
+                          "fields": [
+                            {
+                              "layout": {
+                                "leaf": {
+                                  "key": "0x00000000",
+                                  "ty": 0
+                                }
+                              },
+                              "name": "account_id"
+                            }
+                          ],
+                          "name": "CallBuilder"
+                        }
+                      },
+                      "name": "inner"
+                    }
+                  ],
+                  "name": "TusdtOracleRef"
+                }
+              },
+              "name": "oracle"
+            },
+            {
+              "layout": {
+                "struct": {
+                  "fields": [
+                    {
+                      "layout": {
+                        "struct": {
+                          "fields": [
+                            {
+                              "layout": {
+                                "leaf": {
+                                  "key": "0x00000000",
+                                  "ty": 0
+                                }
+                              },
+                              "name": "account_id"
+                            }
+                          ],
+                          "name": "CallBuilder"
+                        }
+                      },
+                      "name": "inner"
+                    }
+                  ],
+                  "name": "TusdtErc20Ref"
+                }
+              },
+              "name": "tusdt"
+            },
+            {
+              "layout": {
+                "leaf": {
+                  "key": "0x00000000",
+                  "ty": 0
+                }
+              },
+              "name": "pool_hotkey"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "struct": {
+                      "fields": [
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0xb9f9243d",
+                              "ty": 4
+                            }
+                          },
+                          "name": "total_supplied"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0xb9f9243d",
+                              "ty": 4
+                            }
+                          },
+                          "name": "total_debt"
+                        },
+                        {
+                          "layout": {
+                            "struct": {
+                              "fields": [
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0xb9f9243d",
+                                      "ty": 5
+                                    }
+                                  },
+                                  "name": "0"
+                                }
+                              ],
+                              "name": "Ratio"
+                            }
+                          },
+                          "name": "borrow_index"
+                        },
+                        {
+                          "layout": {
+                            "struct": {
+                              "fields": [
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0xb9f9243d",
+                                      "ty": 5
+                                    }
+                                  },
+                                  "name": "0"
+                                }
+                              ],
+                              "name": "Ratio"
+                            }
+                          },
+                          "name": "exchange_rate"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0xb9f9243d",
+                              "ty": 4
+                            }
+                          },
+                          "name": "reserve_accrued"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0xb9f9243d",
+                              "ty": 4
+                            }
+                          },
+                          "name": "last_update"
+                        }
+                      ],
+                      "name": "MarketState"
+                    }
+                  },
+                  "root_key": "0xb9f9243d",
+                  "ty": 6
+                }
+              },
+              "name": "markets"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "leaf": {
+                      "key": "0x2ae5a0a1",
+                      "ty": 2
+                    }
+                  },
+                  "root_key": "0x2ae5a0a1",
+                  "ty": 13
+                }
+              },
+              "name": "market_keys"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "leaf": {
+                      "key": "0x131668a3",
+                      "ty": 0
+                    }
+                  },
+                  "root_key": "0x131668a3",
+                  "ty": 19
+                }
+              },
+              "name": "ltoken_by_market"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "leaf": {
+                      "key": "0x7ad21d6f",
+                      "ty": 2
+                    }
+                  },
+                  "root_key": "0x7ad21d6f",
+                  "ty": 22
+                }
+              },
+              "name": "netuid_to_market"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "leaf": {
+                      "key": "0x80bb4ba8",
+                      "ty": 23
+                    }
+                  },
+                  "root_key": "0x80bb4ba8",
+                  "ty": 26
+                }
+              },
+              "name": "market_to_netuid"
+            },
+            {
+              "layout": {
+                "leaf": {
+                  "key": "0x00000000",
+                  "ty": 2
+                }
+              },
+              "name": "next_alpha_market_id"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "struct": {
+                      "fields": [
+                        {
+                          "layout": {
+                            "struct": {
+                              "fields": [
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0xa117faf6",
+                                      "ty": 5
+                                    }
+                                  },
+                                  "name": "0"
+                                }
+                              ],
+                              "name": "Ratio"
+                            }
+                          },
+                          "name": "base_rate"
+                        },
+                        {
+                          "layout": {
+                            "struct": {
+                              "fields": [
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0xa117faf6",
+                                      "ty": 5
+                                    }
+                                  },
+                                  "name": "0"
+                                }
+                              ],
+                              "name": "Ratio"
+                            }
+                          },
+                          "name": "slope1"
+                        },
+                        {
+                          "layout": {
+                            "struct": {
+                              "fields": [
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0xa117faf6",
+                                      "ty": 5
+                                    }
+                                  },
+                                  "name": "0"
+                                }
+                              ],
+                              "name": "Ratio"
+                            }
+                          },
+                          "name": "slope2"
+                        },
+                        {
+                          "layout": {
+                            "struct": {
+                              "fields": [
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0xa117faf6",
+                                      "ty": 5
+                                    }
+                                  },
+                                  "name": "0"
+                                }
+                              ],
+                              "name": "Ratio"
+                            }
+                          },
+                          "name": "optimal_utilization"
+                        },
+                        {
+                          "layout": {
+                            "struct": {
+                              "fields": [
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0xa117faf6",
+                                      "ty": 5
+                                    }
+                                  },
+                                  "name": "0"
+                                }
+                              ],
+                              "name": "Ratio"
+                            }
+                          },
+                          "name": "reserve_factor"
+                        }
+                      ],
+                      "name": "InterestRateParams"
+                    }
+                  },
+                  "root_key": "0xa117faf6",
+                  "ty": 29
+                }
+              },
+              "name": "market_params"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "struct": {
+                      "fields": [
+                        {
+                          "layout": {
+                            "struct": {
+                              "fields": [
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0xb4c799cf",
+                                      "ty": 5
+                                    }
+                                  },
+                                  "name": "0"
+                                }
+                              ],
+                              "name": "Ratio"
+                            }
+                          },
+                          "name": "collateral_factor"
+                        },
+                        {
+                          "layout": {
+                            "struct": {
+                              "fields": [
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0xb4c799cf",
+                                      "ty": 5
+                                    }
+                                  },
+                                  "name": "0"
+                                }
+                              ],
+                              "name": "Ratio"
+                            }
+                          },
+                          "name": "liquidation_threshold"
+                        },
+                        {
+                          "layout": {
+                            "struct": {
+                              "fields": [
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0xb4c799cf",
+                                      "ty": 5
+                                    }
+                                  },
+                                  "name": "0"
+                                }
+                              ],
+                              "name": "Ratio"
+                            }
+                          },
+                          "name": "liquidation_bonus"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0xb4c799cf",
+                              "ty": 4
+                            }
+                          },
+                          "name": "supply_cap"
+                        }
+                      ],
+                      "name": "AlphaMarketParams"
+                    }
+                  },
+                  "root_key": "0xb4c799cf",
+                  "ty": 33
+                }
+              },
+              "name": "alpha_params"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "struct": {
+                      "fields": [
+                        {
+                          "layout": {
+                            "struct": {
+                              "fields": [
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0xfb10eac6",
+                                      "ty": 17
+                                    }
+                                  },
+                                  "name": "base_rate"
+                                },
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0xfb10eac6",
+                                      "ty": 17
+                                    }
+                                  },
+                                  "name": "slope1"
+                                },
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0xfb10eac6",
+                                      "ty": 17
+                                    }
+                                  },
+                                  "name": "slope2"
+                                },
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0xfb10eac6",
+                                      "ty": 17
+                                    }
+                                  },
+                                  "name": "optimal_utilization"
+                                },
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0xfb10eac6",
+                                      "ty": 17
+                                    }
+                                  },
+                                  "name": "reserve_factor"
+                                }
+                              ],
+                              "name": "InterestRateParamsConfig"
+                            }
+                          },
+                          "name": "params"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0xfb10eac6",
+                              "ty": 4
+                            }
+                          },
+                          "name": "execute_after"
+                        }
+                      ],
+                      "name": "PendingInterestParamsUpdate"
+                    }
+                  },
+                  "root_key": "0xfb10eac6",
+                  "ty": 37
+                }
+              },
+              "name": "pending_market_params"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "struct": {
+                      "fields": [
+                        {
+                          "layout": {
+                            "struct": {
+                              "fields": [
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0xc418795a",
+                                      "ty": 17
+                                    }
+                                  },
+                                  "name": "collateral_factor"
+                                },
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0xc418795a",
+                                      "ty": 17
+                                    }
+                                  },
+                                  "name": "liquidation_threshold"
+                                },
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0xc418795a",
+                                      "ty": 17
+                                    }
+                                  },
+                                  "name": "liquidation_bonus"
+                                },
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0xc418795a",
+                                      "ty": 4
+                                    }
+                                  },
+                                  "name": "supply_cap"
+                                }
+                              ],
+                              "name": "AlphaMarketParamsConfig"
+                            }
+                          },
+                          "name": "params"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0xc418795a",
+                              "ty": 4
+                            }
+                          },
+                          "name": "execute_after"
+                        }
+                      ],
+                      "name": "PendingAlphaParamsUpdate"
+                    }
+                  },
+                  "root_key": "0xc418795a",
+                  "ty": 42
+                }
+              },
+              "name": "pending_alpha_params"
+            },
+            {
+              "layout": {
+                "struct": {
+                  "fields": [
+                    {
+                      "layout": {
+                        "leaf": {
+                          "key": "0x00000000",
+                          "ty": 4
+                        }
+                      },
+                      "name": "max_oracle_age_ms"
+                    },
+                    {
+                      "layout": {
+                        "struct": {
+                          "fields": [
+                            {
+                              "layout": {
+                                "leaf": {
+                                  "key": "0x00000000",
+                                  "ty": 5
+                                }
+                              },
+                              "name": "0"
+                            }
+                          ],
+                          "name": "Ratio"
+                        }
+                      },
+                      "name": "close_factor"
+                    },
+                    {
+                      "layout": {
+                        "struct": {
+                          "fields": [
+                            {
+                              "layout": {
+                                "leaf": {
+                                  "key": "0x00000000",
+                                  "ty": 5
+                                }
+                              },
+                              "name": "0"
+                            }
+                          ],
+                          "name": "Ratio"
+                        }
+                      },
+                      "name": "performance_fee"
+                    },
+                    {
+                      "layout": {
+                        "leaf": {
+                          "key": "0x00000000",
+                          "ty": 4
+                        }
+                      },
+                      "name": "supply_cap_tao"
+                    },
+                    {
+                      "layout": {
+                        "leaf": {
+                          "key": "0x00000000",
+                          "ty": 4
+                        }
+                      },
+                      "name": "supply_cap_tusdt"
+                    },
+                    {
+                      "layout": {
+                        "leaf": {
+                          "key": "0x00000000",
+                          "ty": 4
+                        }
+                      },
+                      "name": "borrow_cap_tao"
+                    },
+                    {
+                      "layout": {
+                        "leaf": {
+                          "key": "0x00000000",
+                          "ty": 4
+                        }
+                      },
+                      "name": "borrow_cap_tusdt"
+                    }
+                  ],
+                  "name": "PoolGlobalParams"
+                }
+              },
+              "name": "global_params"
+            },
+            {
+              "layout": {
+                "enum": {
+                  "dispatchKey": "0x00000000",
+                  "name": "Option",
+                  "variants": {
+                    "0": {
+                      "fields": [],
+                      "name": "None"
+                    },
+                    "1": {
+                      "fields": [
+                        {
+                          "layout": {
+                            "struct": {
+                              "fields": [
+                                {
+                                  "layout": {
+                                    "struct": {
+                                      "fields": [
+                                        {
+                                          "layout": {
+                                            "leaf": {
+                                              "key": "0x00000000",
+                                              "ty": 4
+                                            }
+                                          },
+                                          "name": "max_oracle_age_ms"
+                                        },
+                                        {
+                                          "layout": {
+                                            "leaf": {
+                                              "key": "0x00000000",
+                                              "ty": 17
+                                            }
+                                          },
+                                          "name": "close_factor"
+                                        },
+                                        {
+                                          "layout": {
+                                            "leaf": {
+                                              "key": "0x00000000",
+                                              "ty": 17
+                                            }
+                                          },
+                                          "name": "performance_fee"
+                                        },
+                                        {
+                                          "layout": {
+                                            "leaf": {
+                                              "key": "0x00000000",
+                                              "ty": 4
+                                            }
+                                          },
+                                          "name": "supply_cap_tao"
+                                        },
+                                        {
+                                          "layout": {
+                                            "leaf": {
+                                              "key": "0x00000000",
+                                              "ty": 4
+                                            }
+                                          },
+                                          "name": "supply_cap_tusdt"
+                                        },
+                                        {
+                                          "layout": {
+                                            "leaf": {
+                                              "key": "0x00000000",
+                                              "ty": 4
+                                            }
+                                          },
+                                          "name": "borrow_cap_tao"
+                                        },
+                                        {
+                                          "layout": {
+                                            "leaf": {
+                                              "key": "0x00000000",
+                                              "ty": 4
+                                            }
+                                          },
+                                          "name": "borrow_cap_tusdt"
+                                        }
+                                      ],
+                                      "name": "PoolGlobalParamsConfig"
+                                    }
+                                  },
+                                  "name": "params"
+                                },
+                                {
+                                  "layout": {
+                                    "leaf": {
+                                      "key": "0x00000000",
+                                      "ty": 4
+                                    }
+                                  },
+                                  "name": "execute_after"
+                                }
+                              ],
+                              "name": "PendingGlobalParamsUpdate"
+                            }
+                          },
+                          "name": "0"
+                        }
+                      ],
+                      "name": "Some"
+                    }
+                  }
+                }
+              },
+              "name": "pending_global_params"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "leaf": {
+                      "key": "0xa4d3d12f",
+                      "ty": 4
+                    }
+                  },
+                  "root_key": "0xa4d3d12f",
+                  "ty": 47
+                }
+              },
+              "name": "netuid_total_collateral"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "struct": {
+                      "fields": [
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0xcaa4f4f2",
+                              "ty": 5
+                            }
+                          },
+                          "name": "0"
+                        }
+                      ],
+                      "name": "Ratio"
+                    }
+                  },
+                  "root_key": "0xcaa4f4f2",
+                  "ty": 50
+                }
+              },
+              "name": "netuid_yield_index"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "struct": {
+                      "fields": [
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x1a4542d5",
+                              "ty": 4
+                            }
+                          },
+                          "name": "ltoken_balance"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x1a4542d5",
+                              "ty": 4
+                            }
+                          },
+                          "name": "scaled_debt"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x1a4542d5",
+                              "ty": 4
+                            }
+                          },
+                          "name": "alpha_principal"
+                        }
+                      ],
+                      "name": "Position"
+                    }
+                  },
+                  "root_key": "0x1a4542d5",
+                  "ty": 53
+                }
+              },
+              "name": "positions"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "struct": {
+                      "fields": [
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x43c6673c",
+                              "ty": 2
+                            }
+                          },
+                          "name": "0"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x43c6673c",
+                              "ty": 0
+                            }
+                          },
+                          "name": "1"
+                        }
+                      ],
+                      "name": "(A, B)"
+                    }
+                  },
+                  "root_key": "0x43c6673c",
+                  "ty": 58
+                }
+              },
+              "name": "position_keys"
+            }
+          ],
+          "name": "TusdtLendingPool"
+        }
+      },
+      "root_key": "0x00000000",
+      "ty": 63
+    }
+  },
+  "types": [
+    {
+      "id": 0,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "type": 1,
+                "typeName": "[u8; 32]"
+              }
+            ]
+          }
+        },
+        "path": [
+          "ink_primitives",
+          "types",
+          "AccountId"
+        ]
+      }
+    },
+    {
+      "id": 1,
+      "type": {
+        "def": {
+          "array": {
+            "len": 32,
+            "type": 2
+          }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "type": {
+        "def": {
+          "primitive": "u8"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": {
+        "def": {
+          "primitive": "bool"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": {
+        "def": {
+          "primitive": "u64"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": {
+        "def": {
+          "primitive": "u128"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "K",
+            "type": 2
+          },
+          {
+            "name": "V",
+            "type": 7
+          },
+          {
+            "name": "KeyType",
+            "type": 9
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "mapping",
+          "Mapping"
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "total_supplied",
+                "type": 4,
+                "typeName": "Balance"
+              },
+              {
+                "name": "total_debt",
+                "type": 4,
+                "typeName": "Balance"
+              },
+              {
+                "name": "borrow_index",
+                "type": 8,
+                "typeName": "Ratio"
+              },
+              {
+                "name": "exchange_rate",
+                "type": 8,
+                "typeName": "Ratio"
+              },
+              {
+                "name": "reserve_accrued",
+                "type": 4,
+                "typeName": "Balance"
+              },
+              {
+                "name": "last_update",
+                "type": 4,
+                "typeName": "u64"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_lending_pool",
+          "lending_pool",
+          "MarketState"
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "type": 5,
+                "typeName": "u128"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_primitives",
+          "Ratio"
+        ]
+      }
+    },
+    {
+      "id": 9,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "L",
+            "type": 10
+          },
+          {
+            "name": "R",
+            "type": 11
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ResolverKey"
+        ]
+      }
+    },
+    {
+      "id": 10,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "AutoKey"
+        ]
+      }
+    },
+    {
+      "id": 11,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "ParentKey",
+            "type": 12
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ManualKey"
+        ]
+      }
+    },
+    {
+      "id": 12,
+      "type": {
+        "def": {
+          "tuple": []
+        }
+      }
+    },
+    {
+      "id": 13,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "len",
+                "type": 16,
+                "typeName": "Lazy<u32, KeyType>"
+              },
+              {
+                "name": "elements",
+                "type": 18,
+                "typeName": "Mapping<u32, V, KeyType>"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "V",
+            "type": 2
+          },
+          {
+            "name": "KeyType",
+            "type": 14
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "vec",
+          "StorageVec"
+        ]
+      }
+    },
+    {
+      "id": 14,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "L",
+            "type": 10
+          },
+          {
+            "name": "R",
+            "type": 15
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ResolverKey"
+        ]
+      }
+    },
+    {
+      "id": 15,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "ParentKey",
+            "type": 12
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ManualKey"
+        ]
+      }
+    },
+    {
+      "id": 16,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "V",
+            "type": 17
+          },
+          {
+            "name": "KeyType",
+            "type": 14
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "Lazy"
+        ]
+      }
+    },
+    {
+      "id": 17,
+      "type": {
+        "def": {
+          "primitive": "u32"
+        }
+      }
+    },
+    {
+      "id": 18,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "K",
+            "type": 17
+          },
+          {
+            "name": "V",
+            "type": 2
+          },
+          {
+            "name": "KeyType",
+            "type": 14
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "mapping",
+          "Mapping"
+        ]
+      }
+    },
+    {
+      "id": 19,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "K",
+            "type": 2
+          },
+          {
+            "name": "V",
+            "type": 0
+          },
+          {
+            "name": "KeyType",
+            "type": 20
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "mapping",
+          "Mapping"
+        ]
+      }
+    },
+    {
+      "id": 20,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "L",
+            "type": 10
+          },
+          {
+            "name": "R",
+            "type": 21
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ResolverKey"
+        ]
+      }
+    },
+    {
+      "id": 21,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "ParentKey",
+            "type": 12
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ManualKey"
+        ]
+      }
+    },
+    {
+      "id": 22,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "K",
+            "type": 23
+          },
+          {
+            "name": "V",
+            "type": 2
+          },
+          {
+            "name": "KeyType",
+            "type": 24
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "mapping",
+          "Mapping"
+        ]
+      }
+    },
+    {
+      "id": 23,
+      "type": {
+        "def": {
+          "primitive": "u16"
+        }
+      }
+    },
+    {
+      "id": 24,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "L",
+            "type": 10
+          },
+          {
+            "name": "R",
+            "type": 25
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ResolverKey"
+        ]
+      }
+    },
+    {
+      "id": 25,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "ParentKey",
+            "type": 12
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ManualKey"
+        ]
+      }
+    },
+    {
+      "id": 26,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "K",
+            "type": 2
+          },
+          {
+            "name": "V",
+            "type": 23
+          },
+          {
+            "name": "KeyType",
+            "type": 27
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "mapping",
+          "Mapping"
+        ]
+      }
+    },
+    {
+      "id": 27,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "L",
+            "type": 10
+          },
+          {
+            "name": "R",
+            "type": 28
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ResolverKey"
+        ]
+      }
+    },
+    {
+      "id": 28,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "ParentKey",
+            "type": 12
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ManualKey"
+        ]
+      }
+    },
+    {
+      "id": 29,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "K",
+            "type": 2
+          },
+          {
+            "name": "V",
+            "type": 30
+          },
+          {
+            "name": "KeyType",
+            "type": 31
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "mapping",
+          "Mapping"
+        ]
+      }
+    },
+    {
+      "id": 30,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "base_rate",
+                "type": 8,
+                "typeName": "Ratio"
+              },
+              {
+                "name": "slope1",
+                "type": 8,
+                "typeName": "Ratio"
+              },
+              {
+                "name": "slope2",
+                "type": 8,
+                "typeName": "Ratio"
+              },
+              {
+                "name": "optimal_utilization",
+                "type": 8,
+                "typeName": "Ratio"
+              },
+              {
+                "name": "reserve_factor",
+                "type": 8,
+                "typeName": "Ratio"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_lending_pool",
+          "lending_pool",
+          "InterestRateParams"
+        ]
+      }
+    },
+    {
+      "id": 31,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "L",
+            "type": 10
+          },
+          {
+            "name": "R",
+            "type": 32
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ResolverKey"
+        ]
+      }
+    },
+    {
+      "id": 32,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "ParentKey",
+            "type": 12
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ManualKey"
+        ]
+      }
+    },
+    {
+      "id": 33,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "K",
+            "type": 23
+          },
+          {
+            "name": "V",
+            "type": 34
+          },
+          {
+            "name": "KeyType",
+            "type": 35
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "mapping",
+          "Mapping"
+        ]
+      }
+    },
+    {
+      "id": 34,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "collateral_factor",
+                "type": 8,
+                "typeName": "Ratio"
+              },
+              {
+                "name": "liquidation_threshold",
+                "type": 8,
+                "typeName": "Ratio"
+              },
+              {
+                "name": "liquidation_bonus",
+                "type": 8,
+                "typeName": "Ratio"
+              },
+              {
+                "name": "supply_cap",
+                "type": 4,
+                "typeName": "Balance"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_lending_pool",
+          "lending_pool",
+          "AlphaMarketParams"
+        ]
+      }
+    },
+    {
+      "id": 35,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "L",
+            "type": 10
+          },
+          {
+            "name": "R",
+            "type": 36
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ResolverKey"
+        ]
+      }
+    },
+    {
+      "id": 36,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "ParentKey",
+            "type": 12
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ManualKey"
+        ]
+      }
+    },
+    {
+      "id": 37,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "K",
+            "type": 2
+          },
+          {
+            "name": "V",
+            "type": 38
+          },
+          {
+            "name": "KeyType",
+            "type": 40
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "mapping",
+          "Mapping"
+        ]
+      }
+    },
+    {
+      "id": 38,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "params",
+                "type": 39,
+                "typeName": "InterestRateParamsConfig"
+              },
+              {
+                "name": "execute_after",
+                "type": 4,
+                "typeName": "u64"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_lending_pool",
+          "lending_pool",
+          "PendingInterestParamsUpdate"
+        ]
+      }
+    },
+    {
+      "id": 39,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "base_rate",
+                "type": 17,
+                "typeName": "u32"
+              },
+              {
+                "name": "slope1",
+                "type": 17,
+                "typeName": "u32"
+              },
+              {
+                "name": "slope2",
+                "type": 17,
+                "typeName": "u32"
+              },
+              {
+                "name": "optimal_utilization",
+                "type": 17,
+                "typeName": "u32"
+              },
+              {
+                "name": "reserve_factor",
+                "type": 17,
+                "typeName": "u32"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_lending_pool",
+          "lending_pool",
+          "InterestRateParamsConfig"
+        ]
+      }
+    },
+    {
+      "id": 40,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "L",
+            "type": 10
+          },
+          {
+            "name": "R",
+            "type": 41
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ResolverKey"
+        ]
+      }
+    },
+    {
+      "id": 41,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "ParentKey",
+            "type": 12
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ManualKey"
+        ]
+      }
+    },
+    {
+      "id": 42,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "K",
+            "type": 23
+          },
+          {
+            "name": "V",
+            "type": 43
+          },
+          {
+            "name": "KeyType",
+            "type": 45
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "mapping",
+          "Mapping"
+        ]
+      }
+    },
+    {
+      "id": 43,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "params",
+                "type": 44,
+                "typeName": "AlphaMarketParamsConfig"
+              },
+              {
+                "name": "execute_after",
+                "type": 4,
+                "typeName": "u64"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_lending_pool",
+          "lending_pool",
+          "PendingAlphaParamsUpdate"
+        ]
+      }
+    },
+    {
+      "id": 44,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "collateral_factor",
+                "type": 17,
+                "typeName": "u32"
+              },
+              {
+                "name": "liquidation_threshold",
+                "type": 17,
+                "typeName": "u32"
+              },
+              {
+                "name": "liquidation_bonus",
+                "type": 17,
+                "typeName": "u32"
+              },
+              {
+                "name": "supply_cap",
+                "type": 4,
+                "typeName": "Balance"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_lending_pool",
+          "lending_pool",
+          "AlphaMarketParamsConfig"
+        ]
+      }
+    },
+    {
+      "id": 45,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "L",
+            "type": 10
+          },
+          {
+            "name": "R",
+            "type": 46
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ResolverKey"
+        ]
+      }
+    },
+    {
+      "id": 46,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "ParentKey",
+            "type": 12
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ManualKey"
+        ]
+      }
+    },
+    {
+      "id": 47,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "K",
+            "type": 23
+          },
+          {
+            "name": "V",
+            "type": 4
+          },
+          {
+            "name": "KeyType",
+            "type": 48
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "mapping",
+          "Mapping"
+        ]
+      }
+    },
+    {
+      "id": 48,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "L",
+            "type": 10
+          },
+          {
+            "name": "R",
+            "type": 49
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ResolverKey"
+        ]
+      }
+    },
+    {
+      "id": 49,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "ParentKey",
+            "type": 12
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ManualKey"
+        ]
+      }
+    },
+    {
+      "id": 50,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "K",
+            "type": 23
+          },
+          {
+            "name": "V",
+            "type": 8
+          },
+          {
+            "name": "KeyType",
+            "type": 51
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "mapping",
+          "Mapping"
+        ]
+      }
+    },
+    {
+      "id": 51,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "L",
+            "type": 10
+          },
+          {
+            "name": "R",
+            "type": 52
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ResolverKey"
+        ]
+      }
+    },
+    {
+      "id": 52,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "ParentKey",
+            "type": 12
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ManualKey"
+        ]
+      }
+    },
+    {
+      "id": 53,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "K",
+            "type": 54
+          },
+          {
+            "name": "V",
+            "type": 55
+          },
+          {
+            "name": "KeyType",
+            "type": 56
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "mapping",
+          "Mapping"
+        ]
+      }
+    },
+    {
+      "id": 54,
+      "type": {
+        "def": {
+          "tuple": [
+            2,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": 55,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "ltoken_balance",
+                "type": 4,
+                "typeName": "Balance"
+              },
+              {
+                "name": "scaled_debt",
+                "type": 4,
+                "typeName": "Balance"
+              },
+              {
+                "name": "alpha_principal",
+                "type": 4,
+                "typeName": "Balance"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_lending_pool",
+          "lending_pool",
+          "Position"
+        ]
+      }
+    },
+    {
+      "id": 56,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "L",
+            "type": 10
+          },
+          {
+            "name": "R",
+            "type": 57
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ResolverKey"
+        ]
+      }
+    },
+    {
+      "id": 57,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "ParentKey",
+            "type": 12
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ManualKey"
+        ]
+      }
+    },
+    {
+      "id": 58,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "len",
+                "type": 61,
+                "typeName": "Lazy<u32, KeyType>"
+              },
+              {
+                "name": "elements",
+                "type": 62,
+                "typeName": "Mapping<u32, V, KeyType>"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "V",
+            "type": 54
+          },
+          {
+            "name": "KeyType",
+            "type": 59
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "vec",
+          "StorageVec"
+        ]
+      }
+    },
+    {
+      "id": 59,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "L",
+            "type": 10
+          },
+          {
+            "name": "R",
+            "type": 60
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ResolverKey"
+        ]
+      }
+    },
+    {
+      "id": 60,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "ParentKey",
+            "type": 12
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ManualKey"
+        ]
+      }
+    },
+    {
+      "id": 61,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "V",
+            "type": 17
+          },
+          {
+            "name": "KeyType",
+            "type": 59
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "Lazy"
+        ]
+      }
+    },
+    {
+      "id": 62,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "K",
+            "type": 17
+          },
+          {
+            "name": "V",
+            "type": 54
+          },
+          {
+            "name": "KeyType",
+            "type": 59
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "mapping",
+          "Mapping"
+        ]
+      }
+    },
+    {
+      "id": 63,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "governance",
+                "type": 0,
+                "typeName": "<AccountId as::ink::storage::traits::AutoStorableHint<::ink::\nstorage::traits::ManualKey<262270651u32, ()>,>>::Type"
+              },
+              {
+                "name": "treasury",
+                "type": 0,
+                "typeName": "<AccountId as::ink::storage::traits::AutoStorableHint<::ink::\nstorage::traits::ManualKey<3201998973u32, ()>,>>::Type"
+              },
+              {
+                "name": "platform",
+                "type": 0,
+                "typeName": "<AccountId as::ink::storage::traits::AutoStorableHint<::ink::\nstorage::traits::ManualKey<2739652654u32, ()>,>>::Type"
+              },
+              {
+                "name": "paused",
+                "type": 3,
+                "typeName": "<bool as::ink::storage::traits::AutoStorableHint<::ink::storage\n::traits::ManualKey<462356111u32, ()>,>>::Type"
+              },
+              {
+                "name": "busy",
+                "type": 3,
+                "typeName": "<bool as::ink::storage::traits::AutoStorableHint<::ink::storage\n::traits::ManualKey<585168093u32, ()>,>>::Type"
+              },
+              {
+                "name": "oracle",
+                "type": 64,
+                "typeName": "<TusdtOracleRef as::ink::storage::traits::AutoStorableHint<::ink\n::storage::traits::ManualKey<1545505214u32, ()>,>>::Type"
+              },
+              {
+                "name": "tusdt",
+                "type": 66,
+                "typeName": "<TusdtErc20Ref as::ink::storage::traits::AutoStorableHint<::ink::\nstorage::traits::ManualKey<2228760745u32, ()>,>>::Type"
+              },
+              {
+                "name": "pool_hotkey",
+                "type": 0,
+                "typeName": "<AccountId as::ink::storage::traits::AutoStorableHint<::ink::\nstorage::traits::ManualKey<3401613289u32, ()>,>>::Type"
+              },
+              {
+                "name": "markets",
+                "type": 6,
+                "typeName": "<Mapping<u8, MarketState> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<1025833401u32,\n()>,>>::Type"
+              },
+              {
+                "name": "market_keys",
+                "type": 13,
+                "typeName": "<StorageVec<u8> as::ink::storage::traits::AutoStorableHint<::\nink::storage::traits::ManualKey<2711676202u32, ()>,>>::Type"
+              },
+              {
+                "name": "ltoken_by_market",
+                "type": 19,
+                "typeName": "<Mapping<u8, AccountId> as::ink::storage::traits::AutoStorableHint\n<::ink::storage::traits::ManualKey<2741507603u32, ()>,>>::Type"
+              },
+              {
+                "name": "netuid_to_market",
+                "type": 22,
+                "typeName": "<Mapping<u16, u8> as::ink::storage::traits::AutoStorableHint<::\nink::storage::traits::ManualKey<1864225402u32, ()>,>>::Type"
+              },
+              {
+                "name": "market_to_netuid",
+                "type": 26,
+                "typeName": "<Mapping<u8, u16> as::ink::storage::traits::AutoStorableHint<::\nink::storage::traits::ManualKey<2823535488u32, ()>,>>::Type"
+              },
+              {
+                "name": "next_alpha_market_id",
+                "type": 2,
+                "typeName": "<u8 as::ink::storage::traits::AutoStorableHint<::ink::storage::\ntraits::ManualKey<1312191765u32, ()>,>>::Type"
+              },
+              {
+                "name": "market_params",
+                "type": 29,
+                "typeName": "<Mapping<u8, InterestRateParams> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<4143585185u32,\n()>,>>::Type"
+              },
+              {
+                "name": "alpha_params",
+                "type": 33,
+                "typeName": "<Mapping<u16, AlphaMarketParams> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<3482961844u32,\n()>,>>::Type"
+              },
+              {
+                "name": "pending_market_params",
+                "type": 37,
+                "typeName": "<Mapping<u8, PendingInterestParamsUpdate> as::ink::storage::traits\n::AutoStorableHint<::ink::storage::traits::ManualKey<\n3337228539u32, ()>,>>::Type"
+              },
+              {
+                "name": "pending_alpha_params",
+                "type": 42,
+                "typeName": "<Mapping<u16, PendingAlphaParamsUpdate> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<1517885636u32,\n()>,>>::Type"
+              },
+              {
+                "name": "global_params",
+                "type": 68,
+                "typeName": "<PoolGlobalParams as::ink::storage::traits::AutoStorableHint<::ink\n::storage::traits::ManualKey<635838979u32, ()>,>>::Type"
+              },
+              {
+                "name": "pending_global_params",
+                "type": 69,
+                "typeName": "<Option<PendingGlobalParamsUpdate> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<175000758u32, ()\n>,>>::Type"
+              },
+              {
+                "name": "netuid_total_collateral",
+                "type": 47,
+                "typeName": "<Mapping<u16, Balance> as::ink::storage::traits::AutoStorableHint\n<::ink::storage::traits::ManualKey<802280356u32, ()>,>>::Type"
+              },
+              {
+                "name": "netuid_yield_index",
+                "type": 50,
+                "typeName": "<Mapping<u16, Ratio> as::ink::storage::traits::AutoStorableHint<\n::ink::storage::traits::ManualKey<4076119242u32, ()>,>>::Type"
+              },
+              {
+                "name": "positions",
+                "type": 53,
+                "typeName": "<Mapping<(u8, AccountId), Position> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<3577890074u32,\n()>,>>::Type"
+              },
+              {
+                "name": "position_keys",
+                "type": 58,
+                "typeName": "<StorageVec<(u8, AccountId)> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<1013433923u32,\n()>,>>::Type"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_lending_pool",
+          "lending_pool",
+          "TusdtLendingPool"
+        ]
+      }
+    },
+    {
+      "id": 64,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "inner",
+                "type": 65,
+                "typeName": "<TusdtOracle as::ink::codegen::ContractCallBuilder>::Type"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_oracle",
+          "oracle",
+          "TusdtOracleRef"
+        ]
+      }
+    },
+    {
+      "id": 65,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "account_id",
+                "type": 0,
+                "typeName": "AccountId"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_oracle",
+          "oracle",
+          "CallBuilder"
+        ]
+      }
+    },
+    {
+      "id": 66,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "inner",
+                "type": 67,
+                "typeName": "<TusdtErc20 as::ink::codegen::ContractCallBuilder>::Type"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_erc20",
+          "tusdt",
+          "TusdtErc20Ref"
+        ]
+      }
+    },
+    {
+      "id": 67,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "account_id",
+                "type": 0,
+                "typeName": "AccountId"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_erc20",
+          "tusdt",
+          "CallBuilder"
+        ]
+      }
+    },
+    {
+      "id": 68,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "max_oracle_age_ms",
+                "type": 4,
+                "typeName": "u64"
+              },
+              {
+                "name": "close_factor",
+                "type": 8,
+                "typeName": "Ratio"
+              },
+              {
+                "name": "performance_fee",
+                "type": 8,
+                "typeName": "Ratio"
+              },
+              {
+                "name": "supply_cap_tao",
+                "type": 4,
+                "typeName": "Balance"
+              },
+              {
+                "name": "supply_cap_tusdt",
+                "type": 4,
+                "typeName": "Balance"
+              },
+              {
+                "name": "borrow_cap_tao",
+                "type": 4,
+                "typeName": "Balance"
+              },
+              {
+                "name": "borrow_cap_tusdt",
+                "type": 4,
+                "typeName": "Balance"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_lending_pool",
+          "lending_pool",
+          "PoolGlobalParams"
+        ]
+      }
+    },
+    {
+      "id": 69,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 70
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 70
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 70,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "params",
+                "type": 71,
+                "typeName": "PoolGlobalParamsConfig"
+              },
+              {
+                "name": "execute_after",
+                "type": 4,
+                "typeName": "u64"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_lending_pool",
+          "lending_pool",
+          "PendingGlobalParamsUpdate"
+        ]
+      }
+    },
+    {
+      "id": 71,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "max_oracle_age_ms",
+                "type": 4,
+                "typeName": "u64"
+              },
+              {
+                "name": "close_factor",
+                "type": 17,
+                "typeName": "u32"
+              },
+              {
+                "name": "performance_fee",
+                "type": 17,
+                "typeName": "u32"
+              },
+              {
+                "name": "supply_cap_tao",
+                "type": 4,
+                "typeName": "Balance"
+              },
+              {
+                "name": "supply_cap_tusdt",
+                "type": 4,
+                "typeName": "Balance"
+              },
+              {
+                "name": "borrow_cap_tao",
+                "type": 4,
+                "typeName": "Balance"
+              },
+              {
+                "name": "borrow_cap_tusdt",
+                "type": 4,
+                "typeName": "Balance"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_lending_pool",
+          "lending_pool",
+          "PoolGlobalParamsConfig"
+        ]
+      }
+    },
+    {
+      "id": 72,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "type": 1,
+                "typeName": "[u8; 32]"
+              }
+            ]
+          }
+        },
+        "path": [
+          "ink_primitives",
+          "types",
+          "Hash"
+        ]
+      }
+    },
+    {
+      "id": 73,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 12
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 74
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 12
+          },
+          {
+            "name": "E",
+            "type": 74
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 74,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 1,
+                "name": "CouldNotReadInput"
+              }
+            ]
+          }
+        },
+        "path": [
+          "ink_primitives",
+          "LangError"
+        ]
+      }
+    },
+    {
+      "id": 75,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 76
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 74
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 76
+          },
+          {
+            "name": "E",
+            "type": 74
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 76,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 12
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 77
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 12
+          },
+          {
+            "name": "E",
+            "type": 77
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 77,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "NotGovernance"
+              },
+              {
+                "index": 1,
+                "name": "NotGovernanceOrPlatform"
+              },
+              {
+                "index": 2,
+                "name": "ContractPaused"
+              },
+              {
+                "index": 3,
+                "name": "Reentrancy"
+              },
+              {
+                "index": 4,
+                "name": "ZeroAmount"
+              },
+              {
+                "index": 5,
+                "name": "LiquidityInsufficient"
+              },
+              {
+                "index": 6,
+                "name": "MintBelowPrecision"
+              },
+              {
+                "index": 7,
+                "name": "InsufficientLTokenBalance"
+              },
+              {
+                "index": 8,
+                "name": "SupplyCapExceeded"
+              },
+              {
+                "index": 9,
+                "name": "BorrowCapExceeded"
+              },
+              {
+                "index": 10,
+                "name": "RepayAmountTooHigh"
+              },
+              {
+                "index": 11,
+                "name": "UnapprovedNetuid"
+              },
+              {
+                "index": 12,
+                "name": "NetuidHasPositions"
+              },
+              {
+                "index": 13,
+                "name": "InsufficientCollateral"
+              },
+              {
+                "index": 14,
+                "name": "InsufficientAvailableStake"
+              },
+              {
+                "index": 15,
+                "name": "StakeTransferFailed"
+              },
+              {
+                "index": 16,
+                "name": "ChainExtensionFailed"
+              },
+              {
+                "index": 17,
+                "name": "NoAlphaStakeFound"
+              },
+              {
+                "index": 18,
+                "name": "TooManyNetuids"
+              },
+              {
+                "index": 19,
+                "name": "OracleCallFailed"
+              },
+              {
+                "index": 20,
+                "name": "OraclePriceUnavailable"
+              },
+              {
+                "index": 21,
+                "name": "OraclePriceStale"
+              },
+              {
+                "index": 22,
+                "name": "HealthFactorBelowThreshold"
+              },
+              {
+                "index": 23,
+                "name": "NotLiquidatable"
+              },
+              {
+                "index": 24,
+                "name": "InvalidCollateralNetuid"
+              },
+              {
+                "index": 25,
+                "name": "InvalidDebtMarket"
+              },
+              {
+                "index": 26,
+                "name": "CloseFactorExceeded"
+              },
+              {
+                "index": 27,
+                "name": "CollateralAwardExceedsPosition"
+              },
+              {
+                "index": 28,
+                "name": "InvalidRatio"
+              },
+              {
+                "index": 29,
+                "name": "InvalidParam"
+              },
+              {
+                "index": 30,
+                "name": "NoPendingMarketParamsUpdate"
+              },
+              {
+                "index": 31,
+                "name": "NoPendingAlphaParamsUpdate"
+              },
+              {
+                "index": 32,
+                "name": "NoPendingGlobalParamsUpdate"
+              },
+              {
+                "index": 33,
+                "name": "ParamsUpdateTimelockActive"
+              },
+              {
+                "index": 34,
+                "name": "TokenContractCallFailed"
+              },
+              {
+                "index": 35,
+                "name": "TokenTransferFromFailed"
+              },
+              {
+                "index": 36,
+                "name": "LTokenCallFailed"
+              },
+              {
+                "index": 37,
+                "name": "TransferFailed"
+              },
+              {
+                "index": 38,
+                "name": "MarketNotFound"
+              },
+              {
+                "index": 39,
+                "name": "PositionNotFound"
+              },
+              {
+                "index": 40,
+                "name": "ArithmeticError"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_lending_pool",
+          "lending_pool",
+          "Error"
+        ]
+      }
+    },
+    {
+      "id": 78,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 79
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 74
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 79
+          },
+          {
+            "name": "E",
+            "type": 74
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 79,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 2
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 77
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 2
+          },
+          {
+            "name": "E",
+            "type": 77
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 80,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 23
+          }
+        }
+      }
+    },
+    {
+      "id": 81,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 82
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 74
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 82
+          },
+          {
+            "name": "E",
+            "type": 74
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 82,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 7
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 7
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 83,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 84
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 74
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 84
+          },
+          {
+            "name": "E",
+            "type": 74
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 84,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 55
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 55
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 85,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 86
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 74
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 86
+          },
+          {
+            "name": "E",
+            "type": 74
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 86,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 8
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 8
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 87,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 88
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 74
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 88
+          },
+          {
+            "name": "E",
+            "type": 74
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 88,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 4
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 4
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 89,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 90
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 74
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 90
+          },
+          {
+            "name": "E",
+            "type": 74
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 90,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 91
+          }
+        }
+      }
+    },
+    {
+      "id": 91,
+      "type": {
+        "def": {
+          "tuple": [
+            23,
+            34
+          ]
+        }
+      }
+    },
+    {
+      "id": 92,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 3
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 74
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 3
+          },
+          {
+            "name": "E",
+            "type": 74
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 93,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 17
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 74
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 17
+          },
+          {
+            "name": "E",
+            "type": 74
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 94,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 95
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 74
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 95
+          },
+          {
+            "name": "E",
+            "type": 74
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 95,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 96
+          }
+        }
+      }
+    },
+    {
+      "id": 96,
+      "type": {
+        "def": {
+          "tuple": [
+            2,
+            55
+          ]
+        }
+      }
+    },
+    {
+      "id": 97,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 98
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 74
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 98
+          },
+          {
+            "name": "E",
+            "type": 74
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 98,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 99
+          }
+        }
+      }
+    },
+    {
+      "id": 99,
+      "type": {
+        "def": {
+          "tuple": [
+            54,
+            55
+          ]
+        }
+      }
+    },
+    {
+      "id": 100,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 101
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 74
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 101
+          },
+          {
+            "name": "E",
+            "type": 74
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 101,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 43
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 43
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 102,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 103
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 74
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 103
+          },
+          {
+            "name": "E",
+            "type": 74
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 103,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 38
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 38
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 104,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 69
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 74
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 69
+          },
+          {
+            "name": "E",
+            "type": 74
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 105,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 0
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 74
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 0
+          },
+          {
+            "name": "E",
+            "type": 74
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 106,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 107
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 74
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 107
+          },
+          {
+            "name": "E",
+            "type": 74
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 107,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 0
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 0
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 108,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 2
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 2
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 109,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "hot_key",
+                "type": 0,
+                "typeName": "AccountId"
+              },
+              {
+                "name": "provider",
+                "type": 110,
+                "typeName": "Option<Vec<u8>>"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_oracle",
+          "oracle",
+          "PriceSubmissionMetadata"
+        ]
+      }
+    },
+    {
+      "id": 110,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 111
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 111
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 111,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 2
+          }
+        }
+      }
+    },
+    {
+      "id": 112,
+      "type": {
+        "def": {
+          "variant": {}
+        },
+        "path": [
+          "tusdt_env",
+          "RuntimeReadWrite"
+        ]
+      }
+    }
+  ],
+  "version": 5
+}
