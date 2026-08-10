@@ -1189,3 +1189,76 @@ def pool_hotkey(ctx: click.Context, network: str | None) -> None:
     kp = get_reader_keypair(cfg)
     result = state.run_read(lambda c: c.lending_get_pool_hotkey(kp))
     state.output.detail("Pool Hotkey", {"Address": result})
+
+
+@lending_group.command("get-global-params")
+@network_option
+@click.pass_context
+def get_global_params(ctx: click.Context, network: str | None) -> None:
+    """View current global pool parameters."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    result = state.run_read(lambda c: c.lending_get_global_params(kp))
+    state.output.detail("Global Params", result)
+
+
+@lending_group.command("get-market-params")
+@click.option("--market-id", type=int, required=True, help="Market ID (0 = TAO, 1 = TUSDT)")
+@network_option
+@click.pass_context
+def get_market_params(ctx: click.Context, market_id: int, network: str | None) -> None:
+    """View interest-rate parameters for a market."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    result = state.run_read(lambda c: c.lending_get_market_params(kp, market_id))
+    state.output.detail(f"Market {market_id} Params", result)
+
+
+@lending_group.command("get-alpha-params")
+@click.option("--netuid", type=int, required=True, help="Subnet UID")
+@network_option
+@click.pass_context
+def get_alpha_params(ctx: click.Context, netuid: int, network: str | None) -> None:
+    """View alpha market parameters for a subnet."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    result = state.run_read(lambda c: c.lending_get_alpha_params(kp, netuid))
+    state.output.detail(f"Alpha Params (Netuid {netuid})", result)
+
+
+@lending_group.command("get-maintainer")
+@network_option
+@click.pass_context
+def get_maintainer(ctx: click.Context, network: str | None) -> None:
+    """View the current pool maintainer address."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    result = state.run_read(lambda c: c.lending_get_maintainer(kp))
+    state.output.detail("Maintainer", {"Address": result})
+
+
+@lending_group.command("update-maintainer")
+@click.option("--new-maintainer", required=True, help="New maintainer SS58 address")
+@wallet_option
+@network_option
+@click.pass_context
+def update_maintainer(
+    ctx: click.Context,
+    new_maintainer: str,
+    wallet_name: str | None,
+    network: str | None,
+) -> None:
+    """Update the pool maintainer (governance-gated)."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.submit(lambda c, kp: c.lending_update_maintainer(kp, new_maintainer))
+    state.output.success("Maintainer updated successfully.")

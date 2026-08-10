@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x2e004db9534aacd5cef084879c084965a000c8d9ce69ba9ac21e0f2f05cdfc53",
+    "hash": "0xc90c19e723c6b7a0ffcdd891541365c67ed549af95fc01bd3b5032ea41361454",
     "language": "ink! 5.1.1",
     "compiler": "rustc 1.91.1",
     "build_info": {
@@ -1692,6 +1692,38 @@
         "label": "VaultCreated",
         "module_path": "tusdt_vault_alpha::vault",
         "signature_topic": "0x13794296202f378ae6aa03f74fb62ebc0d311a18024138e7803c2454c874e0b5"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 7
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "approved",
+            "type": {
+              "displayName": [
+                "bool"
+              ],
+              "type": 3
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a netuid is added to or removed from the approved collateral set."
+        ],
+        "label": "NetuidApproved",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0x4b6058dc99c9b45ab474476b19901de83fbd67d18e77c7a1038617ebeae16cb1"
       },
       {
         "args": [
@@ -5586,39 +5618,47 @@
               },
               {
                 "index": 27,
-                "name": "ContractParamsUpdateTimelockActive"
+                "name": "NoPendingGlobalParamsUpdate"
               },
               {
                 "index": 28,
-                "name": "ChainExtensionFailed"
+                "name": "ContractParamsUpdateTimelockActive"
               },
               {
                 "index": 29,
-                "name": "NoAlphaStakeFound"
+                "name": "ChainExtensionFailed"
               },
               {
                 "index": 30,
-                "name": "StakeTransferFailed"
+                "name": "NoAlphaStakeFound"
               },
               {
                 "index": 31,
-                "name": "UnapprovedNetuid"
+                "name": "StakeTransferFailed"
               },
               {
                 "index": 32,
-                "name": "TokenContractCallFailed"
+                "name": "UnapprovedNetuid"
               },
               {
                 "index": 33,
-                "name": "VaultCreationFeeNotMet"
+                "name": "TokenContractCallFailed"
               },
               {
                 "index": 34,
-                "name": "ActiveLiquidationsExist"
+                "name": "VaultCreationFeeNotMet"
               },
               {
                 "index": 35,
+                "name": "ActiveLiquidationsExist"
+              },
+              {
+                "index": 36,
                 "name": "TooManyNetuids"
+              },
+              {
+                "index": 37,
+                "name": "NetuidHasPositions"
               }
             ]
           }

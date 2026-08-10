@@ -90,7 +90,7 @@ class TestContractGroups:
 
     @pytest.mark.parametrize(
         "group",
-        ["vault", "token", "auction", "oracle", "governance", "treasury", "election"],
+        ["vault", "token", "auction", "oracle", "governance", "treasury", "election", "lending"],
     )
     def test_group_help(self, group, runner):
         result = runner.invoke(cli, [group, "--help"])
@@ -98,7 +98,7 @@ class TestContractGroups:
 
     @pytest.mark.parametrize(
         "group",
-        ["vault", "token", "auction", "oracle", "governance", "treasury", "election"],
+        ["vault", "token", "auction", "oracle", "governance", "treasury", "election", "lending"],
     )
     def test_group_shows_commands(self, group, runner):
         """Each group lists at least one subcommand."""

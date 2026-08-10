@@ -24,7 +24,6 @@ NETWORKS: dict[str, dict[str, str]] = {
         "governance_address": "5Dg67UzxqncU4UVGtviQhuQ12Dy23oBGd9TCNF9YWy2t6KFR",
         "treasury_address": "5FBcioi6uRMNPMyVZDQSb6BD3JwGjaZs8mkPeSp6JLxNfLgq",
         "election_address": "5CYCj8LcCpZqQ9dgBpwQZsVWsmcstBu1TWqyg68N2kU6TWtr",
-        "otc_address": "5DkJErFks6frQifg28dVbd2pqd8NdhD7ycUKhpVJQbj5u2ik",
         "lending_address": "",
     },
     "testnet": {
@@ -36,7 +35,6 @@ NETWORKS: dict[str, dict[str, str]] = {
         "governance_address": "5HXM8FRXtpgaC3jLD1ZqEHPA8pPmgpj1SY8oEWhnYSYAcsn8",
         "treasury_address": "5HTZWsj7j6Suzu49j1HUKi19RC81m9B2D9R7443oCFVFN7Li",
         "election_address": "5DkJErFks6frQifg28dVbd2pqd8NdhD7ycUKhpVJQbj5u2ik",
-        "otc_address": "5DkJErFks6frQifg28dVbd2pqd8NdhD7ycUKhpVJQbj5u2ik",
         "lending_address": "",
     },
 }
@@ -55,7 +53,6 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "governance_address": NETWORKS["finney"]["governance_address"],
     "treasury_address": NETWORKS["finney"]["treasury_address"],
     "election_address": NETWORKS["finney"]["election_address"],
-    "otc_address": NETWORKS["finney"]["otc_address"],
     "lending_address": NETWORKS["finney"]["lending_address"],
     "vault_metadata": str(_ABI_DIR / "tusdt_vault_alpha.json"),
     "token_metadata": str(_ABI_DIR / "tusdt_erc20.json"),
@@ -64,7 +61,6 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "governance_metadata": str(_ABI_DIR / "tusdt_governance.json"),
     "treasury_metadata": str(_ABI_DIR / "tusdt_treasury.json"),
     "election_metadata": str(_ABI_DIR / "tusdt_election.json"),
-    "otc_metadata": str(_ABI_DIR / "tusdt_otc.json"),
     "lending_metadata": str(_ABI_DIR / "tusdt_lending_pool.json"),
     "signer": None,
     "wallet_name": None,

@@ -2421,3 +2421,42 @@ class TUSDTClient:
         """Get the lending pool hotkey address."""
         result = self._read(self.lending, keypair, "get_pool_hotkey")
         return unwrap_plain(result)
+
+    def lending_get_global_params(self, keypair: Keypair) -> dict:
+        """Get current global pool parameters."""
+        result = self._read(self.lending, keypair, "get_global_params")
+        return unwrap_plain(result)
+
+    def lending_get_market_params(self, keypair: Keypair, market_id: int) -> dict:
+        """Get interest-rate parameters for a market (0 = TAO, 1 = TUSDT)."""
+        result = self._read(
+            self.lending,
+            keypair,
+            "get_market_params",
+            args={"market_id": market_id},
+        )
+        return unwrap_plain(result)
+
+    def lending_get_alpha_params(self, keypair: Keypair, netuid: int) -> dict:
+        """Get alpha market parameters for a subnet."""
+        result = self._read(
+            self.lending,
+            keypair,
+            "get_alpha_params",
+            args={"netuid": netuid},
+        )
+        return unwrap_plain(result)
+
+    def lending_get_maintainer(self, keypair: Keypair) -> str:
+        """Get the pool maintainer address."""
+        result = self._read(self.lending, keypair, "maintainer")
+        return unwrap_plain(result)
+
+    def lending_update_maintainer(self, keypair: Keypair, new_maintainer: str) -> dict:
+        """Update the pool maintainer (governance-gated)."""
+        return self._exec(
+            self.lending,
+            keypair,
+            "update_maintainer",
+            args={"new_maintainer": new_maintainer},
+        )

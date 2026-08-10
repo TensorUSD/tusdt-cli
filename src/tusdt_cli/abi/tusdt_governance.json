@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x250a8919feda1acec5725d6d787d5ec69dfb50a3810b8a203a6659ec4f33fe13",
+    "hash": "0xcf07be494f94ecf725b6b9368d44a6fe515186b64ba395888cb843e562fd256a",
     "language": "ink! 5.1.1",
     "compiler": "rustc 1.91.1",
     "build_info": {
@@ -76,7 +76,7 @@
               "displayName": [
                 "Hash"
               ],
-              "type": 39
+              "type": 41
             }
           }
         ],
@@ -103,7 +103,7 @@
             "ink_primitives",
             "ConstructorResult"
           ],
-          "type": 40
+          "type": 42
         },
         "selector": "0x9bae9d5e"
       }
@@ -132,13 +132,13 @@
         "displayName": [
           "ChainExtension"
         ],
-        "type": 76
+        "type": 82
       },
       "hash": {
         "displayName": [
           "Hash"
         ],
-        "type": 39
+        "type": 41
       },
       "maxEventTopics": 4,
       "staticBufferSize": 16384,
@@ -321,7 +321,7 @@
               "displayName": [
                 "Option"
               ],
-              "type": 53
+              "type": 55
             }
           }
         ],
@@ -483,7 +483,7 @@
               "displayName": [
                 "Option"
               ],
-              "type": 71
+              "type": 76
             }
           }
         ],
@@ -519,7 +519,7 @@
               "displayName": [
                 "Option"
               ],
-              "type": 53
+              "type": 55
             }
           },
           {
@@ -594,7 +594,7 @@
               "displayName": [
                 "bool"
               ],
-              "type": 46
+              "type": 48
             }
           },
           {
@@ -926,7 +926,7 @@
               "displayName": [
                 "Option"
               ],
-              "type": 53
+              "type": 55
             }
           },
           {
@@ -937,7 +937,7 @@
               "displayName": [
                 "Option"
               ],
-              "type": 53
+              "type": 55
             }
           },
           {
@@ -1168,6 +1168,38 @@
           {
             "docs": [],
             "indexed": true,
+            "label": "old_pool",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_pool",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the stored lending pool contract address is updated by the maintainer."
+        ],
+        "label": "PoolAddressUpdated",
+        "module_path": "tusdt_governance::governance",
+        "signature_topic": "0x2fb265d8622c5031443d62bc38eedf53caec5687c7b9654fbf2ad4a14d92819f"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
             "label": "old_vault",
             "type": {
               "displayName": [
@@ -1334,7 +1366,7 @@
               "displayName": [
                 "bool"
               ],
-              "type": 46
+              "type": 48
             }
           },
           {
@@ -1378,6 +1410,1074 @@
         "label": "CouncilSet",
         "module_path": "tusdt_governance::governance",
         "signature_topic": "0x9b77907a6a37ff2524313a7a002545a491585985124fb7136b5f6af175f7549a"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [],
+        "label": "Borrowed",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xa30f1d7af7086c847984425ec213baab9fafaa570d922339457e05be2b6785a4"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "collateral_netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "debt_market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "debt_covered",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "collateral_alpha",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "liquidator",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [],
+        "label": "Liquidated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x53b00c58bf25adde0c0c6aceba3e7fa27e8774dc382118b8e2482496cd55473a"
+      },
+      {
+        "args": [],
+        "docs": [],
+        "label": "PoolPaused",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xd358456bb8bd5a6c40aece602d73868c625a3c0ec751e0b1060fa0570d66931d"
+      },
+      {
+        "args": [],
+        "docs": [],
+        "label": "PoolUnpaused",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x4924837407f0e4fb9a0facb764214ec45ebbb874dc9825d91c336083a1f42e64"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "dt_hours",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "utilization",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 7
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "borrow_rate",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 7
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "supply_rate",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 7
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "reserve_delta",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [],
+        "label": "MarketAccrued",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x4408d540b331ea678c6707d409ae90af5a3931bccfd0c3e16eecaf256befd75d"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "approved",
+            "type": {
+              "displayName": [
+                "bool"
+              ],
+              "type": 48
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "Option"
+              ],
+              "type": 78
+            }
+          }
+        ],
+        "docs": [],
+        "label": "NetuidApproved",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x12963c53cceef935121e6b48e91981778ae3dee569e51a62fbfd3a68518a27d4"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [],
+        "label": "ReserveClaimed",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xfaadc011c05216b2df7758319be5cfca55c59fc47f48e8291acf9766aeedc608"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "ltoken_scaled",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Events emitted by the lending pool."
+        ],
+        "label": "LiquidDeposited",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x49962792151d0ebcdcb657607072c9b6228edc96e5bee720acef482dff982ac3"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "ltoken_scaled",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [],
+        "label": "LiquidWithdrawn",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xd68f230963998b8116106e5a183bb3b45c464a848c4d7a7c74b2f8102b15233e"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "excess_alpha",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "performance_fee_alpha",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "tao_received",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "index_before",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 7
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "index_after",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 7
+            }
+          }
+        ],
+        "docs": [],
+        "label": "AlphaYieldClaimed",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x93aa5327c9c318ecaf23f729d64ca2066fb3106758c684c2471ae90d5593f9e0"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "old_hotkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_hotkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [],
+        "label": "PoolHotkeyChanged",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xe34339f8e15901da07a53ad3fa956ac94884866fc9ada507a26b91412f114444"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [],
+        "label": "AlphaParamsUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x6c11a8b3e424961845b6e6faa262d2233174f351643aab3404237a39aa3c14f2"
+      },
+      {
+        "args": [],
+        "docs": [],
+        "label": "GlobalParamsUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x53ff499b7903e9014abbae06fabe1de32e3ae6b546010672470dec79b3a5b347"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "docs": [],
+        "label": "MarketParamsUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x589d066c7363c63d6d84abefe005ebd902764c159e83a2fe09e1d0a4a218ea4c"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "previous",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "new",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [],
+        "label": "PoolPlatformUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x568223596c72c1f6d2a35ab0a7c2b86e8ef7597b770306487deeb8294bdb7d59"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "previous",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "new",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [],
+        "label": "PoolTreasuryUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x17b853c8aa30347f1bd906dd8c0311e8965e6ef93430bbdc376c5f68c5ef015f"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "previous",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "new",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [],
+        "label": "TusdtAddressUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x963c9f4f7e7eccfc87af511d757d31de7980a3d12f001f5ff37a605c3d40aa58"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "old_ltoken",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "new_ltoken",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [],
+        "label": "LTokenAddressUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x64095aa2b22793236d5fd9f2934153dab41a7b1cecd55c1c26f3747df5cf93a2"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "previous",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "new",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [],
+        "label": "PoolGovernanceUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x959f919be7d41d9f2ef1bae199585baa2bbecb515e60b088562aeb24679c1f3f"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_maintainer",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [],
+        "label": "PoolMaintainerUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xfd6c7713a08885eb5c83103722d8e93576df52403d60a4013eb411addef14fce"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "recipient",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [],
+        "label": "PoolSurplusTusdtClaimed",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x62d369bf818f983cf2243a924bd78345807b971ca7846c2a035183a3d7357082"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "docs": [],
+        "label": "AlphaCollateralDeposited",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x6c80e71928776bffbd3124b5c2f581db2364290beca46806e6d2a84cc4b4ce42"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "effective",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "dest_coldkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [],
+        "label": "AlphaCollateralWithdrawn",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x97601ff4e663dda1b818dc6bd97ac91a119f48209830683e3c765f09f4ffd9f7"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "previous",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "new",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [],
+        "label": "PoolOracleAddressUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x89fe6af35bd9138ec4852411e75f304fc647db79a4c43510c6e97b2878c7c185"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [],
+        "label": "AlphaParamsUpdateCancelled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x9bca74a7cb2287aa2c42792c3198b38c463030a1664b7deefc2ed126d96ce753"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "execute_after",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [],
+        "label": "AlphaParamsUpdateScheduled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xc9e850ed568e5ed59d6f29a82afc0ec0cde5f6fe1a30751c2dbe288f0d13c239"
+      },
+      {
+        "args": [],
+        "docs": [],
+        "label": "GlobalParamsUpdateCancelled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x3202e87bd4f46591dfeb78b1c78f4f22faae7f2d9cc8ef4e5d2692264043d426"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "execute_after",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [],
+        "label": "GlobalParamsUpdateScheduled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xdf475581dad5c4cbc47334803a30f6b0cdf2b1d425c2ac20c6ee4eee891b0980"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "docs": [],
+        "label": "MarketParamsUpdateCancelled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xd4fc8e97e2835b40ff889805e3665ab4176e4ebd71ad8ebbeae4499792ebe5a8"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "execute_after",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [],
+        "label": "MarketParamsUpdateScheduled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xc77d1260303597bd048815ecb64423776f649a3ccf12a923a9c34634db1849df"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [],
+        "label": "PoolNativeTransferredToTreasury",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x82243fa92c1903f2158da7c2355fefada1b3c0959aa94b01525600f5d09a07f6"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [],
+        "label": "Repaid",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x7f7d77c30df883b8f0350d34594cf3c836695d0d681e69382b958fc91502ecd0"
       },
       {
         "args": [
@@ -1453,7 +2553,7 @@
               "displayName": [
                 "Ratio"
               ],
-              "type": 54
+              "type": 56
             }
           }
         ],
@@ -1538,7 +2638,7 @@
               "displayName": [
                 "Ratio"
               ],
-              "type": 54
+              "type": 56
             }
           },
           {
@@ -1549,7 +2649,7 @@
               "displayName": [
                 "PriceSubmissionMetadata"
               ],
-              "type": 73
+              "type": 79
             }
           },
           {
@@ -1560,7 +2660,7 @@
               "displayName": [
                 "bool"
               ],
-              "type": 46
+              "type": 48
             }
           }
         ],
@@ -1592,7 +2692,7 @@
               "displayName": [
                 "Ratio"
               ],
-              "type": 54
+              "type": 56
             }
           },
           {
@@ -1603,7 +2703,7 @@
               "displayName": [
                 "Ratio"
               ],
-              "type": 54
+              "type": 56
             }
           },
           {
@@ -1625,7 +2725,7 @@
               "displayName": [
                 "bool"
               ],
-              "type": 46
+              "type": 48
             }
           }
         ],
@@ -1646,7 +2746,7 @@
               "displayName": [
                 "Option"
               ],
-              "type": 53
+              "type": 55
             }
           }
         ],
@@ -1914,7 +3014,7 @@
               "displayName": [
                 "VaultGlobalParamsConfig"
               ],
-              "type": 52
+              "type": 54
             }
           }
         ],
@@ -2127,7 +3227,7 @@
               "displayName": [
                 "VaultContractParamsConfig"
               ],
-              "type": 50
+              "type": 52
             }
           }
         ],
@@ -2244,7 +3344,7 @@
               "displayName": [
                 "VaultGlobalParamsConfig"
               ],
-              "type": 52
+              "type": 54
             }
           }
         ],
@@ -2265,7 +3365,7 @@
               "displayName": [
                 "VaultGlobalParamsConfig"
               ],
-              "type": 52
+              "type": 54
             }
           },
           {
@@ -2318,7 +3418,7 @@
               "displayName": [
                 "VaultContractParamsConfig"
               ],
-              "type": 50
+              "type": 52
             }
           }
         ],
@@ -2339,7 +3439,7 @@
               "displayName": [
                 "VaultContractParamsConfig"
               ],
-              "type": 50
+              "type": 52
             }
           },
           {
@@ -2470,6 +3570,38 @@
           {
             "docs": [],
             "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "approved",
+            "type": {
+              "displayName": [
+                "bool"
+              ],
+              "type": 48
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a netuid is added to or removed from the approved collateral set."
+        ],
+        "label": "NetuidApproved",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0x4b6058dc99c9b45ab474476b19901de83fbd67d18e77c7a1038617ebeae16cb1"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
             "label": "owner",
             "type": {
               "displayName": [
@@ -2594,7 +3726,7 @@
               "displayName": [
                 "Option"
               ],
-              "type": 53
+              "type": 55
             }
           },
           {
@@ -2655,7 +3787,7 @@
         "ink",
         "LangError"
       ],
-      "type": 41
+      "type": 43
     },
     "messages": [
       {
@@ -2672,7 +3804,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 42
+          "type": 44
         },
         "selector": "0xd1cba863"
       },
@@ -2690,7 +3822,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 43
+          "type": 45
         },
         "selector": "0x7a8a80f7"
       },
@@ -2708,7 +3840,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 42
+          "type": 44
         },
         "selector": "0x07d26b44"
       },
@@ -2726,7 +3858,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 44
+          "type": 46
         },
         "selector": "0xa100ac96"
       },
@@ -2754,7 +3886,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 45
+          "type": 47
         },
         "selector": "0xf58fefaf"
       },
@@ -2772,7 +3904,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 42
+          "type": 44
         },
         "selector": "0xa9b78461"
       },
@@ -2790,7 +3922,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 42
+          "type": 44
         },
         "selector": "0x9f0454eb"
       },
@@ -2808,7 +3940,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 42
+          "type": 44
         },
         "selector": "0xc3533e6b"
       },
@@ -2826,7 +3958,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 42
+          "type": 44
         },
         "selector": "0xd0108ca4"
       },
@@ -2855,7 +3987,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0xe1ec7000"
       },
@@ -2885,7 +4017,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0xe1ec7001"
       },
@@ -2914,9 +4046,55 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0xde2daa0a"
+      },
+      {
+        "args": [
+          {
+            "label": "new_pool",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Updates the stored lending pool contract address. Maintainer-only."
+        ],
+        "label": "update_pool_address",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 49
+        },
+        "selector": "0x7888a8e2"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [
+          " Returns the stored lending pool address."
+        ],
+        "label": "pool_address",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 44
+        },
+        "selector": "0xc35b3a07"
       },
       {
         "args": [
@@ -2942,7 +4120,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0xc28af88b"
       },
@@ -2970,7 +4148,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0x90a92fb5"
       },
@@ -2998,7 +4176,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0x40761b4f"
       },
@@ -3027,7 +4205,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0x682b3ce0"
       },
@@ -3048,7 +4226,7 @@
               "displayName": [
                 "VaultContractParamsConfig"
               ],
-              "type": 50
+              "type": 52
             }
           }
         ],
@@ -3064,7 +4242,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0xa0a33859"
       },
@@ -3092,7 +4270,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0x2d8b8db1"
       },
@@ -3120,7 +4298,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0x072d21d8"
       },
@@ -3148,7 +4326,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0x9cfffd29"
       },
@@ -3176,7 +4354,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0x340535a2"
       },
@@ -3204,7 +4382,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0xd6e2e8c6"
       },
@@ -3232,7 +4410,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0x4270e616"
       },
@@ -3250,7 +4428,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0xe2bc20de"
       },
@@ -3268,7 +4446,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 42
+          "type": 44
         },
         "selector": "0x2afe7aff"
       },
@@ -3289,7 +4467,7 @@
               "displayName": [
                 "Vec"
               ],
-              "type": 51
+              "type": 53
             }
           }
         ],
@@ -3305,7 +4483,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0x38c5b7e5"
       },
@@ -3323,7 +4501,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0x04af9b9b"
       },
@@ -3352,7 +4530,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0x78685891"
       },
@@ -3373,7 +4551,7 @@
               "displayName": [
                 "bool"
               ],
-              "type": 46
+              "type": 48
             }
           }
         ],
@@ -3389,7 +4567,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0x57a5a723"
       },
@@ -3401,7 +4579,7 @@
               "displayName": [
                 "VaultGlobalParamsConfig"
               ],
-              "type": 52
+              "type": 54
             }
           }
         ],
@@ -3417,7 +4595,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0xd1591300"
       },
@@ -3435,7 +4613,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0x7f600a68"
       },
@@ -3453,7 +4631,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0x375aecd6"
       },
@@ -3465,7 +4643,7 @@
               "displayName": [
                 "Option"
               ],
-              "type": 53
+              "type": 55
             }
           }
         ],
@@ -3481,7 +4659,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0x52a14f8a"
       },
@@ -3493,7 +4671,7 @@
               "displayName": [
                 "Ratio"
               ],
-              "type": 54
+              "type": 56
             }
           }
         ],
@@ -3509,7 +4687,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0x029c89d8"
       },
@@ -3521,7 +4699,7 @@
               "displayName": [
                 "Ratio"
               ],
-              "type": 54
+              "type": 56
             }
           }
         ],
@@ -3537,7 +4715,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 55
+          "type": 57
         },
         "selector": "0x686dbb0a"
       },
@@ -3565,7 +4743,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0x50ccd462"
       },
@@ -3593,7 +4771,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0xfa8ab1ea"
       },
@@ -3605,7 +4783,7 @@
               "displayName": [
                 "Option"
               ],
-              "type": 53
+              "type": 55
             }
           }
         ],
@@ -3621,9 +4799,440 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0xaec482e6"
+      },
+      {
+        "args": [
+          {
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "label": "approved",
+            "type": {
+              "displayName": [
+                "bool"
+              ],
+              "type": 48
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "pool_set_approved_netuid",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 49
+        },
+        "selector": "0x8c69d68b"
+      },
+      {
+        "args": [
+          {
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "label": "config",
+            "type": {
+              "displayName": [
+                "AlphaMarketParamsConfig"
+              ],
+              "type": 60
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "pool_set_alpha_params",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 49
+        },
+        "selector": "0xf9899593"
+      },
+      {
+        "args": [
+          {
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "pool_cancel_alpha_params_update",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 49
+        },
+        "selector": "0x44f9f104"
+      },
+      {
+        "args": [
+          {
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "label": "config",
+            "type": {
+              "displayName": [
+                "InterestRateParamsConfig"
+              ],
+              "type": 61
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "pool_set_market_params",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 49
+        },
+        "selector": "0x065eb192"
+      },
+      {
+        "args": [
+          {
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "pool_cancel_market_params_update",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 49
+        },
+        "selector": "0x3bd7062f"
+      },
+      {
+        "args": [
+          {
+            "label": "config",
+            "type": {
+              "displayName": [
+                "PoolGlobalParamsConfig"
+              ],
+              "type": 62
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "pool_set_global_params",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 49
+        },
+        "selector": "0x9af9ba12"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [],
+        "label": "pool_cancel_global_params_update",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 49
+        },
+        "selector": "0x852180e7"
+      },
+      {
+        "args": [
+          {
+            "label": "new_platform",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "pool_update_platform",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 49
+        },
+        "selector": "0x9aede34e"
+      },
+      {
+        "args": [
+          {
+            "label": "new_treasury",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "pool_update_treasury",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 49
+        },
+        "selector": "0x228bf4b5"
+      },
+      {
+        "args": [
+          {
+            "label": "new_oracle",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "pool_update_oracle_address",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 49
+        },
+        "selector": "0x31c4ee67"
+      },
+      {
+        "args": [
+          {
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "label": "new_ltoken",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "pool_update_ltoken_address",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 49
+        },
+        "selector": "0xb5f96d50"
+      },
+      {
+        "args": [
+          {
+            "label": "new_hotkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "netuids",
+            "type": {
+              "displayName": [
+                "Vec"
+              ],
+              "type": 53
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "pool_update_pool_hotkey",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 49
+        },
+        "selector": "0x3ccb4602"
+      },
+      {
+        "args": [
+          {
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "pool_claim_surplus_tusdt",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 49
+        },
+        "selector": "0x2c3babb1"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [],
+        "label": "pool_transfer_native_to_treasury",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 49
+        },
+        "selector": "0x60142133"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [],
+        "label": "pool_unpause",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 49
+        },
+        "selector": "0x3dadf21d"
+      },
+      {
+        "args": [
+          {
+            "label": "new_maintainer",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [],
+        "label": "pool_update_maintainer",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 49
+        },
+        "selector": "0x2b6f7f8f"
       },
       {
         "args": [],
@@ -3639,7 +5248,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 58
+          "type": 63
         },
         "selector": "0xf5353fe9"
       },
@@ -3657,7 +5266,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 59
+          "type": 64
         },
         "selector": "0x5f02a02e"
       },
@@ -3685,7 +5294,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 60
+          "type": 65
         },
         "selector": "0x8033905f"
       },
@@ -3705,7 +5314,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 62
+          "type": 67
         },
         "selector": "0xe1ec7002"
       },
@@ -3756,7 +5365,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 65
+          "type": 70
         },
         "selector": "0xa1afaa93"
       },
@@ -3787,7 +5396,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 67
+          "type": 72
         },
         "selector": "0xcc9acab1"
       },
@@ -3805,7 +5414,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 59
+          "type": 64
         },
         "selector": "0x38fddd01"
       },
@@ -3833,7 +5442,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 68
+          "type": 73
         },
         "selector": "0xba4dc5ec"
       },
@@ -3879,7 +5488,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 45
+          "type": 47
         },
         "selector": "0xb03e31b0"
       },
@@ -3891,7 +5500,7 @@
               "displayName": [
                 "GovernanceParams"
               ],
-              "type": 38
+              "type": 40
             }
           }
         ],
@@ -3907,7 +5516,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0x3cc7609d"
       },
@@ -3945,7 +5554,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 65
+          "type": 70
         },
         "selector": "0xc4d32d79"
       },
@@ -3975,7 +5584,7 @@
               "displayName": [
                 "bool"
               ],
-              "type": 46
+              "type": 48
             }
           },
           {
@@ -4002,7 +5611,7 @@
               "displayName": [
                 "Vec"
               ],
-              "type": 70
+              "type": 75
             }
           }
         ],
@@ -4022,7 +5631,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0x083be260"
       },
@@ -4050,7 +5659,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0x40656e2b"
       },
@@ -4078,7 +5687,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 47
+          "type": 49
         },
         "selector": "0xd00ec894"
       }
@@ -4251,6 +5860,35 @@
                 }
               },
               "name": "oracle"
+            },
+            {
+              "layout": {
+                "struct": {
+                  "fields": [
+                    {
+                      "layout": {
+                        "struct": {
+                          "fields": [
+                            {
+                              "layout": {
+                                "leaf": {
+                                  "key": "0x00000000",
+                                  "ty": 0
+                                }
+                              },
+                              "name": "account_id"
+                            }
+                          ],
+                          "name": "CallBuilder"
+                        }
+                      },
+                      "name": "inner"
+                    }
+                  ],
+                  "name": "TusdtLendingPoolRef"
+                }
+              },
+              "name": "pool"
             },
             {
               "layout": {
@@ -5250,13 +6888,18 @@
                 "typeName": "<TusdtOracleRef as::ink::storage::traits::AutoStorableHint<::ink\n::storage::traits::ManualKey<1562662760u32, ()>,>>::Type"
               },
               {
+                "name": "pool",
+                "type": 38,
+                "typeName": "<TusdtLendingPoolRef as::ink::storage::traits::AutoStorableHint<::\nink::storage::traits::ManualKey<2019880473u32, ()>,>>::Type"
+              },
+              {
                 "name": "netuid",
                 "type": 4,
                 "typeName": "<u16 as::ink::storage::traits::AutoStorableHint<::ink::storage\n::traits::ManualKey<2236413172u32, ()>,>>::Type"
               },
               {
                 "name": "params",
-                "type": 38,
+                "type": 40,
                 "typeName": "<GovernanceParams as::ink::storage::traits::AutoStorableHint<::ink\n::storage::traits::ManualKey<519878496u32, ()>,>>::Type"
               },
               {
@@ -5511,6 +7154,48 @@
           "composite": {
             "fields": [
               {
+                "name": "inner",
+                "type": 39,
+                "typeName": "<TusdtLendingPool as::ink::codegen::ContractCallBuilder>::Type"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_lending_pool",
+          "lending_pool",
+          "TusdtLendingPoolRef"
+        ]
+      }
+    },
+    {
+      "id": 39,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "account_id",
+                "type": 0,
+                "typeName": "AccountId"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_lending_pool",
+          "lending_pool",
+          "CallBuilder"
+        ]
+      }
+    },
+    {
+      "id": 40,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
                 "name": "voting_period_ms",
                 "type": 5,
                 "typeName": "u64"
@@ -5551,7 +7236,7 @@
       }
     },
     {
-      "id": 39,
+      "id": 41,
       "type": {
         "def": {
           "composite": {
@@ -5571,7 +7256,7 @@
       }
     },
     {
-      "id": 40,
+      "id": 42,
       "type": {
         "def": {
           "variant": {
@@ -5588,7 +7273,7 @@
               {
                 "fields": [
                   {
-                    "type": 41
+                    "type": 43
                   }
                 ],
                 "index": 1,
@@ -5604,7 +7289,7 @@
           },
           {
             "name": "E",
-            "type": 41
+            "type": 43
           }
         ],
         "path": [
@@ -5613,7 +7298,7 @@
       }
     },
     {
-      "id": 41,
+      "id": 43,
       "type": {
         "def": {
           "variant": {
@@ -5632,7 +7317,7 @@
       }
     },
     {
-      "id": 42,
+      "id": 44,
       "type": {
         "def": {
           "variant": {
@@ -5649,7 +7334,7 @@
               {
                 "fields": [
                   {
-                    "type": 41
+                    "type": 43
                   }
                 ],
                 "index": 1,
@@ -5665,91 +7350,7 @@
           },
           {
             "name": "E",
-            "type": 41
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 43,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 4
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 41
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 4
-          },
-          {
-            "name": "E",
-            "type": 41
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 44,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 3
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 41
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 3
-          },
-          {
-            "name": "E",
-            "type": 41
+            "type": 43
           }
         ],
         "path": [
@@ -5766,7 +7367,7 @@
               {
                 "fields": [
                   {
-                    "type": 46
+                    "type": 4
                   }
                 ],
                 "index": 0,
@@ -5775,7 +7376,7 @@
               {
                 "fields": [
                   {
-                    "type": 41
+                    "type": 43
                   }
                 ],
                 "index": 1,
@@ -5787,11 +7388,11 @@
         "params": [
           {
             "name": "T",
-            "type": 46
+            "type": 4
           },
           {
             "name": "E",
-            "type": 41
+            "type": 43
           }
         ],
         "path": [
@@ -5803,8 +7404,42 @@
       "id": 46,
       "type": {
         "def": {
-          "primitive": "bool"
-        }
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 3
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 43
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 3
+          },
+          {
+            "name": "E",
+            "type": 43
+          }
+        ],
+        "path": [
+          "Result"
+        ]
       }
     },
     {
@@ -5825,7 +7460,7 @@
               {
                 "fields": [
                   {
-                    "type": 41
+                    "type": 43
                   }
                 ],
                 "index": 1,
@@ -5841,7 +7476,7 @@
           },
           {
             "name": "E",
-            "type": 41
+            "type": 43
           }
         ],
         "path": [
@@ -5851,6 +7486,56 @@
     },
     {
       "id": 48,
+      "type": {
+        "def": {
+          "primitive": "bool"
+        }
+      }
+    },
+    {
+      "id": 49,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 50
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 43
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 50
+          },
+          {
+            "name": "E",
+            "type": 43
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 50,
       "type": {
         "def": {
           "variant": {
@@ -5867,7 +7552,7 @@
               {
                 "fields": [
                   {
-                    "type": 49
+                    "type": 51
                   }
                 ],
                 "index": 1,
@@ -5883,7 +7568,7 @@
           },
           {
             "name": "E",
-            "type": 49
+            "type": 51
           }
         ],
         "path": [
@@ -5892,7 +7577,7 @@
       }
     },
     {
-      "id": 49,
+      "id": 51,
       "type": {
         "def": {
           "variant": {
@@ -5991,14 +7676,18 @@
               },
               {
                 "index": 23,
-                "name": "OracleCallFailed"
+                "name": "PoolCallFailed"
               },
               {
                 "index": 24,
-                "name": "VaultTokenCallFailed"
+                "name": "OracleCallFailed"
               },
               {
                 "index": 25,
+                "name": "VaultTokenCallFailed"
+              },
+              {
+                "index": 26,
                 "name": "ArithmeticError"
               }
             ]
@@ -6012,7 +7701,7 @@
       }
     },
     {
-      "id": 50,
+      "id": 52,
       "type": {
         "def": {
           "composite": {
@@ -6043,7 +7732,7 @@
       }
     },
     {
-      "id": 51,
+      "id": 53,
       "type": {
         "def": {
           "sequence": {
@@ -6053,7 +7742,7 @@
       }
     },
     {
-      "id": 52,
+      "id": 54,
       "type": {
         "def": {
           "composite": {
@@ -6089,7 +7778,7 @@
       }
     },
     {
-      "id": 53,
+      "id": 55,
       "type": {
         "def": {
           "variant": {
@@ -6122,7 +7811,7 @@
       }
     },
     {
-      "id": 54,
+      "id": 56,
       "type": {
         "def": {
           "composite": {
@@ -6141,91 +7830,91 @@
       }
     },
     {
-      "id": 55,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 56
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 41
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 56
-          },
-          {
-            "name": "E",
-            "type": 41
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 56,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 57
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 49
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 57
-          },
-          {
-            "name": "E",
-            "type": 49
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
       "id": 57,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 58
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 43
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 58
+          },
+          {
+            "name": "E",
+            "type": 43
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 58,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 59
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 51
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 59
+          },
+          {
+            "name": "E",
+            "type": 51
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 59,
       "type": {
         "def": {
           "composite": {
@@ -6237,12 +7926,12 @@
               },
               {
                 "name": "price",
-                "type": 54,
+                "type": 56,
                 "typeName": "Ratio"
               },
               {
                 "name": "median_price",
-                "type": 54,
+                "type": 56,
                 "typeName": "Ratio"
               },
               {
@@ -6257,7 +7946,7 @@
               },
               {
                 "name": "was_overridden",
-                "type": 46,
+                "type": 48,
                 "typeName": "bool"
               }
             ]
@@ -6271,7 +7960,135 @@
       }
     },
     {
-      "id": 58,
+      "id": 60,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "collateral_factor",
+                "type": 6,
+                "typeName": "u32"
+              },
+              {
+                "name": "liquidation_threshold",
+                "type": 6,
+                "typeName": "u32"
+              },
+              {
+                "name": "liquidation_bonus",
+                "type": 6,
+                "typeName": "u32"
+              },
+              {
+                "name": "supply_cap",
+                "type": 5,
+                "typeName": "Balance"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_lending_pool",
+          "lending_pool",
+          "AlphaMarketParamsConfig"
+        ]
+      }
+    },
+    {
+      "id": 61,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "base_rate",
+                "type": 6,
+                "typeName": "u32"
+              },
+              {
+                "name": "slope1",
+                "type": 6,
+                "typeName": "u32"
+              },
+              {
+                "name": "slope2",
+                "type": 6,
+                "typeName": "u32"
+              },
+              {
+                "name": "optimal_utilization",
+                "type": 6,
+                "typeName": "u32"
+              },
+              {
+                "name": "reserve_factor",
+                "type": 6,
+                "typeName": "u32"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_lending_pool",
+          "lending_pool",
+          "InterestRateParamsConfig"
+        ]
+      }
+    },
+    {
+      "id": 62,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "max_oracle_age_ms",
+                "type": 5,
+                "typeName": "u64"
+              },
+              {
+                "name": "close_factor",
+                "type": 6,
+                "typeName": "u32"
+              },
+              {
+                "name": "performance_fee",
+                "type": 6,
+                "typeName": "u32"
+              },
+              {
+                "name": "supply_cap_tao",
+                "type": 5,
+                "typeName": "Balance"
+              },
+              {
+                "name": "supply_cap_tusdt",
+                "type": 5,
+                "typeName": "Balance"
+              },
+              {
+                "name": "borrow_cap_tao",
+                "type": 5,
+                "typeName": "Balance"
+              },
+              {
+                "name": "borrow_cap_tusdt",
+                "type": 5,
+                "typeName": "Balance"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_lending_pool",
+          "lending_pool",
+          "PoolGlobalParamsConfig"
+        ]
+      }
+    },
+    {
+      "id": 63,
       "type": {
         "def": {
           "variant": {
@@ -6279,7 +8096,7 @@
               {
                 "fields": [
                   {
-                    "type": 38
+                    "type": 40
                   }
                 ],
                 "index": 0,
@@ -6288,7 +8105,7 @@
               {
                 "fields": [
                   {
-                    "type": 41
+                    "type": 43
                   }
                 ],
                 "index": 1,
@@ -6300,11 +8117,11 @@
         "params": [
           {
             "name": "T",
-            "type": 38
+            "type": 40
           },
           {
             "name": "E",
-            "type": 41
+            "type": 43
           }
         ],
         "path": [
@@ -6313,7 +8130,7 @@
       }
     },
     {
-      "id": 59,
+      "id": 64,
       "type": {
         "def": {
           "variant": {
@@ -6330,7 +8147,7 @@
               {
                 "fields": [
                   {
-                    "type": 41
+                    "type": 43
                   }
                 ],
                 "index": 1,
@@ -6346,7 +8163,7 @@
           },
           {
             "name": "E",
-            "type": 41
+            "type": 43
           }
         ],
         "path": [
@@ -6355,7 +8172,7 @@
       }
     },
     {
-      "id": 60,
+      "id": 65,
       "type": {
         "def": {
           "variant": {
@@ -6363,7 +8180,7 @@
               {
                 "fields": [
                   {
-                    "type": 61
+                    "type": 66
                   }
                 ],
                 "index": 0,
@@ -6372,7 +8189,7 @@
               {
                 "fields": [
                   {
-                    "type": 41
+                    "type": 43
                   }
                 ],
                 "index": 1,
@@ -6384,11 +8201,11 @@
         "params": [
           {
             "name": "T",
-            "type": 61
+            "type": 66
           },
           {
             "name": "E",
-            "type": 41
+            "type": 43
           }
         ],
         "path": [
@@ -6397,7 +8214,7 @@
       }
     },
     {
-      "id": 61,
+      "id": 66,
       "type": {
         "def": {
           "variant": {
@@ -6430,7 +8247,7 @@
       }
     },
     {
-      "id": 62,
+      "id": 67,
       "type": {
         "def": {
           "variant": {
@@ -6438,7 +8255,7 @@
               {
                 "fields": [
                   {
-                    "type": 63
+                    "type": 68
                   }
                 ],
                 "index": 0,
@@ -6447,7 +8264,7 @@
               {
                 "fields": [
                   {
-                    "type": 41
+                    "type": 43
                   }
                 ],
                 "index": 1,
@@ -6459,11 +8276,11 @@
         "params": [
           {
             "name": "T",
-            "type": 63
+            "type": 68
           },
           {
             "name": "E",
-            "type": 41
+            "type": 43
           }
         ],
         "path": [
@@ -6472,7 +8289,7 @@
       }
     },
     {
-      "id": 63,
+      "id": 68,
       "type": {
         "def": {
           "variant": {
@@ -6484,7 +8301,7 @@
               {
                 "fields": [
                   {
-                    "type": 64
+                    "type": 69
                   }
                 ],
                 "index": 1,
@@ -6496,7 +8313,7 @@
         "params": [
           {
             "name": "T",
-            "type": 64
+            "type": 69
           }
         ],
         "path": [
@@ -6505,7 +8322,7 @@
       }
     },
     {
-      "id": 64,
+      "id": 69,
       "type": {
         "def": {
           "tuple": [
@@ -6518,7 +8335,7 @@
       }
     },
     {
-      "id": 65,
+      "id": 70,
       "type": {
         "def": {
           "variant": {
@@ -6526,7 +8343,7 @@
               {
                 "fields": [
                   {
-                    "type": 66
+                    "type": 71
                   }
                 ],
                 "index": 0,
@@ -6535,7 +8352,7 @@
               {
                 "fields": [
                   {
-                    "type": 41
+                    "type": 43
                   }
                 ],
                 "index": 1,
@@ -6547,11 +8364,11 @@
         "params": [
           {
             "name": "T",
-            "type": 66
+            "type": 71
           },
           {
             "name": "E",
-            "type": 41
+            "type": 43
           }
         ],
         "path": [
@@ -6560,7 +8377,7 @@
       }
     },
     {
-      "id": 66,
+      "id": 71,
       "type": {
         "def": {
           "variant": {
@@ -6577,7 +8394,7 @@
               {
                 "fields": [
                   {
-                    "type": 49
+                    "type": 51
                   }
                 ],
                 "index": 1,
@@ -6593,7 +8410,7 @@
           },
           {
             "name": "E",
-            "type": 49
+            "type": 51
           }
         ],
         "path": [
@@ -6602,7 +8419,7 @@
       }
     },
     {
-      "id": 67,
+      "id": 72,
       "type": {
         "def": {
           "variant": {
@@ -6619,7 +8436,7 @@
               {
                 "fields": [
                   {
-                    "type": 41
+                    "type": 43
                   }
                 ],
                 "index": 1,
@@ -6635,7 +8452,7 @@
           },
           {
             "name": "E",
-            "type": 41
+            "type": 43
           }
         ],
         "path": [
@@ -6644,7 +8461,7 @@
       }
     },
     {
-      "id": 68,
+      "id": 73,
       "type": {
         "def": {
           "variant": {
@@ -6652,7 +8469,7 @@
               {
                 "fields": [
                   {
-                    "type": 69
+                    "type": 74
                   }
                 ],
                 "index": 0,
@@ -6661,7 +8478,7 @@
               {
                 "fields": [
                   {
-                    "type": 41
+                    "type": 43
                   }
                 ],
                 "index": 1,
@@ -6673,11 +8490,11 @@
         "params": [
           {
             "name": "T",
-            "type": 69
+            "type": 74
           },
           {
             "name": "E",
-            "type": 41
+            "type": 43
           }
         ],
         "path": [
@@ -6686,7 +8503,7 @@
       }
     },
     {
-      "id": 69,
+      "id": 74,
       "type": {
         "def": {
           "variant": {
@@ -6719,7 +8536,7 @@
       }
     },
     {
-      "id": 70,
+      "id": 75,
       "type": {
         "def": {
           "sequence": {
@@ -6729,7 +8546,7 @@
       }
     },
     {
-      "id": 71,
+      "id": 76,
       "type": {
         "def": {
           "variant": {
@@ -6741,7 +8558,7 @@
               {
                 "fields": [
                   {
-                    "type": 72
+                    "type": 77
                   }
                 ],
                 "index": 1,
@@ -6753,7 +8570,7 @@
         "params": [
           {
             "name": "T",
-            "type": 72
+            "type": 77
           }
         ],
         "path": [
@@ -6762,7 +8579,7 @@
       }
     },
     {
-      "id": 72,
+      "id": 77,
       "type": {
         "def": {
           "composite": {
@@ -6783,7 +8600,40 @@
       }
     },
     {
-      "id": 73,
+      "id": 78,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 2
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 2
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 79,
       "type": {
         "def": {
           "composite": {
@@ -6795,7 +8645,7 @@
               },
               {
                 "name": "provider",
-                "type": 74,
+                "type": 80,
                 "typeName": "Option<Vec<u8>>"
               }
             ]
@@ -6809,7 +8659,7 @@
       }
     },
     {
-      "id": 74,
+      "id": 80,
       "type": {
         "def": {
           "variant": {
@@ -6821,7 +8671,7 @@
               {
                 "fields": [
                   {
-                    "type": 75
+                    "type": 81
                   }
                 ],
                 "index": 1,
@@ -6833,7 +8683,7 @@
         "params": [
           {
             "name": "T",
-            "type": 75
+            "type": 81
           }
         ],
         "path": [
@@ -6842,7 +8692,7 @@
       }
     },
     {
-      "id": 75,
+      "id": 81,
       "type": {
         "def": {
           "sequence": {
@@ -6852,7 +8702,7 @@
       }
     },
     {
-      "id": 76,
+      "id": 82,
       "type": {
         "def": {
           "variant": {}
