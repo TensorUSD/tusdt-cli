@@ -67,6 +67,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "wallet_hotkey": "default",
     "wallet_path": str(Path.home() / ".bittensor" / "wallets"),
     "decimals": 9,
+    "signer_address": None,
 }
 
 
@@ -155,6 +156,8 @@ def _apply_env_overrides(config: dict[str, Any]) -> None:
         "TUSDT_WALLET": "wallet_name",
         "TUSDT_WALLET_PATH": "wallet_path",
         "TUSDT_WALLET_HOTKEY": "wallet_hotkey",
+        "TUSDT_SIGNER": "signer",
+        "TUSDT_SIGNER_ADDRESS": "signer_address",
     }
     for env_var, config_key in _env_map.items():
         value = os.environ.get(env_var)

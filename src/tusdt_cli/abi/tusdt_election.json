@@ -1,8 +1,8 @@
 {
   "source": {
-    "hash": "0x86b655387c09ce7300bb4c62a6be867a2a373d77638c7e6ae1b8f20cb3ed3b5e",
+    "hash": "0xc1f936bd68c9e3fcef5ea770cdc4242d5dfd612d2cbd299233c31ddf889de346",
     "language": "ink! 5.1.1",
-    "compiler": "rustc 1.91.1",
+    "compiler": "rustc 1.89.0",
     "build_info": {
       "build_mode": "Release",
       "cargo_contract_version": "5.0.3",
@@ -62,9 +62,9 @@
           "governance's snapshot at schedule). `initial_incumbent` is the seated maintainer at",
           "deployment and runs the election machinery (emergency, cancel) until the next winner",
           "activates. It is treated as having just been elected at genesis — counted as one served",
-          "term, with the first election one full [`TERM_LENGTH_MS`] later — so it cannot be",
+          "term, with the first election one full `TERM_LENGTH_MS` later — so it cannot be",
           "challenged immediately. `initial_netuid` is the governing subnet at deployment. The",
-          "candidate \"owner\" stake bar is the [`MIN_CANDIDATE_STAKE`] constant."
+          "candidate \"owner\" stake bar is the `MIN_CANDIDATE_STAKE` constant."
         ],
         "label": "new",
         "payable": false,
@@ -120,6 +120,166 @@
       }
     },
     "events": [
+      {
+        "args": [
+          {
+            "docs": [
+              "The new cycle's identifier (monotonically increasing)."
+            ],
+            "indexed": true,
+            "label": "cycle_id",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 3
+            }
+          },
+          {
+            "docs": [
+              "Whether this cycle was triggered as an emergency election."
+            ],
+            "indexed": false,
+            "label": "emergency",
+            "type": {
+              "displayName": [
+                "bool"
+              ],
+              "type": 25
+            }
+          },
+          {
+            "docs": [
+              "Timestamp when the election was scheduled."
+            ],
+            "indexed": false,
+            "label": "scheduled_at",
+            "type": {
+              "displayName": [
+                "Timestamp"
+              ],
+              "type": 3
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a new election cycle is opened by `schedule_election`(TusdtElection::schedule_election)."
+        ],
+        "label": "ElectionScheduled",
+        "module_path": "tusdt_election::election",
+        "signature_topic": "0xe147b1f29f4a35a9625e680bd58fca5c4f3cc2e63272859df07697f39a383ed6"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "The cycle in which the candidate registered."
+            ],
+            "indexed": true,
+            "label": "cycle_id",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 3
+            }
+          },
+          {
+            "docs": [
+              "The candidate's account (coldkey)."
+            ],
+            "indexed": true,
+            "label": "candidate",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "The subnet the candidate claims to govern."
+            ],
+            "indexed": false,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a candidate successfully registers for the current cycle."
+        ],
+        "label": "CandidateRegistered",
+        "module_path": "tusdt_election::election",
+        "signature_topic": "0xf534a8d5cc2c3645a836a8fa08bd3a604cdfc6d1725bc602b4691bfa46f156b9"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "The election cycle the vote belongs to."
+            ],
+            "indexed": true,
+            "label": "cycle_id",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 3
+            }
+          },
+          {
+            "docs": [
+              "The candidate receiving the approval."
+            ],
+            "indexed": true,
+            "label": "candidate",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "The voting coldkey (caller)."
+            ],
+            "indexed": true,
+            "label": "coldkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "The quadratic time-staked voting power cast for this candidate."
+            ],
+            "indexed": false,
+            "label": "weight",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 17
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a token holder casts an approval vote for a candidate."
+        ],
+        "label": "ApprovalCast",
+        "module_path": "tusdt_election::election",
+        "signature_topic": "0xfc7c759b60d199c651ffbcb9ecb3ce6cf88c846eeab1c68df3bc8ae9caf19b93"
+      },
       {
         "args": [
           {
@@ -199,7 +359,7 @@
         "args": [
           {
             "docs": [
-              "The new cycle's identifier (monotonically increasing)."
+              "The cycle from which the maintainer was activated."
             ],
             "indexed": true,
             "label": "cycle_id",
@@ -212,37 +372,37 @@
           },
           {
             "docs": [
-              "Whether this cycle was triggered as an emergency election."
+              "The newly installed maintainer account."
             ],
-            "indexed": false,
-            "label": "emergency",
+            "indexed": true,
+            "label": "new_maintainer",
             "type": {
               "displayName": [
-                "bool"
+                "AccountId"
               ],
-              "type": 25
+              "type": 0
             }
           },
           {
             "docs": [
-              "Timestamp when the election was scheduled."
+              "The governing subnet after activation."
             ],
             "indexed": false,
-            "label": "scheduled_at",
+            "label": "active_netuid",
             "type": {
               "displayName": [
-                "Timestamp"
+                "u16"
               ],
-              "type": 3
+              "type": 5
             }
           }
         ],
         "docs": [
-          "Emitted when a new election cycle is opened by [`schedule_election`](TusdtElection::schedule_election)."
+          "Emitted when an elected maintainer is activated (installed in governance)."
         ],
-        "label": "ElectionScheduled",
+        "label": "MaintainerActivated",
         "module_path": "tusdt_election::election",
-        "signature_topic": "0xe147b1f29f4a35a9625e680bd58fca5c4f3cc2e63272859df07697f39a383ed6"
+        "signature_topic": "0x69636dee45db7e1620dfc1e0fc55dc79b2f7332414e8f50a976fd08a9df14515"
       },
       {
         "args": [
@@ -297,33 +457,7 @@
         "args": [
           {
             "docs": [
-              "The cycle in which the candidate registered."
-            ],
-            "indexed": true,
-            "label": "cycle_id",
-            "type": {
-              "displayName": [
-                "u64"
-              ],
-              "type": 3
-            }
-          },
-          {
-            "docs": [
-              "The candidate's account (coldkey)."
-            ],
-            "indexed": true,
-            "label": "candidate",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [
-              "The subnet the candidate claims to govern."
+              "The subnet now governing."
             ],
             "indexed": false,
             "label": "netuid",
@@ -336,60 +470,11 @@
           }
         ],
         "docs": [
-          "Emitted when a candidate successfully registers for the current cycle."
+          "Emitted when a cross-subnet migration completes and the netuid switch takes effect."
         ],
-        "label": "CandidateRegistered",
+        "label": "TransitionEnded",
         "module_path": "tusdt_election::election",
-        "signature_topic": "0xf534a8d5cc2c3645a836a8fa08bd3a604cdfc6d1725bc602b4691bfa46f156b9"
-      },
-      {
-        "args": [
-          {
-            "docs": [
-              "The cycle from which the maintainer was activated."
-            ],
-            "indexed": true,
-            "label": "cycle_id",
-            "type": {
-              "displayName": [
-                "u64"
-              ],
-              "type": 3
-            }
-          },
-          {
-            "docs": [
-              "The newly installed maintainer account."
-            ],
-            "indexed": true,
-            "label": "new_maintainer",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [
-              "The governing subnet after activation."
-            ],
-            "indexed": false,
-            "label": "active_netuid",
-            "type": {
-              "displayName": [
-                "u16"
-              ],
-              "type": 5
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when an elected maintainer is activated (installed in governance)."
-        ],
-        "label": "MaintainerActivated",
-        "module_path": "tusdt_election::election",
-        "signature_topic": "0x69636dee45db7e1620dfc1e0fc55dc79b2f7332414e8f50a976fd08a9df14515"
+        "signature_topic": "0x58ff161107462f9a1afa737f46099d645e036fac315e9633acb61f4e4310b35d"
       },
       {
         "args": [
@@ -413,91 +498,6 @@
         "label": "EmergencyElectionTriggered",
         "module_path": "tusdt_election::election",
         "signature_topic": "0xfc362976000d79c7179b457c8397ae2e764801498c518c6f3caef3768492a948"
-      },
-      {
-        "args": [
-          {
-            "docs": [
-              "The election cycle the vote belongs to."
-            ],
-            "indexed": true,
-            "label": "cycle_id",
-            "type": {
-              "displayName": [
-                "u64"
-              ],
-              "type": 3
-            }
-          },
-          {
-            "docs": [
-              "The candidate receiving the approval."
-            ],
-            "indexed": true,
-            "label": "candidate",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [
-              "The voting coldkey (caller)."
-            ],
-            "indexed": true,
-            "label": "coldkey",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [
-              "The quadratic time-staked voting power cast for this candidate."
-            ],
-            "indexed": false,
-            "label": "weight",
-            "type": {
-              "displayName": [
-                "u128"
-              ],
-              "type": 17
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when a token holder casts an approval vote for a candidate."
-        ],
-        "label": "ApprovalCast",
-        "module_path": "tusdt_election::election",
-        "signature_topic": "0xfc7c759b60d199c651ffbcb9ecb3ce6cf88c846eeab1c68df3bc8ae9caf19b93"
-      },
-      {
-        "args": [
-          {
-            "docs": [
-              "The subnet now governing."
-            ],
-            "indexed": false,
-            "label": "netuid",
-            "type": {
-              "displayName": [
-                "u16"
-              ],
-              "type": 5
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when a cross-subnet migration completes and the netuid switch takes effect."
-        ],
-        "label": "TransitionEnded",
-        "module_path": "tusdt_election::election",
-        "signature_topic": "0x58ff161107462f9a1afa737f46099d645e036fac315e9633acb61f4e4310b35d"
       }
     ],
     "lang_error": {
@@ -762,7 +762,7 @@
         "default": false,
         "docs": [
           " Raw (snapshot-frozen) alpha balance that has voted; measured against",
-          " [`quorum()`](TusdtElection::quorum)."
+          " `quorum()`(TusdtElection::quorum)."
         ],
         "label": "total_voted_balance",
         "mutates": false,
@@ -935,7 +935,7 @@
           " Registers the caller (coldkey) as a candidate governing `netuid`. Permissionless, but the",
           " coldkey must hold at least `min_candidate_stake` alpha in `netuid` (proven on-chain via",
           " the stake chain extension for `(hotkey, caller, netuid)`) so only a plausible subnet",
-          " owner can stand. Rejected if the caller has already served [`MAX_TERMS`]. No approval",
+          " owner can stand. Rejected if the caller has already served `MAX_TERMS`. No approval",
           " step — a registered candidate is immediately votable."
         ],
         "label": "register_candidate",
@@ -1005,7 +1005,7 @@
           " proven by `proof`. Each `(coldkey, hotkey)` leaf may approve exactly one candidate; a",
           " second `cast_approval` from the same leaf — for any candidate — is rejected.",
           "",
-          " The first vote of the cycle, cast on/after the [`VOTE_OPEN_DAY`] (the 5th), moves the cycle from",
+          " The first vote of the cycle, cast on/after the `VOTE_OPEN_DAY` (the 5th), moves the cycle from",
           " `Registration` to `Voting` and starts the 5-day calendar window (fixed to the 5th–10th of",
           " the month) from that vote."
         ],
@@ -1027,7 +1027,7 @@
         "docs": [
           " Closes voting and decides the outcome (Voting → Elected or Idle). Permissionless; only",
           " callable after the voting window. The winner is the running leader, provided turnout",
-          " reached the [`QUORUM_BPS`] quorum and its approval weight is strictly greater than 50% of",
+          " reached the `QUORUM_BPS` quorum and its approval weight is strictly greater than 50% of",
           " the participating voting power. If no candidate clears both bars, the incumbent stays and",
           " the cadence advances."
         ],
@@ -1048,13 +1048,13 @@
         "default": false,
         "docs": [
           " Installs the elected maintainer (Elected → Idle). Permissionless; callable on/after the",
-          " [`ACTIVATION_DAY`] (the 15th) — the winner is already decided, so anyone may push the",
+          " `ACTIVATION_DAY` (the 15th) — the winner is already decided, so anyone may push the",
           " installation through and the cycle can never stall on an absent winner. Installs the",
           " winner as governance's maintainer via the election-gated `elect_maintainer`; the new",
           " maintainer seats their own council on governance afterward. If the winner governs a",
           " different subnet, opens a 6-month transition during which the previous subnet stays",
           " authoritative and the netuid switch is deferred to",
-          " [`end_transition()`](TusdtElection::end_transition)."
+          " `end_transition()`(TusdtElection::end_transition)."
         ],
         "label": "activate",
         "mutates": true,

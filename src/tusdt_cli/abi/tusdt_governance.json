@@ -1,8 +1,8 @@
 {
   "source": {
-    "hash": "0xcf07be494f94ecf725b6b9368d44a6fe515186b64ba395888cb843e562fd256a",
+    "hash": "0x3288f04f2d463d49cfbdad69a9b70cadf38470eae65273f58ca12627d1ed492b",
     "language": "ink! 5.1.1",
-    "compiler": "rustc 1.91.1",
+    "compiler": "rustc 1.89.0",
     "build_info": {
       "build_mode": "Release",
       "cargo_contract_version": "5.0.3",
@@ -91,10 +91,10 @@
           "(`election_set_netuid`). The initial maintainer is also seated as the election's initial",
           "incumbent. The election derives its genesis cadence anchor from the deployment block",
           "timestamp and its candidate stake bar from its own constant. The council starts empty and",
-          "must be seated by the maintainer via [`set_council`].",
+          "must be seated by the maintainer via `set_council`.",
           "",
           "The vault/auction/oracle addresses are wired so governance can forward privileged calls",
-          "to them once it holds their `governance` role (see [`external_calls`])."
+          "to them once it holds their `governance` role (see `external_calls`)."
         ],
         "label": "new",
         "payable": false,
@@ -166,188 +166,6 @@
           {
             "docs": [],
             "indexed": true,
-            "label": "recipient",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "amount",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the winning bid tokens are transferred out by the controller."
-        ],
-        "label": "WinningBidTransferred",
-        "module_path": "tusdt_auction::auction",
-        "signature_topic": "0x2453946cbe1f6032b08342168446e55733a50984aaed83e6915336a88b93032e"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "old_controller",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "new_controller",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the controller (vault) address is updated by governance."
-        ],
-        "label": "AuctionControllerUpdated",
-        "module_path": "tusdt_auction::auction",
-        "signature_topic": "0x21719275308e2033f8805c41f70b3228e4234619a3c32cfe056be85b16cd7e7e"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "previous_governance",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "new_governance",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when auction governance is transferred to a new account."
-        ],
-        "label": "AuctionGovernanceUpdated",
-        "module_path": "tusdt_auction::auction",
-        "signature_topic": "0x650e7dc10cf216636c442ddc7c09760c72b7152d8c3e9e56f48fd38c4ed0e637"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "auction_id",
-            "type": {
-              "displayName": [
-                "u32"
-              ],
-              "type": 6
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "bid_id",
-            "type": {
-              "displayName": [
-                "u32"
-              ],
-              "type": 6
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "bidder",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "amount",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when a bid is placed or raised on an auction."
-        ],
-        "label": "BidPlaced",
-        "module_path": "tusdt_auction::auction",
-        "signature_topic": "0x53773ad8dd764d7c2e273caf090006fa7ba6b468938259aa3d27ecd3b9b95f1b"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "admin",
-            "type": {
-              "displayName": [
-                "Option"
-              ],
-              "type": 55
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the admin account (allowed to bid on expired no-bid auctions) is updated."
-        ],
-        "label": "AdminUpdated",
-        "module_path": "tusdt_auction::auction",
-        "signature_topic": "0xd04478a9ddad3ba01e57d8112d890c26a28aca5c43c35dfb522ed2f0107cf985"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "auction_id",
-            "type": {
-              "displayName": [
-                "u32"
-              ],
-              "type": 6
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
             "label": "vault_owner",
             "type": {
               "displayName": [
@@ -402,6 +220,28 @@
           {
             "docs": [],
             "indexed": true,
+            "label": "auction_id",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 6
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "bid_id",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 6
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
             "label": "bidder",
             "type": {
               "displayName": [
@@ -423,11 +263,11 @@
           }
         ],
         "docs": [
-          "Emitted when a losing bidder withdraws their refund."
+          "Emitted when a bid is placed or raised on an auction."
         ],
-        "label": "RefundWithdrawn",
+        "label": "BidPlaced",
         "module_path": "tusdt_auction::auction",
-        "signature_topic": "0x6040b9f8282871cf9199cf80cc6df679351435d48bc8743ad81a192b1f665d23"
+        "signature_topic": "0x53773ad8dd764d7c2e273caf090006fa7ba6b468938259aa3d27ecd3b9b95f1b"
       },
       {
         "args": [
@@ -493,6 +333,326 @@
         "label": "AuctionFinalized",
         "module_path": "tusdt_auction::auction",
         "signature_topic": "0x2bb1b99d11a544c4702e6bb53e1eaea4a6f257ac8d2e41b9c747027662fadd53"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "bidder",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a losing bidder withdraws their refund."
+        ],
+        "label": "RefundWithdrawn",
+        "module_path": "tusdt_auction::auction",
+        "signature_topic": "0x6040b9f8282871cf9199cf80cc6df679351435d48bc8743ad81a192b1f665d23"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "auction_id",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 6
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "recipient",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the winning bid tokens are transferred out by the controller."
+        ],
+        "label": "WinningBidTransferred",
+        "module_path": "tusdt_auction::auction",
+        "signature_topic": "0x2453946cbe1f6032b08342168446e55733a50984aaed83e6915336a88b93032e"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "previous_governance",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_governance",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when auction governance is transferred to a new account."
+        ],
+        "label": "AuctionGovernanceUpdated",
+        "module_path": "tusdt_auction::auction",
+        "signature_topic": "0x650e7dc10cf216636c442ddc7c09760c72b7152d8c3e9e56f48fd38c4ed0e637"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "admin",
+            "type": {
+              "displayName": [
+                "Option"
+              ],
+              "type": 55
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the admin account (allowed to bid on expired no-bid auctions) is updated."
+        ],
+        "label": "AdminUpdated",
+        "module_path": "tusdt_auction::auction",
+        "signature_topic": "0xd04478a9ddad3ba01e57d8112d890c26a28aca5c43c35dfb522ed2f0107cf985"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "old_controller",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_controller",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the controller (vault) address is updated by governance."
+        ],
+        "label": "AuctionControllerUpdated",
+        "module_path": "tusdt_auction::auction",
+        "signature_topic": "0x21719275308e2033f8805c41f70b3228e4234619a3c32cfe056be85b16cd7e7e"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "The new cycle's identifier (monotonically increasing)."
+            ],
+            "indexed": true,
+            "label": "cycle_id",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [
+              "Whether this cycle was triggered as an emergency election."
+            ],
+            "indexed": false,
+            "label": "emergency",
+            "type": {
+              "displayName": [
+                "bool"
+              ],
+              "type": 48
+            }
+          },
+          {
+            "docs": [
+              "Timestamp when the election was scheduled."
+            ],
+            "indexed": false,
+            "label": "scheduled_at",
+            "type": {
+              "displayName": [
+                "Timestamp"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a new election cycle is opened by `schedule_election`(TusdtElection::schedule_election)."
+        ],
+        "label": "ElectionScheduled",
+        "module_path": "tusdt_election::election",
+        "signature_topic": "0xe147b1f29f4a35a9625e680bd58fca5c4f3cc2e63272859df07697f39a383ed6"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "The cycle in which the candidate registered."
+            ],
+            "indexed": true,
+            "label": "cycle_id",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [
+              "The candidate's account (coldkey)."
+            ],
+            "indexed": true,
+            "label": "candidate",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "The subnet the candidate claims to govern."
+            ],
+            "indexed": false,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a candidate successfully registers for the current cycle."
+        ],
+        "label": "CandidateRegistered",
+        "module_path": "tusdt_election::election",
+        "signature_topic": "0xf534a8d5cc2c3645a836a8fa08bd3a604cdfc6d1725bc602b4691bfa46f156b9"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "The election cycle the vote belongs to."
+            ],
+            "indexed": true,
+            "label": "cycle_id",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [
+              "The candidate receiving the approval."
+            ],
+            "indexed": true,
+            "label": "candidate",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "The voting coldkey (caller)."
+            ],
+            "indexed": true,
+            "label": "coldkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "The quadratic time-staked voting power cast for this candidate."
+            ],
+            "indexed": false,
+            "label": "weight",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 7
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a token holder casts an approval vote for a candidate."
+        ],
+        "label": "ApprovalCast",
+        "module_path": "tusdt_election::election",
+        "signature_topic": "0xfc7c759b60d199c651ffbcb9ecb3ce6cf88c846eeab1c68df3bc8ae9caf19b93"
       },
       {
         "args": [
@@ -573,7 +733,7 @@
         "args": [
           {
             "docs": [
-              "The new cycle's identifier (monotonically increasing)."
+              "The cycle from which the maintainer was activated."
             ],
             "indexed": true,
             "label": "cycle_id",
@@ -586,37 +746,37 @@
           },
           {
             "docs": [
-              "Whether this cycle was triggered as an emergency election."
+              "The newly installed maintainer account."
             ],
-            "indexed": false,
-            "label": "emergency",
+            "indexed": true,
+            "label": "new_maintainer",
             "type": {
               "displayName": [
-                "bool"
+                "AccountId"
               ],
-              "type": 48
+              "type": 0
             }
           },
           {
             "docs": [
-              "Timestamp when the election was scheduled."
+              "The governing subnet after activation."
             ],
             "indexed": false,
-            "label": "scheduled_at",
+            "label": "active_netuid",
             "type": {
               "displayName": [
-                "Timestamp"
+                "u16"
               ],
-              "type": 5
+              "type": 4
             }
           }
         ],
         "docs": [
-          "Emitted when a new election cycle is opened by [`schedule_election`](TusdtElection::schedule_election)."
+          "Emitted when an elected maintainer is activated (installed in governance)."
         ],
-        "label": "ElectionScheduled",
+        "label": "MaintainerActivated",
         "module_path": "tusdt_election::election",
-        "signature_topic": "0xe147b1f29f4a35a9625e680bd58fca5c4f3cc2e63272859df07697f39a383ed6"
+        "signature_topic": "0x69636dee45db7e1620dfc1e0fc55dc79b2f7332414e8f50a976fd08a9df14515"
       },
       {
         "args": [
@@ -671,33 +831,7 @@
         "args": [
           {
             "docs": [
-              "The cycle in which the candidate registered."
-            ],
-            "indexed": true,
-            "label": "cycle_id",
-            "type": {
-              "displayName": [
-                "u64"
-              ],
-              "type": 5
-            }
-          },
-          {
-            "docs": [
-              "The candidate's account (coldkey)."
-            ],
-            "indexed": true,
-            "label": "candidate",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [
-              "The subnet the candidate claims to govern."
+              "The subnet now governing."
             ],
             "indexed": false,
             "label": "netuid",
@@ -710,60 +844,11 @@
           }
         ],
         "docs": [
-          "Emitted when a candidate successfully registers for the current cycle."
+          "Emitted when a cross-subnet migration completes and the netuid switch takes effect."
         ],
-        "label": "CandidateRegistered",
+        "label": "TransitionEnded",
         "module_path": "tusdt_election::election",
-        "signature_topic": "0xf534a8d5cc2c3645a836a8fa08bd3a604cdfc6d1725bc602b4691bfa46f156b9"
-      },
-      {
-        "args": [
-          {
-            "docs": [
-              "The cycle from which the maintainer was activated."
-            ],
-            "indexed": true,
-            "label": "cycle_id",
-            "type": {
-              "displayName": [
-                "u64"
-              ],
-              "type": 5
-            }
-          },
-          {
-            "docs": [
-              "The newly installed maintainer account."
-            ],
-            "indexed": true,
-            "label": "new_maintainer",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [
-              "The governing subnet after activation."
-            ],
-            "indexed": false,
-            "label": "active_netuid",
-            "type": {
-              "displayName": [
-                "u16"
-              ],
-              "type": 4
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when an elected maintainer is activated (installed in governance)."
-        ],
-        "label": "MaintainerActivated",
-        "module_path": "tusdt_election::election",
-        "signature_topic": "0x69636dee45db7e1620dfc1e0fc55dc79b2f7332414e8f50a976fd08a9df14515"
+        "signature_topic": "0x58ff161107462f9a1afa737f46099d645e036fac315e9633acb61f4e4310b35d"
       },
       {
         "args": [
@@ -787,134 +872,6 @@
         "label": "EmergencyElectionTriggered",
         "module_path": "tusdt_election::election",
         "signature_topic": "0xfc362976000d79c7179b457c8397ae2e764801498c518c6f3caef3768492a948"
-      },
-      {
-        "args": [
-          {
-            "docs": [
-              "The election cycle the vote belongs to."
-            ],
-            "indexed": true,
-            "label": "cycle_id",
-            "type": {
-              "displayName": [
-                "u64"
-              ],
-              "type": 5
-            }
-          },
-          {
-            "docs": [
-              "The candidate receiving the approval."
-            ],
-            "indexed": true,
-            "label": "candidate",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [
-              "The voting coldkey (caller)."
-            ],
-            "indexed": true,
-            "label": "coldkey",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [
-              "The quadratic time-staked voting power cast for this candidate."
-            ],
-            "indexed": false,
-            "label": "weight",
-            "type": {
-              "displayName": [
-                "u128"
-              ],
-              "type": 7
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when a token holder casts an approval vote for a candidate."
-        ],
-        "label": "ApprovalCast",
-        "module_path": "tusdt_election::election",
-        "signature_topic": "0xfc7c759b60d199c651ffbcb9ecb3ce6cf88c846eeab1c68df3bc8ae9caf19b93"
-      },
-      {
-        "args": [
-          {
-            "docs": [
-              "The subnet now governing."
-            ],
-            "indexed": false,
-            "label": "netuid",
-            "type": {
-              "displayName": [
-                "u16"
-              ],
-              "type": 4
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when a cross-subnet migration completes and the netuid switch takes effect."
-        ],
-        "label": "TransitionEnded",
-        "module_path": "tusdt_election::election",
-        "signature_topic": "0x58ff161107462f9a1afa737f46099d645e036fac315e9633acb61f4e4310b35d"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "owner",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "spender",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "value",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
-          }
-        ],
-        "docs": [
-          "Emitted whenever an owner sets or updates a spender's allowance."
-        ],
-        "label": "Approval",
-        "module_path": "tusdt_erc20::tusdt",
-        "signature_topic": "0x1a35e726f5feffda199144f6097b2ba23713e549bfcbe090c0981e3bcdfbcc1d"
       },
       {
         "args": [
@@ -964,28 +921,7 @@
           {
             "docs": [],
             "indexed": true,
-            "label": "proposal_id",
-            "type": {
-              "displayName": [
-                "u64"
-              ],
-              "type": 5
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when a passed proposal is executed; for NonFunding the treasury call is skipped."
-        ],
-        "label": "ProposalExecuted",
-        "module_path": "tusdt_governance::governance",
-        "signature_topic": "0x7113d1d61897becd9dadd1ffde45453d2d52cc0e0617847e21a486db7d4b0ec4"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "previous",
+            "label": "owner",
             "type": {
               "displayName": [
                 "AccountId"
@@ -996,75 +932,32 @@
           {
             "docs": [],
             "indexed": true,
-            "label": "new",
+            "label": "spender",
             "type": {
               "displayName": [
                 "AccountId"
               ],
               "type": 0
             }
-          }
-        ],
-        "docs": [
-          "Emitted when the maintainer role is transferred (by the election contract)."
-        ],
-        "label": "MaintainerChanged",
-        "module_path": "tusdt_governance::governance",
-        "signature_topic": "0xfc3a6786a5632a6e69dbd87b670ea19f285004f94e2f5c56b0af67c0b30630d8"
-      },
-      {
-        "args": [
+          },
           {
             "docs": [],
-            "indexed": true,
-            "label": "proposal_id",
+            "indexed": false,
+            "label": "value",
             "type": {
               "displayName": [
-                "u64"
+                "Balance"
               ],
               "type": 5
             }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "status",
-            "type": {
-              "displayName": [
-                "ProposalStatus"
-              ],
-              "type": 20
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "yes",
-            "type": {
-              "displayName": [
-                "u128"
-              ],
-              "type": 7
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "no",
-            "type": {
-              "displayName": [
-                "u128"
-              ],
-              "type": 7
-            }
           }
         ],
         "docs": [
-          "Emitted when voting closes and the outcome is decided."
+          "Emitted whenever an owner sets or updates a spender's allowance."
         ],
-        "label": "ProposalFinalized",
-        "module_path": "tusdt_governance::governance",
-        "signature_topic": "0x584f912517575261467ddba1d145e5c0466921bd64f7dcee39d7e3fbfca6f2b8"
+        "label": "Approval",
+        "module_path": "tusdt_erc20::tusdt",
+        "signature_topic": "0x1a35e726f5feffda199144f6097b2ba23713e549bfcbe090c0981e3bcdfbcc1d"
       },
       {
         "args": [
@@ -1108,220 +1001,6 @@
         "label": "ProposalSubmitted",
         "module_path": "tusdt_governance::governance",
         "signature_topic": "0xe2cd0e1716e5ec3c4eafb43c55a705da12f3e9727b6948fc4cd2fd215d5ebb98"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "epoch",
-            "type": {
-              "displayName": [
-                "u64"
-              ],
-              "type": 5
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "root",
-            "type": {
-              "displayName": [
-                "MerkleHash"
-              ],
-              "type": 1
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "circulating_supply",
-            "type": {
-              "displayName": [
-                "u128"
-              ],
-              "type": 7
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "snapshot_block",
-            "type": {
-              "displayName": [
-                "u32"
-              ],
-              "type": 6
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when a new off-chain snapshot is committed on-chain."
-        ],
-        "label": "SnapshotSubmitted",
-        "module_path": "tusdt_governance::governance",
-        "signature_topic": "0xd5376cd6970b8fa23e42413365ef3e5e31d541283198dbda8cbc66c3f31af19f"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "old_pool",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "new_pool",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the stored lending pool contract address is updated by the maintainer."
-        ],
-        "label": "PoolAddressUpdated",
-        "module_path": "tusdt_governance::governance",
-        "signature_topic": "0x2fb265d8622c5031443d62bc38eedf53caec5687c7b9654fbf2ad4a14d92819f"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "old_vault",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "new_vault",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the stored vault contract address is updated by the maintainer."
-        ],
-        "label": "VaultAddressUpdated",
-        "module_path": "tusdt_governance::governance",
-        "signature_topic": "0x56da99debcb4987b1c37d30c06b7dc914787a17d61b402a94f90a4e45286bdce"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "old_oracle",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "new_oracle",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the stored oracle contract address is updated by the maintainer."
-        ],
-        "label": "GovernanceOracleUpdated",
-        "module_path": "tusdt_governance::governance",
-        "signature_topic": "0x6275b67c8b9e1bdf6e59f3ae3ecebd52ef6ffd39bc92c9b863b09d86ba2c9e39"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "old_auction",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "new_auction",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the stored auction contract address is updated by the maintainer."
-        ],
-        "label": "GovernanceAuctionUpdated",
-        "module_path": "tusdt_governance::governance",
-        "signature_topic": "0x92de03f62c0c2ad9b1c5725a6214dadbc0c967bcaeda24d5c860810851cb3c80"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "old_treasury",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "new_treasury",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the stored treasury contract address is updated by the maintainer."
-        ],
-        "label": "GovernanceTreasuryUpdated",
-        "module_path": "tusdt_governance::governance",
-        "signature_topic": "0x3dda666545ab1397b7c29f7049c6ff7730898a9bb1a800ec046f2ef2efcf8c90"
       },
       {
         "args": [
@@ -1394,6 +1073,113 @@
         "args": [
           {
             "docs": [],
+            "indexed": true,
+            "label": "proposal_id",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "status",
+            "type": {
+              "displayName": [
+                "ProposalStatus"
+              ],
+              "type": 20
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "yes",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 7
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "no",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 7
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when voting closes and the outcome is decided."
+        ],
+        "label": "ProposalFinalized",
+        "module_path": "tusdt_governance::governance",
+        "signature_topic": "0x584f912517575261467ddba1d145e5c0466921bd64f7dcee39d7e3fbfca6f2b8"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "proposal_id",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a passed proposal is executed; for NonFunding the treasury call is skipped."
+        ],
+        "label": "ProposalExecuted",
+        "module_path": "tusdt_governance::governance",
+        "signature_topic": "0x7113d1d61897becd9dadd1ffde45453d2d52cc0e0617847e21a486db7d4b0ec4"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "previous",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the maintainer role is transferred (by the election contract)."
+        ],
+        "label": "MaintainerChanged",
+        "module_path": "tusdt_governance::governance",
+        "signature_topic": "0xfc3a6786a5632a6e69dbd87b670ea19f285004f94e2f5c56b0af67c0b30630d8"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
             "indexed": false,
             "label": "members",
             "type": {
@@ -1416,147 +1202,7 @@
           {
             "docs": [],
             "indexed": true,
-            "label": "market",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 2
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "user",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "amount",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
-          }
-        ],
-        "docs": [],
-        "label": "Borrowed",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0xa30f1d7af7086c847984425ec213baab9fafaa570d922339457e05be2b6785a4"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "user",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "collateral_netuid",
-            "type": {
-              "displayName": [
-                "u16"
-              ],
-              "type": 4
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "debt_market",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 2
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "debt_covered",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "collateral_alpha",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "liquidator",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [],
-        "label": "Liquidated",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x53b00c58bf25adde0c0c6aceba3e7fa27e8774dc382118b8e2482496cd55473a"
-      },
-      {
-        "args": [],
-        "docs": [],
-        "label": "PoolPaused",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0xd358456bb8bd5a6c40aece602d73868c625a3c0ec751e0b1060fa0570d66931d"
-      },
-      {
-        "args": [],
-        "docs": [],
-        "label": "PoolUnpaused",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x4924837407f0e4fb9a0facb764214ec45ebbb874dc9825d91c336083a1f42e64"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "market",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 2
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "dt_hours",
+            "label": "epoch",
             "type": {
               "displayName": [
                 "u64"
@@ -1567,7 +1213,18 @@
           {
             "docs": [],
             "indexed": false,
-            "label": "utilization",
+            "label": "root",
+            "type": {
+              "displayName": [
+                "MerkleHash"
+              ],
+              "type": 1
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "circulating_supply",
             "type": {
               "displayName": [
                 "u128"
@@ -1578,87 +1235,188 @@
           {
             "docs": [],
             "indexed": false,
-            "label": "borrow_rate",
+            "label": "snapshot_block",
             "type": {
               "displayName": [
-                "u128"
+                "u32"
               ],
-              "type": 7
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "supply_rate",
-            "type": {
-              "displayName": [
-                "u128"
-              ],
-              "type": 7
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "reserve_delta",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
+              "type": 6
             }
           }
         ],
-        "docs": [],
-        "label": "MarketAccrued",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x4408d540b331ea678c6707d409ae90af5a3931bccfd0c3e16eecaf256befd75d"
+        "docs": [
+          "Emitted when a new off-chain snapshot is committed on-chain."
+        ],
+        "label": "SnapshotSubmitted",
+        "module_path": "tusdt_governance::governance",
+        "signature_topic": "0xd5376cd6970b8fa23e42413365ef3e5e31d541283198dbda8cbc66c3f31af19f"
       },
       {
         "args": [
           {
             "docs": [],
             "indexed": true,
-            "label": "netuid",
+            "label": "old_vault",
             "type": {
               "displayName": [
-                "u16"
+                "AccountId"
               ],
-              "type": 4
+              "type": 0
             }
           },
           {
             "docs": [],
-            "indexed": false,
-            "label": "approved",
+            "indexed": true,
+            "label": "new_vault",
             "type": {
               "displayName": [
-                "bool"
+                "AccountId"
               ],
-              "type": 48
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "market_id",
-            "type": {
-              "displayName": [
-                "Option"
-              ],
-              "type": 78
+              "type": 0
             }
           }
         ],
-        "docs": [],
-        "label": "NetuidApproved",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x12963c53cceef935121e6b48e91981778ae3dee569e51a62fbfd3a68518a27d4"
+        "docs": [
+          "Emitted when the stored vault contract address is updated by the maintainer."
+        ],
+        "label": "VaultAddressUpdated",
+        "module_path": "tusdt_governance::governance",
+        "signature_topic": "0x56da99debcb4987b1c37d30c06b7dc914787a17d61b402a94f90a4e45286bdce"
       },
       {
         "args": [
           {
             "docs": [],
+            "indexed": true,
+            "label": "old_pool",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_pool",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the stored lending pool contract address is updated by the maintainer."
+        ],
+        "label": "PoolAddressUpdated",
+        "module_path": "tusdt_governance::governance",
+        "signature_topic": "0x2fb265d8622c5031443d62bc38eedf53caec5687c7b9654fbf2ad4a14d92819f"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "old_auction",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_auction",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the stored auction contract address is updated by the maintainer."
+        ],
+        "label": "GovernanceAuctionUpdated",
+        "module_path": "tusdt_governance::governance",
+        "signature_topic": "0x92de03f62c0c2ad9b1c5725a6214dadbc0c967bcaeda24d5c860810851cb3c80"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "old_oracle",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_oracle",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the stored oracle contract address is updated by the maintainer."
+        ],
+        "label": "GovernanceOracleUpdated",
+        "module_path": "tusdt_governance::governance",
+        "signature_topic": "0x6275b67c8b9e1bdf6e59f3ae3ecebd52ef6ffd39bc92c9b863b09d86ba2c9e39"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "old_treasury",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_treasury",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the stored treasury contract address is updated by the maintainer."
+        ],
+        "label": "GovernanceTreasuryUpdated",
+        "module_path": "tusdt_governance::governance",
+        "signature_topic": "0x3dda666545ab1397b7c29f7049c6ff7730898a9bb1a800ec046f2ef2efcf8c90"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Market id (0 = TAO, 1 = TUSDT)."
+            ],
             "indexed": true,
             "label": "market",
             "type": {
@@ -1669,37 +1427,9 @@
             }
           },
           {
-            "docs": [],
-            "indexed": false,
-            "label": "amount",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
-          }
-        ],
-        "docs": [],
-        "label": "ReserveClaimed",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0xfaadc011c05216b2df7758319be5cfca55c59fc47f48e8291acf9766aeedc608"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "market",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 2
-            }
-          },
-          {
-            "docs": [],
+            "docs": [
+              "User who supplied."
+            ],
             "indexed": true,
             "label": "user",
             "type": {
@@ -1710,7 +1440,9 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "Underlying amount supplied (9-decimal units)."
+            ],
             "indexed": false,
             "label": "amount",
             "type": {
@@ -1721,7 +1453,9 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "lToken balance minted."
+            ],
             "indexed": false,
             "label": "ltoken_scaled",
             "type": {
@@ -1742,7 +1476,9 @@
       {
         "args": [
           {
-            "docs": [],
+            "docs": [
+              "Market id (0 = TAO, 1 = TUSDT)."
+            ],
             "indexed": true,
             "label": "market",
             "type": {
@@ -1753,7 +1489,9 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "User who withdrew."
+            ],
             "indexed": true,
             "label": "user",
             "type": {
@@ -1764,7 +1502,9 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "Underlying amount withdrawn (9-decimal units)."
+            ],
             "indexed": false,
             "label": "amount",
             "type": {
@@ -1775,7 +1515,9 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "lToken balance burned."
+            ],
             "indexed": false,
             "label": "ltoken_scaled",
             "type": {
@@ -1786,7 +1528,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when a user withdraws underlying liquidity by burning lTokens."
+        ],
         "label": "LiquidWithdrawn",
         "module_path": "tusdt_lending_pool::lending_pool",
         "signature_topic": "0xd68f230963998b8116106e5a183bb3b45c464a848c4d7a7c74b2f8102b15233e"
@@ -1794,246 +1538,9 @@
       {
         "args": [
           {
-            "docs": [],
-            "indexed": true,
-            "label": "netuid",
-            "type": {
-              "displayName": [
-                "u16"
-              ],
-              "type": 4
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "excess_alpha",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "performance_fee_alpha",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "tao_received",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "index_before",
-            "type": {
-              "displayName": [
-                "u128"
-              ],
-              "type": 7
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "index_after",
-            "type": {
-              "displayName": [
-                "u128"
-              ],
-              "type": 7
-            }
-          }
-        ],
-        "docs": [],
-        "label": "AlphaYieldClaimed",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x93aa5327c9c318ecaf23f729d64ca2066fb3106758c684c2471ae90d5593f9e0"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "old_hotkey",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "new_hotkey",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [],
-        "label": "PoolHotkeyChanged",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0xe34339f8e15901da07a53ad3fa956ac94884866fc9ada507a26b91412f114444"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "netuid",
-            "type": {
-              "displayName": [
-                "u16"
-              ],
-              "type": 4
-            }
-          }
-        ],
-        "docs": [],
-        "label": "AlphaParamsUpdated",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x6c11a8b3e424961845b6e6faa262d2233174f351643aab3404237a39aa3c14f2"
-      },
-      {
-        "args": [],
-        "docs": [],
-        "label": "GlobalParamsUpdated",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x53ff499b7903e9014abbae06fabe1de32e3ae6b546010672470dec79b3a5b347"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "market",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 2
-            }
-          }
-        ],
-        "docs": [],
-        "label": "MarketParamsUpdated",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x589d066c7363c63d6d84abefe005ebd902764c159e83a2fe09e1d0a4a218ea4c"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "previous",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "new",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [],
-        "label": "PoolPlatformUpdated",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x568223596c72c1f6d2a35ab0a7c2b86e8ef7597b770306487deeb8294bdb7d59"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "previous",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "new",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [],
-        "label": "PoolTreasuryUpdated",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x17b853c8aa30347f1bd906dd8c0311e8965e6ef93430bbdc376c5f68c5ef015f"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "previous",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "new",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [],
-        "label": "TusdtAddressUpdated",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x963c9f4f7e7eccfc87af511d757d31de7980a3d12f001f5ff37a605c3d40aa58"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
+            "docs": [
+              "Market id (0 = TAO, 1 = TUSDT)."
+            ],
             "indexed": true,
             "label": "market",
             "type": {
@@ -2044,127 +1551,9 @@
             }
           },
           {
-            "docs": [],
-            "indexed": false,
-            "label": "old_ltoken",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "new_ltoken",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [],
-        "label": "LTokenAddressUpdated",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x64095aa2b22793236d5fd9f2934153dab41a7b1cecd55c1c26f3747df5cf93a2"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "previous",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "new",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [],
-        "label": "PoolGovernanceUpdated",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x959f919be7d41d9f2ef1bae199585baa2bbecb515e60b088562aeb24679c1f3f"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "new_maintainer",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [],
-        "label": "PoolMaintainerUpdated",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0xfd6c7713a08885eb5c83103722d8e93576df52403d60a4013eb411addef14fce"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "recipient",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "amount",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
-          }
-        ],
-        "docs": [],
-        "label": "PoolSurplusTusdtClaimed",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x62d369bf818f983cf2243a924bd78345807b971ca7846c2a035183a3d7357082"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "netuid",
-            "type": {
-              "displayName": [
-                "u16"
-              ],
-              "type": 4
-            }
-          },
-          {
-            "docs": [],
+            "docs": [
+              "Borrower."
+            ],
             "indexed": true,
             "label": "user",
             "type": {
@@ -2175,7 +1564,107 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "Underlying amount borrowed (9-decimal units)."
+            ],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a user borrows underlying from a market."
+        ],
+        "label": "Borrowed",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xa30f1d7af7086c847984425ec213baab9fafaa570d922339457e05be2b6785a4"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Market id (0 = TAO, 1 = TUSDT)."
+            ],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [
+              "Borrower."
+            ],
+            "indexed": true,
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "Underlying amount repaid (9-decimal units)."
+            ],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a user repays borrowed underlying."
+        ],
+        "label": "Repaid",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x7f7d77c30df883b8f0350d34594cf3c836695d0d681e69382b958fc91502ecd0"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Subnet id the collateral was deposited on."
+            ],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [
+              "Depositor."
+            ],
+            "indexed": true,
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "Alpha principal deposited (9-decimal units)."
+            ],
             "indexed": false,
             "label": "amount",
             "type": {
@@ -2186,7 +1675,9 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "Alpha market id assigned to the netuid."
+            ],
             "indexed": false,
             "label": "market_id",
             "type": {
@@ -2197,7 +1688,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when a user deposits alpha stake as collateral."
+        ],
         "label": "AlphaCollateralDeposited",
         "module_path": "tusdt_lending_pool::lending_pool",
         "signature_topic": "0x6c80e71928776bffbd3124b5c2f581db2364290beca46806e6d2a84cc4b4ce42"
@@ -2205,7 +1698,9 @@
       {
         "args": [
           {
-            "docs": [],
+            "docs": [
+              "Subnet id the collateral was withdrawn from."
+            ],
             "indexed": true,
             "label": "netuid",
             "type": {
@@ -2216,7 +1711,9 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "Withdrawer."
+            ],
             "indexed": true,
             "label": "user",
             "type": {
@@ -2227,7 +1724,9 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "Alpha principal withdrawn (9-decimal units)."
+            ],
             "indexed": false,
             "label": "amount",
             "type": {
@@ -2238,7 +1737,9 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "Effective alpha withdrawn (principal x yield index)."
+            ],
             "indexed": false,
             "label": "effective",
             "type": {
@@ -2249,7 +1750,9 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "Coldkey that received the transferred stake."
+            ],
             "indexed": true,
             "label": "dest_coldkey",
             "type": {
@@ -2260,7 +1763,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when a user withdraws alpha collateral to a destination coldkey."
+        ],
         "label": "AlphaCollateralWithdrawn",
         "module_path": "tusdt_lending_pool::lending_pool",
         "signature_topic": "0x97601ff4e663dda1b818dc6bd97ac91a119f48209830683e3c765f09f4ffd9f7"
@@ -2268,191 +1773,9 @@
       {
         "args": [
           {
-            "docs": [],
-            "indexed": false,
-            "label": "previous",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "new",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [],
-        "label": "PoolOracleAddressUpdated",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x89fe6af35bd9138ec4852411e75f304fc647db79a4c43510c6e97b2878c7c185"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "netuid",
-            "type": {
-              "displayName": [
-                "u16"
-              ],
-              "type": 4
-            }
-          }
-        ],
-        "docs": [],
-        "label": "AlphaParamsUpdateCancelled",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x9bca74a7cb2287aa2c42792c3198b38c463030a1664b7deefc2ed126d96ce753"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "netuid",
-            "type": {
-              "displayName": [
-                "u16"
-              ],
-              "type": 4
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "execute_after",
-            "type": {
-              "displayName": [
-                "u64"
-              ],
-              "type": 5
-            }
-          }
-        ],
-        "docs": [],
-        "label": "AlphaParamsUpdateScheduled",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0xc9e850ed568e5ed59d6f29a82afc0ec0cde5f6fe1a30751c2dbe288f0d13c239"
-      },
-      {
-        "args": [],
-        "docs": [],
-        "label": "GlobalParamsUpdateCancelled",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x3202e87bd4f46591dfeb78b1c78f4f22faae7f2d9cc8ef4e5d2692264043d426"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "execute_after",
-            "type": {
-              "displayName": [
-                "u64"
-              ],
-              "type": 5
-            }
-          }
-        ],
-        "docs": [],
-        "label": "GlobalParamsUpdateScheduled",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0xdf475581dad5c4cbc47334803a30f6b0cdf2b1d425c2ac20c6ee4eee891b0980"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "market",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 2
-            }
-          }
-        ],
-        "docs": [],
-        "label": "MarketParamsUpdateCancelled",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0xd4fc8e97e2835b40ff889805e3665ab4176e4ebd71ad8ebbeae4499792ebe5a8"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "market",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 2
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "execute_after",
-            "type": {
-              "displayName": [
-                "u64"
-              ],
-              "type": 5
-            }
-          }
-        ],
-        "docs": [],
-        "label": "MarketParamsUpdateScheduled",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0xc77d1260303597bd048815ecb64423776f649a3ccf12a923a9c34634db1849df"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "amount",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
-          }
-        ],
-        "docs": [],
-        "label": "PoolNativeTransferredToTreasury",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x82243fa92c1903f2158da7c2355fefada1b3c0959aa94b01525600f5d09a07f6"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "market",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 2
-            }
-          },
-          {
-            "docs": [],
+            "docs": [
+              "Borrower whose position was liquidated."
+            ],
             "indexed": true,
             "label": "user",
             "type": {
@@ -2463,7 +1786,185 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "Netuid of the seized alpha collateral."
+            ],
+            "indexed": true,
+            "label": "collateral_netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [
+              "Debt market repaid (0 = TAO, 1 = TUSDT)."
+            ],
+            "indexed": false,
+            "label": "debt_market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [
+              "Debt units repaid by the liquidator."
+            ],
+            "indexed": false,
+            "label": "debt_covered",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [
+              "Effective alpha seized (before yield-index conversion)."
+            ],
+            "indexed": false,
+            "label": "collateral_alpha",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [
+              "Account that performed the liquidation."
+            ],
+            "indexed": true,
+            "label": "liquidator",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when an underwater position is liquidated."
+        ],
+        "label": "Liquidated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x53b00c58bf25adde0c0c6aceba3e7fa27e8774dc382118b8e2482496cd55473a"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Subnet the yield was claimed for."
+            ],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [
+              "Excess alpha found beyond booked collateral."
+            ],
+            "indexed": false,
+            "label": "excess_alpha",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [
+              "Performance fee (25%) unstaked to TAO."
+            ],
+            "indexed": false,
+            "label": "performance_fee_alpha",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [
+              "TAO sent to the treasury after unstaking the fee."
+            ],
+            "indexed": false,
+            "label": "tao_received",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [
+              "Yield index (1e18) before the claim."
+            ],
+            "indexed": false,
+            "label": "index_before",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 7
+            }
+          },
+          {
+            "docs": [
+              "Yield index (1e18) after the claim."
+            ],
+            "indexed": false,
+            "label": "index_after",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 7
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when excess alpha staking yield is claimed for a netuid."
+        ],
+        "label": "AlphaYieldClaimed",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x93aa5327c9c318ecaf23f729d64ca2066fb3106758c684c2471ae90d5593f9e0"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Market id (0 = TAO, 1 = TUSDT)."
+            ],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [
+              "Reserve amount claimed (9-decimal units)."
+            ],
             "indexed": false,
             "label": "amount",
             "type": {
@@ -2474,122 +1975,226 @@
             }
           }
         ],
-        "docs": [],
-        "label": "Repaid",
+        "docs": [
+          "Emitted when protocol reserve fees are claimed for a market."
+        ],
+        "label": "ReserveClaimed",
         "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x7f7d77c30df883b8f0350d34594cf3c836695d0d681e69382b958fc91502ecd0"
+        "signature_topic": "0xfaadc011c05216b2df7758319be5cfca55c59fc47f48e8291acf9766aeedc608"
       },
       {
         "args": [
           {
-            "docs": [],
+            "docs": [
+              "Market id (0 = TAO, 1 = TUSDT)."
+            ],
             "indexed": true,
-            "label": "old_controller",
+            "label": "market",
             "type": {
               "displayName": [
-                "AccountId"
+                "u8"
               ],
-              "type": 0
+              "type": 2
             }
           },
           {
-            "docs": [],
-            "indexed": true,
-            "label": "new_controller",
+            "docs": [
+              "Hours elapsed since the last accrual."
+            ],
+            "indexed": false,
+            "label": "dt_hours",
             "type": {
               "displayName": [
-                "AccountId"
+                "u64"
               ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the controller (vault) address is updated by governance."
-        ],
-        "label": "OracleControllerUpdated",
-        "module_path": "tusdt_oracle::oracle",
-        "signature_topic": "0x55d38df882b90edfd62fbebb6af44c6f3dd73129e23e9d1b6e6907d845646c29"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "previous_governance",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
+              "type": 5
             }
           },
           {
-            "docs": [],
-            "indexed": true,
-            "label": "new_governance",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when oracle governance is transferred to a new account."
-        ],
-        "label": "OracleGovernanceUpdated",
-        "module_path": "tusdt_oracle::oracle",
-        "signature_topic": "0x8076edb2c7ad187c70699e83a771437602b58b5145ad1c777bb879abe3f990c8"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
+            "docs": [
+              "Utilization ratio (1e18)."
+            ],
             "indexed": false,
-            "label": "max_price_deviation",
-            "type": {
-              "displayName": [
-                "Ratio"
-              ],
-              "type": 56
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the maximum allowed price deviation is changed."
-        ],
-        "label": "MaxPriceDeviationUpdated",
-        "module_path": "tusdt_oracle::oracle",
-        "signature_topic": "0xdf92cfe8304a7dfe48998ca021158b2d606b3dd9d86bab86d14c4c2b0d2a2259"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "min_submitter_stake",
+            "label": "utilization",
             "type": {
               "displayName": [
                 "u128"
               ],
               "type": 7
             }
+          },
+          {
+            "docs": [
+              "Annual borrow rate (1e18)."
+            ],
+            "indexed": false,
+            "label": "borrow_rate",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 7
+            }
+          },
+          {
+            "docs": [
+              "Annual supply rate (1e18)."
+            ],
+            "indexed": false,
+            "label": "supply_rate",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 7
+            }
+          },
+          {
+            "docs": [
+              "Reserve accrued this period (9-decimal units)."
+            ],
+            "indexed": false,
+            "label": "reserve_delta",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
           }
         ],
         "docs": [
-          "Emitted when the minimum required submitter stake is changed."
+          "Emitted after interest is accrued on a supply/borrow market."
         ],
-        "label": "MinSubmitterStakeUpdated",
-        "module_path": "tusdt_oracle::oracle",
-        "signature_topic": "0x862f9b8f733953c288061b3a21bb6955a625374e5f24afe32da33fd31a38aa7f"
+        "label": "MarketAccrued",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x4408d540b331ea678c6707d409ae90af5a3931bccfd0c3e16eecaf256befd75d"
       },
       {
         "args": [
           {
-            "docs": [],
+            "docs": [
+              "Market id (0 = TAO, 1 = TUSDT)."
+            ],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [
+              "Timestamp (ms) after which the update can execute."
+            ],
             "indexed": false,
+            "label": "execute_after",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when an interest-rate params update is scheduled for a market."
+        ],
+        "label": "MarketParamsUpdateScheduled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xc77d1260303597bd048815ecb64423776f649a3ccf12a923a9c34634db1849df"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Market id (0 = TAO, 1 = TUSDT)."
+            ],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a scheduled market params update is executed."
+        ],
+        "label": "MarketParamsUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x589d066c7363c63d6d84abefe005ebd902764c159e83a2fe09e1d0a4a218ea4c"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Market id (0 = TAO, 1 = TUSDT)."
+            ],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a scheduled market params update is cancelled."
+        ],
+        "label": "MarketParamsUpdateCancelled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xd4fc8e97e2835b40ff889805e3665ab4176e4ebd71ad8ebbeae4499792ebe5a8"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Subnet id."
+            ],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [
+              "Timestamp (ms) after which the update can execute."
+            ],
+            "indexed": false,
+            "label": "execute_after",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when an alpha market params update is scheduled for a netuid."
+        ],
+        "label": "AlphaParamsUpdateScheduled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xc9e850ed568e5ed59d6f29a82afc0ec0cde5f6fe1a30751c2dbe288f0d13c239"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Subnet id."
+            ],
+            "indexed": true,
             "label": "netuid",
             "type": {
               "displayName": [
@@ -2600,11 +2205,489 @@
           }
         ],
         "docs": [
-          "Emitted when the governing subnet netuid is updated."
+          "Emitted when a scheduled alpha params update is executed."
         ],
-        "label": "NetuidUpdated",
-        "module_path": "tusdt_oracle::oracle",
-        "signature_topic": "0xb62491ff2dec7341b9b30f90adc6a7fcd382e6284c444b7f9622622efbd4aad7"
+        "label": "AlphaParamsUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x6c11a8b3e424961845b6e6faa262d2233174f351643aab3404237a39aa3c14f2"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Subnet id."
+            ],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a scheduled alpha params update is cancelled."
+        ],
+        "label": "AlphaParamsUpdateCancelled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x9bca74a7cb2287aa2c42792c3198b38c463030a1664b7deefc2ed126d96ce753"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Timestamp (ms) after which the update can execute."
+            ],
+            "indexed": false,
+            "label": "execute_after",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a global params update is scheduled."
+        ],
+        "label": "GlobalParamsUpdateScheduled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xdf475581dad5c4cbc47334803a30f6b0cdf2b1d425c2ac20c6ee4eee891b0980"
+      },
+      {
+        "args": [],
+        "docs": [
+          "Emitted when a scheduled global params update is executed."
+        ],
+        "label": "GlobalParamsUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x53ff499b7903e9014abbae06fabe1de32e3ae6b546010672470dec79b3a5b347"
+      },
+      {
+        "args": [],
+        "docs": [
+          "Emitted when a scheduled global params update is cancelled."
+        ],
+        "label": "GlobalParamsUpdateCancelled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x3202e87bd4f46591dfeb78b1c78f4f22faae7f2d9cc8ef4e5d2692264043d426"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Subnet id."
+            ],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [
+              "Whether the netuid was approved (true) or removed (false)."
+            ],
+            "indexed": false,
+            "label": "approved",
+            "type": {
+              "displayName": [
+                "bool"
+              ],
+              "type": 48
+            }
+          },
+          {
+            "docs": [
+              "Alpha market id assigned when approved; None when removed."
+            ],
+            "indexed": false,
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "Option"
+              ],
+              "type": 78
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a subnet is approved or removed as an alpha market."
+        ],
+        "label": "NetuidApproved",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x12963c53cceef935121e6b48e91981778ae3dee569e51a62fbfd3a68518a27d4"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Market id (0 = TAO, 1 = TUSDT)."
+            ],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [
+              "Previous lToken address."
+            ],
+            "indexed": false,
+            "label": "old_ltoken",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "New lToken address."
+            ],
+            "indexed": false,
+            "label": "new_ltoken",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a market's lToken contract address is updated."
+        ],
+        "label": "LTokenAddressUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x64095aa2b22793236d5fd9f2934153dab41a7b1cecd55c1c26f3747df5cf93a2"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Previous governance account."
+            ],
+            "indexed": false,
+            "label": "previous",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "New governance account."
+            ],
+            "indexed": false,
+            "label": "new",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the governance role is transferred."
+        ],
+        "label": "PoolGovernanceUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x959f919be7d41d9f2ef1bae199585baa2bbecb515e60b088562aeb24679c1f3f"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Previous treasury account."
+            ],
+            "indexed": false,
+            "label": "previous",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "New treasury account."
+            ],
+            "indexed": false,
+            "label": "new",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the treasury account is updated."
+        ],
+        "label": "PoolTreasuryUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x17b853c8aa30347f1bd906dd8c0311e8965e6ef93430bbdc376c5f68c5ef015f"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Previous platform account."
+            ],
+            "indexed": false,
+            "label": "previous",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "New platform account."
+            ],
+            "indexed": false,
+            "label": "new",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the platform account is updated."
+        ],
+        "label": "PoolPlatformUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x568223596c72c1f6d2a35ab0a7c2b86e8ef7597b770306487deeb8294bdb7d59"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Previous staking hotkey."
+            ],
+            "indexed": true,
+            "label": "old_hotkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "New staking hotkey."
+            ],
+            "indexed": true,
+            "label": "new_hotkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the pool's staking hotkey is migrated."
+        ],
+        "label": "PoolHotkeyChanged",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xe34339f8e15901da07a53ad3fa956ac94884866fc9ada507a26b91412f114444"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Previous oracle address."
+            ],
+            "indexed": false,
+            "label": "previous",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "New oracle address."
+            ],
+            "indexed": false,
+            "label": "new",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the oracle contract address is updated."
+        ],
+        "label": "PoolOracleAddressUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x89fe6af35bd9138ec4852411e75f304fc647db79a4c43510c6e97b2878c7c185"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Previous TUSDT address."
+            ],
+            "indexed": false,
+            "label": "previous",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "New TUSDT address."
+            ],
+            "indexed": false,
+            "label": "new",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the TUSDT token contract address is updated."
+        ],
+        "label": "TusdtAddressUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x963c9f4f7e7eccfc87af511d757d31de7980a3d12f001f5ff37a605c3d40aa58"
+      },
+      {
+        "args": [],
+        "docs": [
+          "Emitted when the pool is paused (emergency pause)."
+        ],
+        "label": "PoolPaused",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xd358456bb8bd5a6c40aece602d73868c625a3c0ec751e0b1060fa0570d66931d"
+      },
+      {
+        "args": [],
+        "docs": [
+          "Emitted when the pool is unpaused."
+        ],
+        "label": "PoolUnpaused",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x4924837407f0e4fb9a0facb764214ec45ebbb874dc9825d91c336083a1f42e64"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Treasury account that received the sweep."
+            ],
+            "indexed": false,
+            "label": "recipient",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "TUSDT amount swept (9-decimal units)."
+            ],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when surplus TUSDT is swept from the pool to the treasury."
+        ],
+        "label": "PoolSurplusTusdtClaimed",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x62d369bf818f983cf2243a924bd78345807b971ca7846c2a035183a3d7357082"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Native TAO amount transferred (9-decimal units)."
+            ],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the pool's native TAO balance is swept to the treasury."
+        ],
+        "label": "PoolNativeTransferredToTreasury",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x82243fa92c1903f2158da7c2355fefada1b3c0959aa94b01525600f5d09a07f6"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "New maintainer account."
+            ],
+            "indexed": true,
+            "label": "new_maintainer",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the maintainer role is updated."
+        ],
+        "label": "PoolMaintainerUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xfd6c7713a08885eb5c83103722d8e93576df52403d60a4013eb411addef14fce"
       },
       {
         "args": [
@@ -2741,6 +2824,38 @@
           {
             "docs": [],
             "indexed": true,
+            "label": "previous_governance",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_governance",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when oracle governance is transferred to a new account."
+        ],
+        "label": "OracleGovernanceUpdated",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0x8076edb2c7ad187c70699e83a771437602b58b5145ad1c777bb879abe3f990c8"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
             "label": "validator",
             "type": {
               "displayName": [
@@ -2756,6 +2871,101 @@
         "label": "ValidatorUpdated",
         "module_path": "tusdt_oracle::oracle",
         "signature_topic": "0x9b9e984a30cbf16f16b8bb47b35802825876301f2562ae285a379d3e2b0cef05"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "max_price_deviation",
+            "type": {
+              "displayName": [
+                "Ratio"
+              ],
+              "type": 56
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the maximum allowed price deviation is changed."
+        ],
+        "label": "MaxPriceDeviationUpdated",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0xdf92cfe8304a7dfe48998ca021158b2d606b3dd9d86bab86d14c4c2b0d2a2259"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the governing subnet netuid is updated."
+        ],
+        "label": "NetuidUpdated",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0xb62491ff2dec7341b9b30f90adc6a7fcd382e6284c444b7f9622622efbd4aad7"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "min_submitter_stake",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 7
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the minimum required submitter stake is changed."
+        ],
+        "label": "MinSubmitterStakeUpdated",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0x862f9b8f733953c288061b3a21bb6955a625374e5f24afe32da33fd31a38aa7f"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "old_controller",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_controller",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the controller (vault) address is updated by governance."
+        ],
+        "label": "OracleControllerUpdated",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0x55d38df882b90edfd62fbebb6af44c6f3dd73129e23e9d1b6e6907d845646c29"
       },
       {
         "args": [
@@ -2788,38 +2998,6 @@
         "label": "FundsDistributed",
         "module_path": "tusdt_treasury::treasury",
         "signature_topic": "0x98234f366c385efbf13d3539e6f8afb2f96d25498abd09934dfc895dd841f96d"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "previous",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "new",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the current governance reassigns the governance address."
-        ],
-        "label": "GovernanceUpdated",
-        "module_path": "tusdt_treasury::treasury",
-        "signature_topic": "0x818086b5b4e9d754e74226455fa69ba2b8fb659bba67beaadb163ff2d2106f25"
       },
       {
         "args": [
@@ -2879,158 +3057,8 @@
         "args": [
           {
             "docs": [],
-            "indexed": true,
-            "label": "owner",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "vault_id",
-            "type": {
-              "displayName": [
-                "u32"
-              ],
-              "type": 6
-            }
-          },
-          {
-            "docs": [],
             "indexed": false,
-            "label": "amount",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "dest_coldkey",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when alpha collateral is returned to the user."
-        ],
-        "label": "CollateralReleased",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0x97aae417a461c2f933f4b53f50f04a8a3f041cdc029be695a2ac89d631e621c6"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "netuid",
-            "type": {
-              "displayName": [
-                "u16"
-              ],
-              "type": 4
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "excess_alpha",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "tao_received",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when excess alpha emissions are claimed and converted to native TAO."
-        ],
-        "label": "ExcessAlphaClaimed",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0xd8a49cb55750b75deb891c9b9bcd46f829684f2bf3f9321e97a0ad475ceb2b8d"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "old_hotkey",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "new_hotkey",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the vault's staking hotkey is changed by governance."
-        ],
-        "label": "VaultHotkeyChanged",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0x7083458405a105adc9ffbe74b6a9e5ed162f44c9424df560a56df2012b2e0ca5"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "params",
-            "type": {
-              "displayName": [
-                "VaultGlobalParamsConfig"
-              ],
-              "type": 54
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when global parameters are updated after timelock expiry."
-        ],
-        "label": "GlobalParamsUpdated",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0xed4774ab89725b90776582f9ccc18649c7eb8f33d62eeae08b24bbf2c614b348"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "recipient",
+            "label": "previous",
             "type": {
               "displayName": [
                 "AccountId"
@@ -3041,39 +3069,7 @@
           {
             "docs": [],
             "indexed": false,
-            "label": "amount",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when surplus TUSDT held by the vault is claimed to the treasury."
-        ],
-        "label": "SurplusTusdtClaimed",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0xd968cc90a991bfdee52bb15a281eca58a07b94210cdc1679eb32dd6e2cae9f05"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "old_token",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "new_token",
+            "label": "new",
             "type": {
               "displayName": [
                 "AccountId"
@@ -3083,444 +3079,11 @@
           }
         ],
         "docs": [
-          "Emitted when the stored token contract address is updated by governance."
+          "Emitted when the current governance reassigns the governance address."
         ],
-        "label": "TokenAddressUpdated",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0x3af521bc1216365bff617d535e559422dd8534a31f54b4b5685fec6c04b38af4"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "old_oracle",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "new_oracle",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the stored oracle contract address is updated by governance."
-        ],
-        "label": "OracleAddressUpdated",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0x3b3a187012fbab58f7b1ddc880011b906c7833d9917b9f1006df358e03ce298b"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "previous_platform",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "new_platform",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the platform address is changed."
-        ],
-        "label": "VaultPlatformUpdated",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0x968c8e8d6f99c403be206758aadc258fd0abf2dc43f439545cb6ab8508461735"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "previous_treasury",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "new_treasury",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the treasury address is changed."
-        ],
-        "label": "VaultTreasuryUpdated",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0xd34584c457f532628ef734e5b447fbc50c4136ba85427857901443728394600f"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "old_auction",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "new_auction",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the stored auction contract address is updated by governance."
-        ],
-        "label": "AuctionAddressUpdated",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0x4566e8490a3785da83aa18b8997e0ea3b709bab1730194d856ac751b2ef1b4b5"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "params",
-            "type": {
-              "displayName": [
-                "VaultContractParamsConfig"
-              ],
-              "type": 52
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when per-netuid contract parameters are updated after timelock expiry."
-        ],
-        "label": "ContractParamsUpdated",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0xa79b5918fe7b0b92aec902b9fad42e88974ba00b3bf2b0f09f9282d68e3e2aab"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "new_controller",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when governance transfers the ERC20 token controller to a new account."
-        ],
-        "label": "TokenControllerUpdated",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0x525509c4860aee0626f4d504d65d5b4a6fb51f8a0af6b783db42064a8bb51fcc"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "previous_governance",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "new_governance",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the governance address is changed."
-        ],
-        "label": "VaultGovernanceUpdated",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0xc2d11add2377baa743dfed4bf31f9ae30757d7ff99e10ac37f07e8c6b0d63c22"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "owner",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "vault_id",
-            "type": {
-              "displayName": [
-                "u32"
-              ],
-              "type": 6
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "auction_id",
-            "type": {
-              "displayName": [
-                "u32"
-              ],
-              "type": 6
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when a liquidation auction is created for an underwater vault."
-        ],
-        "label": "LiquidationAuctionCreated",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0xd53246a10f6e9922a439d9e370fa637a14f48553f3c65c5e4fdb5f821511aeb3"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "params",
-            "type": {
-              "displayName": [
-                "VaultGlobalParamsConfig"
-              ],
-              "type": 54
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when a pending global parameter update is cancelled."
-        ],
-        "label": "GlobalParamsUpdateCancelled",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0x08d18123a90778a36609c3d42df6d090319ddf81ef88219c6d43c988929a6909"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "params",
-            "type": {
-              "displayName": [
-                "VaultGlobalParamsConfig"
-              ],
-              "type": 54
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "execute_after",
-            "type": {
-              "displayName": [
-                "u64"
-              ],
-              "type": 5
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when a global parameter update is scheduled (timelock started)."
-        ],
-        "label": "GlobalParamsUpdateScheduled",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0x1287dd7d488a0cb7dce123b567a7bf4460a4391dd99f2c58029e7097d3f5061c"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "amount",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when governance transfers native TAO from the vault to the treasury."
-        ],
-        "label": "NativeTransferredToTreasury",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0x1bcbec1e39cd53547c245f99e5012cf5319ad2dd83d48d941688c65200069af1"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "params",
-            "type": {
-              "displayName": [
-                "VaultContractParamsConfig"
-              ],
-              "type": 52
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when a pending per-netuid parameter update is cancelled."
-        ],
-        "label": "ContractParamsUpdateCancelled",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0xff81451134857c985287b517981bcb3a24bcc4a522c3477732ed64e0824087b2"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "params",
-            "type": {
-              "displayName": [
-                "VaultContractParamsConfig"
-              ],
-              "type": 52
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "execute_after",
-            "type": {
-              "displayName": [
-                "u64"
-              ],
-              "type": 5
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when a per-netuid parameter update is scheduled (timelock started)."
-        ],
-        "label": "ContractParamsUpdateScheduled",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0x1ca0bcc027e10356f024ee99a38703be52b339d03b38a2597a93665992cc7507"
-      },
-      {
-        "args": [],
-        "docs": [
-          "Emitted when the contract is paused."
-        ],
-        "label": "Paused",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0x0bc7e2d93f816c37cebc39f8cd9f6461f8bd945f23b847e07a39e77b4b0c8820"
-      },
-      {
-        "args": [],
-        "docs": [
-          "Emitted when the contract is unpaused."
-        ],
-        "label": "Unpaused",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0x653e02ba17d9461415af0142fe0b7aafa9aac6f207b5f1479c13eb1883fc92b0"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "owner",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "vault_id",
-            "type": {
-              "displayName": [
-                "u32"
-              ],
-              "type": 6
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "amount",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when borrowed tUSDT is repaid."
-        ],
-        "label": "TokensRepaid",
-        "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0xa22358280da53ef96c37f9cb59b4d27b8a530b444e954a3816229235cf85a87f"
+        "label": "GovernanceUpdated",
+        "module_path": "tusdt_treasury::treasury",
+        "signature_topic": "0x818086b5b4e9d754e74226455fa69ba2b8fb659bba67beaadb163ff2d2106f25"
       },
       {
         "args": [
@@ -3570,32 +3133,97 @@
           {
             "docs": [],
             "indexed": true,
-            "label": "netuid",
+            "label": "owner",
             "type": {
               "displayName": [
-                "u16"
+                "AccountId"
               ],
-              "type": 4
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "vault_id",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 6
             }
           },
           {
             "docs": [],
             "indexed": false,
-            "label": "approved",
+            "label": "amount",
             "type": {
               "displayName": [
-                "bool"
+                "Balance"
               ],
-              "type": 48
+              "type": 5
             }
           }
         ],
         "docs": [
-          "Emitted when a netuid is added to or removed from the approved collateral set."
+          "Emitted when alpha collateral is topped up on an existing vault."
         ],
-        "label": "NetuidApproved",
+        "label": "CollateralAdded",
         "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0x4b6058dc99c9b45ab474476b19901de83fbd67d18e77c7a1038617ebeae16cb1"
+        "signature_topic": "0xd2baf654d21478b4b14e965ed7450712fe5e68eca1c409f7d3e5855720c235aa"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "owner",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "vault_id",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 6
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "dest_coldkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when alpha collateral is returned to the user."
+        ],
+        "label": "CollateralReleased",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0x97aae417a461c2f933f4b53f50f04a8a3f041cdc029be695a2ac89d631e621c6"
       },
       {
         "args": [
@@ -3677,11 +3305,593 @@
           }
         ],
         "docs": [
-          "Emitted when alpha collateral is topped up on an existing vault."
+          "Emitted when borrowed tUSDT is repaid."
         ],
-        "label": "CollateralAdded",
+        "label": "TokensRepaid",
         "module_path": "tusdt_vault_alpha::vault",
-        "signature_topic": "0xd2baf654d21478b4b14e965ed7450712fe5e68eca1c409f7d3e5855720c235aa"
+        "signature_topic": "0xa22358280da53ef96c37f9cb59b4d27b8a530b444e954a3816229235cf85a87f"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "params",
+            "type": {
+              "displayName": [
+                "VaultContractParamsConfig"
+              ],
+              "type": 52
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when per-netuid contract parameters are updated after timelock expiry."
+        ],
+        "label": "ContractParamsUpdated",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0xa79b5918fe7b0b92aec902b9fad42e88974ba00b3bf2b0f09f9282d68e3e2aab"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "params",
+            "type": {
+              "displayName": [
+                "VaultContractParamsConfig"
+              ],
+              "type": 52
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "execute_after",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a per-netuid parameter update is scheduled (timelock started)."
+        ],
+        "label": "ContractParamsUpdateScheduled",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0x1ca0bcc027e10356f024ee99a38703be52b339d03b38a2597a93665992cc7507"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "params",
+            "type": {
+              "displayName": [
+                "VaultContractParamsConfig"
+              ],
+              "type": 52
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a pending per-netuid parameter update is cancelled."
+        ],
+        "label": "ContractParamsUpdateCancelled",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0xff81451134857c985287b517981bcb3a24bcc4a522c3477732ed64e0824087b2"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "params",
+            "type": {
+              "displayName": [
+                "VaultGlobalParamsConfig"
+              ],
+              "type": 54
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "execute_after",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a global parameter update is scheduled (timelock started)."
+        ],
+        "label": "GlobalParamsUpdateScheduled",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0x1287dd7d488a0cb7dce123b567a7bf4460a4391dd99f2c58029e7097d3f5061c"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "params",
+            "type": {
+              "displayName": [
+                "VaultGlobalParamsConfig"
+              ],
+              "type": 54
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when global parameters are updated after timelock expiry."
+        ],
+        "label": "GlobalParamsUpdated",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0xed4774ab89725b90776582f9ccc18649c7eb8f33d62eeae08b24bbf2c614b348"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "params",
+            "type": {
+              "displayName": [
+                "VaultGlobalParamsConfig"
+              ],
+              "type": 54
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a pending global parameter update is cancelled."
+        ],
+        "label": "GlobalParamsUpdateCancelled",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0x08d18123a90778a36609c3d42df6d090319ddf81ef88219c6d43c988929a6909"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "previous_governance",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_governance",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the governance address is changed."
+        ],
+        "label": "VaultGovernanceUpdated",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0xc2d11add2377baa743dfed4bf31f9ae30757d7ff99e10ac37f07e8c6b0d63c22"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "previous_treasury",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_treasury",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the treasury address is changed."
+        ],
+        "label": "VaultTreasuryUpdated",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0xd34584c457f532628ef734e5b447fbc50c4136ba85427857901443728394600f"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "previous_platform",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_platform",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the platform address is changed."
+        ],
+        "label": "VaultPlatformUpdated",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0x968c8e8d6f99c403be206758aadc258fd0abf2dc43f439545cb6ab8508461735"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_controller",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when governance transfers the ERC20 token controller to a new account."
+        ],
+        "label": "TokenControllerUpdated",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0x525509c4860aee0626f4d504d65d5b4a6fb51f8a0af6b783db42064a8bb51fcc"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "old_auction",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_auction",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the stored auction contract address is updated by governance."
+        ],
+        "label": "AuctionAddressUpdated",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0x4566e8490a3785da83aa18b8997e0ea3b709bab1730194d856ac751b2ef1b4b5"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "old_oracle",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_oracle",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the stored oracle contract address is updated by governance."
+        ],
+        "label": "OracleAddressUpdated",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0x3b3a187012fbab58f7b1ddc880011b906c7833d9917b9f1006df358e03ce298b"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "old_token",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_token",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the stored token contract address is updated by governance."
+        ],
+        "label": "TokenAddressUpdated",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0x3af521bc1216365bff617d535e559422dd8534a31f54b4b5685fec6c04b38af4"
+      },
+      {
+        "args": [],
+        "docs": [
+          "Emitted when the contract is paused."
+        ],
+        "label": "Paused",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0x0bc7e2d93f816c37cebc39f8cd9f6461f8bd945f23b847e07a39e77b4b0c8820"
+      },
+      {
+        "args": [],
+        "docs": [
+          "Emitted when the contract is unpaused."
+        ],
+        "label": "Unpaused",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0x653e02ba17d9461415af0142fe0b7aafa9aac6f207b5f1479c13eb1883fc92b0"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "recipient",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when surplus TUSDT held by the vault is claimed to the treasury."
+        ],
+        "label": "SurplusTusdtClaimed",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0xd968cc90a991bfdee52bb15a281eca58a07b94210cdc1679eb32dd6e2cae9f05"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "excess_alpha",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "tao_received",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when excess alpha emissions are claimed and converted to native TAO."
+        ],
+        "label": "ExcessAlphaClaimed",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0xd8a49cb55750b75deb891c9b9bcd46f829684f2bf3f9321e97a0ad475ceb2b8d"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "old_hotkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_hotkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the vault's staking hotkey is changed by governance."
+        ],
+        "label": "VaultHotkeyChanged",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0x7083458405a105adc9ffbe74b6a9e5ed162f44c9424df560a56df2012b2e0ca5"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when governance transfers native TAO from the vault to the treasury."
+        ],
+        "label": "NativeTransferredToTreasury",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0x1bcbec1e39cd53547c245f99e5012cf5319ad2dd83d48d941688c65200069af1"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "approved",
+            "type": {
+              "displayName": [
+                "bool"
+              ],
+              "type": 48
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a netuid is added to or removed from the approved collateral set."
+        ],
+        "label": "NetuidApproved",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0x4b6058dc99c9b45ab474476b19901de83fbd67d18e77c7a1038617ebeae16cb1"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "owner",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "vault_id",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 6
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "auction_id",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 6
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a liquidation auction is created for an underwater vault."
+        ],
+        "label": "LiquidationAuctionCreated",
+        "module_path": "tusdt_vault_alpha::vault",
+        "signature_topic": "0xd53246a10f6e9922a439d9e370fa637a14f48553f3c65c5e4fdb5f821511aeb3"
       },
       {
         "args": [
@@ -4195,7 +4405,7 @@
         "default": false,
         "docs": [
           " Replaces the entire council with `members`; maintainer-only. Requires exactly",
-          " [`COUNCIL_SIZE`] distinct members, otherwise returns [`Error::InvalidCouncil`]."
+          " `COUNCIL_SIZE` distinct members, otherwise returns `Error::InvalidCouncil`."
         ],
         "label": "set_council",
         "mutates": true,
@@ -4825,7 +5035,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Approves or removes a netuid for lending-pool collateral; maintainer-only."
+        ],
         "label": "pool_set_approved_netuid",
         "mutates": true,
         "payable": false,
@@ -4860,7 +5072,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Schedules a timelocked alpha-market parameter update on the lending pool; maintainer-only."
+        ],
         "label": "pool_set_alpha_params",
         "mutates": true,
         "payable": false,
@@ -4886,7 +5100,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Cancels the lending pool's scheduled alpha-market parameter update; maintainer-only."
+        ],
         "label": "pool_cancel_alpha_params_update",
         "mutates": true,
         "payable": false,
@@ -4921,7 +5137,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Schedules a timelocked interest-rate (market) parameter update on the lending pool; maintainer-only."
+        ],
         "label": "pool_set_market_params",
         "mutates": true,
         "payable": false,
@@ -4947,7 +5165,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Cancels the lending pool's scheduled market parameter update; maintainer-only."
+        ],
         "label": "pool_cancel_market_params_update",
         "mutates": true,
         "payable": false,
@@ -4973,7 +5193,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Schedules a timelocked global-parameter update on the lending pool; maintainer-only."
+        ],
         "label": "pool_set_global_params",
         "mutates": true,
         "payable": false,
@@ -4989,7 +5211,9 @@
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Cancels the lending pool's scheduled global-parameter update; maintainer-only."
+        ],
         "label": "pool_cancel_global_params_update",
         "mutates": true,
         "payable": false,
@@ -5015,7 +5239,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Updates the lending pool's platform (pause operator) account; maintainer-only."
+        ],
         "label": "pool_update_platform",
         "mutates": true,
         "payable": false,
@@ -5041,7 +5267,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Updates the lending pool's treasury (fee recipient) account; maintainer-only."
+        ],
         "label": "pool_update_treasury",
         "mutates": true,
         "payable": false,
@@ -5067,7 +5295,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Updates the lending pool's oracle contract address; maintainer-only."
+        ],
         "label": "pool_update_oracle_address",
         "mutates": true,
         "payable": false,
@@ -5102,7 +5332,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Updates the lending pool's lToken contract address for a market; maintainer-only."
+        ],
         "label": "pool_update_ltoken_address",
         "mutates": true,
         "payable": false,
@@ -5137,7 +5369,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Migrates the lending pool's staking hotkey to a new address; maintainer-only."
+        ],
         "label": "pool_update_pool_hotkey",
         "mutates": true,
         "payable": false,
@@ -5163,7 +5397,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Claims surplus TUSDT held by the lending pool and sends it to the treasury; maintainer-only."
+        ],
         "label": "pool_claim_surplus_tusdt",
         "mutates": true,
         "payable": false,
@@ -5179,7 +5415,9 @@
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Transfers the lending pool's native TAO balance to the treasury; maintainer-only."
+        ],
         "label": "pool_transfer_native_to_treasury",
         "mutates": true,
         "payable": false,
@@ -5195,7 +5433,9 @@
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Unpauses the lending pool; maintainer-only (deliberate recovery)."
+        ],
         "label": "pool_unpause",
         "mutates": true,
         "payable": false,
@@ -5221,7 +5461,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Updates the lending pool's maintainer account; maintainer-only."
+        ],
         "label": "pool_update_maintainer",
         "mutates": true,
         "payable": false,
@@ -5353,7 +5595,7 @@
           " Commits a new off-chain snapshot and returns its epoch; council-only (operational duty).",
           "",
           " `root` is the Merkle root over `(coldkey, hotkey, balance, multiplier_bps)` leaves (see",
-          " [`Snapshot`]); `circulating_supply` is the alpha supply that the quorum is derived from;",
+          " `Snapshot`); `circulating_supply` is the alpha supply that the quorum is derived from;",
           " `snapshot_block` records the subnet height for off-chain auditing. Each call advances the",
           " epoch by one; proposals submitted afterward bind to the new epoch."
         ],
@@ -5385,7 +5627,7 @@
         "docs": [
           " Returns the absolute quorum threshold for `epoch`: `circulating_supply * quorum_bps /",
           " 10_000`. A proposal must gather at least this much raw voted balance (see",
-          " [`Proposal::voted_balance`]) to be eligible to pass. Returns 0 if the epoch has no",
+          " `Proposal::voted_balance`) to be eligible to pass. Returns 0 if the epoch has no",
           " snapshot."
         ],
         "label": "quorum",
@@ -7991,6 +8233,7 @@
         "path": [
           "tusdt_lending_pool",
           "lending_pool",
+          "params",
           "AlphaMarketParamsConfig"
         ]
       }
@@ -8032,6 +8275,7 @@
         "path": [
           "tusdt_lending_pool",
           "lending_pool",
+          "params",
           "InterestRateParamsConfig"
         ]
       }
@@ -8083,6 +8327,7 @@
         "path": [
           "tusdt_lending_pool",
           "lending_pool",
+          "params",
           "PoolGlobalParamsConfig"
         ]
       }

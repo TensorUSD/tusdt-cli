@@ -36,7 +36,7 @@ from tusdt_cli.globals import (
     yes_option,
 )
 from tusdt_cli.utils import HelpfulGroup, console, print_dict, print_info, print_success
-from tusdt_cli.wallet import get_default_wallet_path, list_wallets
+from tusdt_cli.wallet import get_default_wallet_path, list_wallets, resolve_signer_address
 
 # ======================================================================
 # Root group
@@ -114,9 +114,24 @@ def config_group() -> None:
 @network_option
 @click.pass_context
 def config_show(ctx: click.Context, network: str | None) -> None:
-    """Display the current configuration."""
+    """Display the current configuration.
+
+    Sensitive values (mnemonic seed phrases) are never shown — the
+    derived SS58 address is displayed instead.
+    """
     cfg = load_config(network=network)
-    print_dict("Configuration", cfg)
+    display = dict(cfg)
+
+    # Mask the raw signer mnemonic / path — show the derived address instead.
+    if display.get("signer"):
+        addr = resolve_signer_address(cfg)
+        if addr:
+            display["signer_address"] = addr
+            display["signer"] = "(hidden — use 'tusdt config show --verbose' to view path)"
+        else:
+            display["signer"] = "(encrypted keyfile)"
+
+    print_dict("Configuration", display)
     print_info(f"Config file: {CONFIG_FILE}")
 
 
@@ -248,6 +263,16 @@ def config_set(
     for key, value in pairs:
         if value is not None:
             updates[key] = value
+
+    # Derive and persist the signer SS58 address for safe display.
+    if updates.get("signer") or updates.get("wallet_name"):
+        # Build a temporary config with the new values merged in so that
+        # resolve_signer_address sees the fresh state.
+        temp = dict(saved_overrides)
+        temp.update(updates)
+        addr = resolve_signer_address(temp)
+        if addr:
+            updates["signer_address"] = addr
 
     if not updates:
         print_info("No options provided – nothing changed.")

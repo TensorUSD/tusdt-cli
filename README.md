@@ -479,9 +479,9 @@ Run `just check` before pushing — it's the same gate that CI enforces.
 ## Linting
 
 ```bash
-ruff check src/          # Lint
-ruff format src/         # Format
-ruff check --fix src/    # Auto-fix lint issues
+ruff check src/
+ruff format src/
+ruff check --fix src/
 ```
 
 ## Testing

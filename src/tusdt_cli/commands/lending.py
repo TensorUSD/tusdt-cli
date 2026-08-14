@@ -933,6 +933,36 @@ def user_debt(ctx: click.Context, market_id: int, user: str, network: str | None
     state.output.detail("User Debt", {"Result": result})
 
 
+@lending_group.command("user-debt-details")
+@click.option("--market-id", required=True, type=int, help="Market ID: 0 for TAO, 1 for TUSDT")
+@click.option("--user", required=True, help="User SS58 address")
+@network_option
+@click.pass_context
+def user_debt_details(ctx: click.Context, market_id: int, user: str, network: str | None) -> None:
+    """Show a user's debt, principal, and accrued interest in a market.
+
+    Falls back to the plain debt when the deployed pool predates principal
+    tracking.
+    """
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    result = state.run_read(lambda c: c.lending_get_user_debt_details(kp, market_id, user))
+    if result is None:
+        debt = state.run_read(lambda c: c.lending_get_user_debt(kp, market_id, user))
+        state.output.detail(
+            "User Debt Details",
+            {"Debt": debt, "Interest": "unavailable (deployed pool predates principal tracking)"},
+        )
+        return
+    debt, principal = result
+    state.output.detail(
+        "User Debt Details",
+        {"Debt": debt, "Principal": principal, "Interest": debt - principal},
+    )
+
+
 @lending_group.command("alpha-markets")
 @network_option
 @click.pass_context
@@ -1205,7 +1235,7 @@ def get_global_params(ctx: click.Context, network: str | None) -> None:
 
 
 @lending_group.command("get-market-params")
-@click.option("--market-id", type=int, required=True, help="Market ID (0 = TAO, 1 = TUSDT)")
+@click.option("--market-id", type=int, required=True, help="Market ID: 0 for TAO, 1 for TUSDT")
 @network_option
 @click.pass_context
 def get_market_params(ctx: click.Context, market_id: int, network: str | None) -> None:
@@ -1215,6 +1245,9 @@ def get_market_params(ctx: click.Context, market_id: int, network: str | None) -
     cfg = state.make_config()
     kp = get_reader_keypair(cfg)
     result = state.run_read(lambda c: c.lending_get_market_params(kp, market_id))
+    if result is None:
+        state.output.info(f"No market params configured for market {market_id}")
+        return
     state.output.detail(f"Market {market_id} Params", result)
 
 
@@ -1229,6 +1262,9 @@ def get_alpha_params(ctx: click.Context, netuid: int, network: str | None) -> No
     cfg = state.make_config()
     kp = get_reader_keypair(cfg)
     result = state.run_read(lambda c: c.lending_get_alpha_params(kp, netuid))
+    if result is None:
+        state.output.info(f"No alpha params configured for netuid {netuid}")
+        return
     state.output.detail(f"Alpha Params (Netuid {netuid})", result)
 
 

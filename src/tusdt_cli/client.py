@@ -2323,6 +2323,23 @@ class TUSDTClient:
         )
         return unwrap_plain(result)
 
+    def lending_get_user_debt_details(
+        self, keypair: Keypair, market_id: int, user: str
+    ) -> tuple[int, int] | None:
+        """Get a user's (debt, principal) in a market.
+
+        Debt includes accrued interest; ``interest = debt - principal``.
+        Returns ``None`` when the user has no position or the deployed pool
+        predates principal tracking (fall back to ``lending_get_user_debt``).
+        """
+        result = self._read(
+            self.lending,
+            keypair,
+            "get_user_debt_details",
+            args={"market_id": market_id, "user": user},
+        )
+        return unwrap_option(result)
+
     def lending_get_alpha_markets(self, keypair: Keypair) -> list:
         """Get all approved alpha markets with their params."""
         result = self._read(self.lending, keypair, "get_alpha_markets")
@@ -2427,32 +2444,40 @@ class TUSDTClient:
         result = self._read(self.lending, keypair, "get_global_params")
         return unwrap_plain(result)
 
-    def lending_get_market_params(self, keypair: Keypair, market_id: int) -> dict:
-        """Get interest-rate parameters for a market (0 = TAO, 1 = TUSDT)."""
+    def lending_get_market_params(self, keypair: Keypair, market_id: int) -> dict | None:
+        """Get interest-rate parameters for a market (0 = TAO, 1 = TUSDT).
+
+        Returns None when the market has no configured params.
+        """
         result = self._read(
             self.lending,
             keypair,
             "get_market_params",
             args={"market_id": market_id},
         )
-        return unwrap_plain(result)
+        return unwrap_option(result)
 
-    def lending_get_alpha_params(self, keypair: Keypair, netuid: int) -> dict:
-        """Get alpha market parameters for a subnet."""
+    def lending_get_alpha_params(self, keypair: Keypair, netuid: int) -> dict | None:
+        """Get alpha market parameters for a subnet.
+
+        Returns None when the netuid has no configured params.
+        """
         result = self._read(
             self.lending,
             keypair,
             "get_alpha_params",
             args={"netuid": netuid},
         )
-        return unwrap_plain(result)
+        return unwrap_option(result)
 
     def lending_get_maintainer(self, keypair: Keypair) -> str:
         """Get the pool maintainer address."""
         result = self._read(self.lending, keypair, "maintainer")
         return unwrap_plain(result)
 
-    def lending_update_maintainer(self, keypair: Keypair, new_maintainer: str) -> dict:
+    def lending_update_maintainer(
+        self, keypair: Keypair, new_maintainer: str
+    ) -> dict[str, Any] | DryRunResult:
         """Update the pool maintainer (governance-gated)."""
         return self._exec(
             self.lending,

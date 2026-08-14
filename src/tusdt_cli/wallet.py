@@ -271,3 +271,33 @@ def get_reader_keypair(config: dict) -> Keypair:
     don't require a real wallet – any valid keypair will do.
     """
     return Keypair.create_from_uri("//Alice", ss58_format=42)
+
+
+def resolve_signer_address(config: dict) -> str | None:
+    """Derive the SS58 address for the configured signer without prompting.
+
+    Does NOT request passwords — for encrypted keyfiles, returns ``None``.
+    Intended for display use (``tusdt config show``).
+
+    Resolution order mirrors :func:`get_signer_keypair`:
+      1. ``signer`` field — mnemonic phrase or path to a keyfile.
+      2. ``wallet_name`` field — reads the coldkeypub.txt.
+    """
+    signer = config.get("signer")
+    if signer:
+        expanded = os.path.expanduser(signer)
+        if os.path.isfile(expanded):
+            # Try reading address from a plain (JSON) keyfile first.
+            addr = _read_ss58_from_pubfile(Path(expanded))
+            if addr:
+                return addr
+            # Encrypted — can't derive without password.
+            return None
+        # Assume it's a mnemonic seed phrase.
+        return Keypair.create_from_mnemonic(signer, ss58_format=42).ss58_address
+
+    wallet_name = config.get("wallet_name")
+    if wallet_name:
+        return resolve_ss58(wallet_name, config.get("wallet_path"))
+
+    return None

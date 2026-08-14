@@ -1,8 +1,8 @@
 {
   "source": {
-    "hash": "0xf8b91d8af2074a737cf09eee9005fdc8658e6661722876bb82ba484f61e060e3",
+    "hash": "0x6d9574ab22ff8d651c842ad9b70789f165081698df1a4e1993f410e4d697568c",
     "language": "ink! 5.1.1",
-    "compiler": "rustc 1.91.1",
+    "compiler": "rustc 1.89.0",
     "build_info": {
       "build_mode": "Release",
       "cargo_contract_version": "5.0.3",
@@ -59,7 +59,7 @@
               "displayName": [
                 "Hash"
               ],
-              "type": 72
+              "type": 75
             }
           },
           {
@@ -87,7 +87,7 @@
             "ink_primitives",
             "ConstructorResult"
           ],
-          "type": 73
+          "type": 76
         },
         "selector": "0x9bae9d5e"
       },
@@ -159,7 +159,7 @@
             "ink_primitives",
             "ConstructorResult"
           ],
-          "type": 73
+          "type": 76
         },
         "selector": "0xf3c2cbb8"
       }
@@ -188,13 +188,13 @@
         "displayName": [
           "ChainExtension"
         ],
-        "type": 117
+        "type": 123
       },
       "hash": {
         "displayName": [
           "Hash"
         ],
-        "type": 72
+        "type": 75
       },
       "maxEventTopics": 4,
       "staticBufferSize": 16384,
@@ -206,6 +206,49 @@
       }
     },
     "events": [
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "from",
+            "type": {
+              "displayName": [
+                "Option"
+              ],
+              "type": 113
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "to",
+            "type": {
+              "displayName": [
+                "Option"
+              ],
+              "type": 113
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "value",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [
+          "Emitted on token movement; `from = None` denotes a mint, `to = None` denotes a burn."
+        ],
+        "label": "Transfer",
+        "module_path": "tusdt_erc20::tusdt",
+        "signature_topic": "0xb5b61a3e6a21a16be4f044b517c28ac692492f73c5bfd3f60178ad98c767f4cb"
+      },
       {
         "args": [
           {
@@ -252,50 +295,9 @@
       {
         "args": [
           {
-            "docs": [],
-            "indexed": true,
-            "label": "from",
-            "type": {
-              "displayName": [
-                "Option"
-              ],
-              "type": 107
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "to",
-            "type": {
-              "displayName": [
-                "Option"
-              ],
-              "type": 107
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "value",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
-          }
-        ],
-        "docs": [
-          "Emitted on token movement; `from = None` denotes a mint, `to = None` denotes a burn."
-        ],
-        "label": "Transfer",
-        "module_path": "tusdt_erc20::tusdt",
-        "signature_topic": "0xb5b61a3e6a21a16be4f044b517c28ac692492f73c5bfd3f60178ad98c767f4cb"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
+            "docs": [
+              "Market id (0 = TAO, 1 = TUSDT)."
+            ],
             "indexed": true,
             "label": "market",
             "type": {
@@ -306,7 +308,9 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "User who supplied."
+            ],
             "indexed": true,
             "label": "user",
             "type": {
@@ -317,281 +321,9 @@
             }
           },
           {
-            "docs": [],
-            "indexed": false,
-            "label": "amount",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
-          }
-        ],
-        "docs": [],
-        "label": "Borrowed",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0xa30f1d7af7086c847984425ec213baab9fafaa570d922339457e05be2b6785a4"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "user",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "collateral_netuid",
-            "type": {
-              "displayName": [
-                "u16"
-              ],
-              "type": 23
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "debt_market",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 2
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "debt_covered",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "collateral_alpha",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "liquidator",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [],
-        "label": "Liquidated",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x53b00c58bf25adde0c0c6aceba3e7fa27e8774dc382118b8e2482496cd55473a"
-      },
-      {
-        "args": [],
-        "docs": [],
-        "label": "PoolPaused",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0xd358456bb8bd5a6c40aece602d73868c625a3c0ec751e0b1060fa0570d66931d"
-      },
-      {
-        "args": [],
-        "docs": [],
-        "label": "PoolUnpaused",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x4924837407f0e4fb9a0facb764214ec45ebbb874dc9825d91c336083a1f42e64"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "market",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 2
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "dt_hours",
-            "type": {
-              "displayName": [
-                "u64"
-              ],
-              "type": 4
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "utilization",
-            "type": {
-              "displayName": [
-                "u128"
-              ],
-              "type": 5
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "borrow_rate",
-            "type": {
-              "displayName": [
-                "u128"
-              ],
-              "type": 5
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "supply_rate",
-            "type": {
-              "displayName": [
-                "u128"
-              ],
-              "type": 5
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "reserve_delta",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
-          }
-        ],
-        "docs": [],
-        "label": "MarketAccrued",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x4408d540b331ea678c6707d409ae90af5a3931bccfd0c3e16eecaf256befd75d"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "netuid",
-            "type": {
-              "displayName": [
-                "u16"
-              ],
-              "type": 23
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "approved",
-            "type": {
-              "displayName": [
-                "bool"
-              ],
-              "type": 3
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "market_id",
-            "type": {
-              "displayName": [
-                "Option"
-              ],
-              "type": 113
-            }
-          }
-        ],
-        "docs": [],
-        "label": "NetuidApproved",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x12963c53cceef935121e6b48e91981778ae3dee569e51a62fbfd3a68518a27d4"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "market",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 2
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "amount",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
-          }
-        ],
-        "docs": [],
-        "label": "ReserveClaimed",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0xfaadc011c05216b2df7758319be5cfca55c59fc47f48e8291acf9766aeedc608"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "market",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 2
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "user",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
+            "docs": [
+              "Underlying amount supplied (9-decimal units)."
+            ],
             "indexed": false,
             "label": "amount",
             "type": {
@@ -602,7 +334,9 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "lToken balance minted."
+            ],
             "indexed": false,
             "label": "ltoken_scaled",
             "type": {
@@ -623,7 +357,9 @@
       {
         "args": [
           {
-            "docs": [],
+            "docs": [
+              "Market id (0 = TAO, 1 = TUSDT)."
+            ],
             "indexed": true,
             "label": "market",
             "type": {
@@ -634,7 +370,9 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "User who withdrew."
+            ],
             "indexed": true,
             "label": "user",
             "type": {
@@ -645,7 +383,9 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "Underlying amount withdrawn (9-decimal units)."
+            ],
             "indexed": false,
             "label": "amount",
             "type": {
@@ -656,7 +396,9 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "lToken balance burned."
+            ],
             "indexed": false,
             "label": "ltoken_scaled",
             "type": {
@@ -667,7 +409,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when a user withdraws underlying liquidity by burning lTokens."
+        ],
         "label": "LiquidWithdrawn",
         "module_path": "tusdt_lending_pool::lending_pool",
         "signature_topic": "0xd68f230963998b8116106e5a183bb3b45c464a848c4d7a7c74b2f8102b15233e"
@@ -675,246 +419,9 @@
       {
         "args": [
           {
-            "docs": [],
-            "indexed": true,
-            "label": "netuid",
-            "type": {
-              "displayName": [
-                "u16"
-              ],
-              "type": 23
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "excess_alpha",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "performance_fee_alpha",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "tao_received",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "index_before",
-            "type": {
-              "displayName": [
-                "u128"
-              ],
-              "type": 5
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "index_after",
-            "type": {
-              "displayName": [
-                "u128"
-              ],
-              "type": 5
-            }
-          }
-        ],
-        "docs": [],
-        "label": "AlphaYieldClaimed",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x93aa5327c9c318ecaf23f729d64ca2066fb3106758c684c2471ae90d5593f9e0"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "old_hotkey",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "new_hotkey",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [],
-        "label": "PoolHotkeyChanged",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0xe34339f8e15901da07a53ad3fa956ac94884866fc9ada507a26b91412f114444"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "netuid",
-            "type": {
-              "displayName": [
-                "u16"
-              ],
-              "type": 23
-            }
-          }
-        ],
-        "docs": [],
-        "label": "AlphaParamsUpdated",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x6c11a8b3e424961845b6e6faa262d2233174f351643aab3404237a39aa3c14f2"
-      },
-      {
-        "args": [],
-        "docs": [],
-        "label": "GlobalParamsUpdated",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x53ff499b7903e9014abbae06fabe1de32e3ae6b546010672470dec79b3a5b347"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "market",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 2
-            }
-          }
-        ],
-        "docs": [],
-        "label": "MarketParamsUpdated",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x589d066c7363c63d6d84abefe005ebd902764c159e83a2fe09e1d0a4a218ea4c"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "previous",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "new",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [],
-        "label": "PoolPlatformUpdated",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x568223596c72c1f6d2a35ab0a7c2b86e8ef7597b770306487deeb8294bdb7d59"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "previous",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "new",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [],
-        "label": "PoolTreasuryUpdated",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x17b853c8aa30347f1bd906dd8c0311e8965e6ef93430bbdc376c5f68c5ef015f"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "previous",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "new",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [],
-        "label": "TusdtAddressUpdated",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x963c9f4f7e7eccfc87af511d757d31de7980a3d12f001f5ff37a605c3d40aa58"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
+            "docs": [
+              "Market id (0 = TAO, 1 = TUSDT)."
+            ],
             "indexed": true,
             "label": "market",
             "type": {
@@ -925,127 +432,9 @@
             }
           },
           {
-            "docs": [],
-            "indexed": false,
-            "label": "old_ltoken",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "new_ltoken",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [],
-        "label": "LTokenAddressUpdated",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x64095aa2b22793236d5fd9f2934153dab41a7b1cecd55c1c26f3747df5cf93a2"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "previous",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "new",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [],
-        "label": "PoolGovernanceUpdated",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x959f919be7d41d9f2ef1bae199585baa2bbecb515e60b088562aeb24679c1f3f"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "new_maintainer",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [],
-        "label": "PoolMaintainerUpdated",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0xfd6c7713a08885eb5c83103722d8e93576df52403d60a4013eb411addef14fce"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "recipient",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "amount",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
-          }
-        ],
-        "docs": [],
-        "label": "PoolSurplusTusdtClaimed",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x62d369bf818f983cf2243a924bd78345807b971ca7846c2a035183a3d7357082"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "netuid",
-            "type": {
-              "displayName": [
-                "u16"
-              ],
-              "type": 23
-            }
-          },
-          {
-            "docs": [],
+            "docs": [
+              "Borrower."
+            ],
             "indexed": true,
             "label": "user",
             "type": {
@@ -1056,7 +445,107 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "Underlying amount borrowed (9-decimal units)."
+            ],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a user borrows underlying from a market."
+        ],
+        "label": "Borrowed",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xa30f1d7af7086c847984425ec213baab9fafaa570d922339457e05be2b6785a4"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Market id (0 = TAO, 1 = TUSDT)."
+            ],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [
+              "Borrower."
+            ],
+            "indexed": true,
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "Underlying amount repaid (9-decimal units)."
+            ],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a user repays borrowed underlying."
+        ],
+        "label": "Repaid",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x7f7d77c30df883b8f0350d34594cf3c836695d0d681e69382b958fc91502ecd0"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Subnet id the collateral was deposited on."
+            ],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          },
+          {
+            "docs": [
+              "Depositor."
+            ],
+            "indexed": true,
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "Alpha principal deposited (9-decimal units)."
+            ],
             "indexed": false,
             "label": "amount",
             "type": {
@@ -1067,7 +556,9 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "Alpha market id assigned to the netuid."
+            ],
             "indexed": false,
             "label": "market_id",
             "type": {
@@ -1078,7 +569,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when a user deposits alpha stake as collateral."
+        ],
         "label": "AlphaCollateralDeposited",
         "module_path": "tusdt_lending_pool::lending_pool",
         "signature_topic": "0x6c80e71928776bffbd3124b5c2f581db2364290beca46806e6d2a84cc4b4ce42"
@@ -1086,7 +579,9 @@
       {
         "args": [
           {
-            "docs": [],
+            "docs": [
+              "Subnet id the collateral was withdrawn from."
+            ],
             "indexed": true,
             "label": "netuid",
             "type": {
@@ -1097,7 +592,9 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "Withdrawer."
+            ],
             "indexed": true,
             "label": "user",
             "type": {
@@ -1108,7 +605,9 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "Alpha principal withdrawn (9-decimal units)."
+            ],
             "indexed": false,
             "label": "amount",
             "type": {
@@ -1119,7 +618,9 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "Effective alpha withdrawn (principal x yield index)."
+            ],
             "indexed": false,
             "label": "effective",
             "type": {
@@ -1130,7 +631,9 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "Coldkey that received the transferred stake."
+            ],
             "indexed": true,
             "label": "dest_coldkey",
             "type": {
@@ -1141,7 +644,9 @@
             }
           }
         ],
-        "docs": [],
+        "docs": [
+          "Emitted when a user withdraws alpha collateral to a destination coldkey."
+        ],
         "label": "AlphaCollateralWithdrawn",
         "module_path": "tusdt_lending_pool::lending_pool",
         "signature_topic": "0x97601ff4e663dda1b818dc6bd97ac91a119f48209830683e3c765f09f4ffd9f7"
@@ -1149,191 +654,9 @@
       {
         "args": [
           {
-            "docs": [],
-            "indexed": false,
-            "label": "previous",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "new",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [],
-        "label": "PoolOracleAddressUpdated",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x89fe6af35bd9138ec4852411e75f304fc647db79a4c43510c6e97b2878c7c185"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "netuid",
-            "type": {
-              "displayName": [
-                "u16"
-              ],
-              "type": 23
-            }
-          }
-        ],
-        "docs": [],
-        "label": "AlphaParamsUpdateCancelled",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x9bca74a7cb2287aa2c42792c3198b38c463030a1664b7deefc2ed126d96ce753"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "netuid",
-            "type": {
-              "displayName": [
-                "u16"
-              ],
-              "type": 23
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "execute_after",
-            "type": {
-              "displayName": [
-                "u64"
-              ],
-              "type": 4
-            }
-          }
-        ],
-        "docs": [],
-        "label": "AlphaParamsUpdateScheduled",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0xc9e850ed568e5ed59d6f29a82afc0ec0cde5f6fe1a30751c2dbe288f0d13c239"
-      },
-      {
-        "args": [],
-        "docs": [],
-        "label": "GlobalParamsUpdateCancelled",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x3202e87bd4f46591dfeb78b1c78f4f22faae7f2d9cc8ef4e5d2692264043d426"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "execute_after",
-            "type": {
-              "displayName": [
-                "u64"
-              ],
-              "type": 4
-            }
-          }
-        ],
-        "docs": [],
-        "label": "GlobalParamsUpdateScheduled",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0xdf475581dad5c4cbc47334803a30f6b0cdf2b1d425c2ac20c6ee4eee891b0980"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "market",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 2
-            }
-          }
-        ],
-        "docs": [],
-        "label": "MarketParamsUpdateCancelled",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0xd4fc8e97e2835b40ff889805e3665ab4176e4ebd71ad8ebbeae4499792ebe5a8"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "market",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 2
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "execute_after",
-            "type": {
-              "displayName": [
-                "u64"
-              ],
-              "type": 4
-            }
-          }
-        ],
-        "docs": [],
-        "label": "MarketParamsUpdateScheduled",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0xc77d1260303597bd048815ecb64423776f649a3ccf12a923a9c34634db1849df"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "amount",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
-          }
-        ],
-        "docs": [],
-        "label": "PoolNativeTransferredToTreasury",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x82243fa92c1903f2158da7c2355fefada1b3c0959aa94b01525600f5d09a07f6"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "market",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 2
-            }
-          },
-          {
-            "docs": [],
+            "docs": [
+              "Borrower whose position was liquidated."
+            ],
             "indexed": true,
             "label": "user",
             "type": {
@@ -1344,7 +667,185 @@
             }
           },
           {
-            "docs": [],
+            "docs": [
+              "Netuid of the seized alpha collateral."
+            ],
+            "indexed": true,
+            "label": "collateral_netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          },
+          {
+            "docs": [
+              "Debt market repaid (0 = TAO, 1 = TUSDT)."
+            ],
+            "indexed": false,
+            "label": "debt_market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [
+              "Debt units repaid by the liquidator."
+            ],
+            "indexed": false,
+            "label": "debt_covered",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [
+              "Effective alpha seized (before yield-index conversion)."
+            ],
+            "indexed": false,
+            "label": "collateral_alpha",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [
+              "Account that performed the liquidation."
+            ],
+            "indexed": true,
+            "label": "liquidator",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when an underwater position is liquidated."
+        ],
+        "label": "Liquidated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x53b00c58bf25adde0c0c6aceba3e7fa27e8774dc382118b8e2482496cd55473a"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Subnet the yield was claimed for."
+            ],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          },
+          {
+            "docs": [
+              "Excess alpha found beyond booked collateral."
+            ],
+            "indexed": false,
+            "label": "excess_alpha",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [
+              "Performance fee (25%) unstaked to TAO."
+            ],
+            "indexed": false,
+            "label": "performance_fee_alpha",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [
+              "TAO sent to the treasury after unstaking the fee."
+            ],
+            "indexed": false,
+            "label": "tao_received",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [
+              "Yield index (1e18) before the claim."
+            ],
+            "indexed": false,
+            "label": "index_before",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [
+              "Yield index (1e18) after the claim."
+            ],
+            "indexed": false,
+            "label": "index_after",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when excess alpha staking yield is claimed for a netuid."
+        ],
+        "label": "AlphaYieldClaimed",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x93aa5327c9c318ecaf23f729d64ca2066fb3106758c684c2471ae90d5593f9e0"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Market id (0 = TAO, 1 = TUSDT)."
+            ],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [
+              "Reserve amount claimed (9-decimal units)."
+            ],
             "indexed": false,
             "label": "amount",
             "type": {
@@ -1355,122 +856,226 @@
             }
           }
         ],
-        "docs": [],
-        "label": "Repaid",
+        "docs": [
+          "Emitted when protocol reserve fees are claimed for a market."
+        ],
+        "label": "ReserveClaimed",
         "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x7f7d77c30df883b8f0350d34594cf3c836695d0d681e69382b958fc91502ecd0"
+        "signature_topic": "0xfaadc011c05216b2df7758319be5cfca55c59fc47f48e8291acf9766aeedc608"
       },
       {
         "args": [
           {
-            "docs": [],
+            "docs": [
+              "Market id (0 = TAO, 1 = TUSDT)."
+            ],
             "indexed": true,
-            "label": "old_controller",
+            "label": "market",
             "type": {
               "displayName": [
-                "AccountId"
+                "u8"
               ],
-              "type": 0
+              "type": 2
             }
           },
           {
-            "docs": [],
-            "indexed": true,
-            "label": "new_controller",
+            "docs": [
+              "Hours elapsed since the last accrual."
+            ],
+            "indexed": false,
+            "label": "dt_hours",
             "type": {
               "displayName": [
-                "AccountId"
+                "u64"
               ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the controller (vault) address is updated by governance."
-        ],
-        "label": "OracleControllerUpdated",
-        "module_path": "tusdt_oracle::oracle",
-        "signature_topic": "0x55d38df882b90edfd62fbebb6af44c6f3dd73129e23e9d1b6e6907d845646c29"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "previous_governance",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
+              "type": 4
             }
           },
           {
-            "docs": [],
-            "indexed": true,
-            "label": "new_governance",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when oracle governance is transferred to a new account."
-        ],
-        "label": "OracleGovernanceUpdated",
-        "module_path": "tusdt_oracle::oracle",
-        "signature_topic": "0x8076edb2c7ad187c70699e83a771437602b58b5145ad1c777bb879abe3f990c8"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
+            "docs": [
+              "Utilization ratio (1e18)."
+            ],
             "indexed": false,
-            "label": "max_price_deviation",
-            "type": {
-              "displayName": [
-                "Ratio"
-              ],
-              "type": 8
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the maximum allowed price deviation is changed."
-        ],
-        "label": "MaxPriceDeviationUpdated",
-        "module_path": "tusdt_oracle::oracle",
-        "signature_topic": "0xdf92cfe8304a7dfe48998ca021158b2d606b3dd9d86bab86d14c4c2b0d2a2259"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "min_submitter_stake",
+            "label": "utilization",
             "type": {
               "displayName": [
                 "u128"
               ],
               "type": 5
             }
+          },
+          {
+            "docs": [
+              "Annual borrow rate (1e18)."
+            ],
+            "indexed": false,
+            "label": "borrow_rate",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [
+              "Annual supply rate (1e18)."
+            ],
+            "indexed": false,
+            "label": "supply_rate",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [
+              "Reserve accrued this period (9-decimal units)."
+            ],
+            "indexed": false,
+            "label": "reserve_delta",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
           }
         ],
         "docs": [
-          "Emitted when the minimum required submitter stake is changed."
+          "Emitted after interest is accrued on a supply/borrow market."
         ],
-        "label": "MinSubmitterStakeUpdated",
-        "module_path": "tusdt_oracle::oracle",
-        "signature_topic": "0x862f9b8f733953c288061b3a21bb6955a625374e5f24afe32da33fd31a38aa7f"
+        "label": "MarketAccrued",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x4408d540b331ea678c6707d409ae90af5a3931bccfd0c3e16eecaf256befd75d"
       },
       {
         "args": [
           {
-            "docs": [],
+            "docs": [
+              "Market id (0 = TAO, 1 = TUSDT)."
+            ],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [
+              "Timestamp (ms) after which the update can execute."
+            ],
             "indexed": false,
+            "label": "execute_after",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when an interest-rate params update is scheduled for a market."
+        ],
+        "label": "MarketParamsUpdateScheduled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xc77d1260303597bd048815ecb64423776f649a3ccf12a923a9c34634db1849df"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Market id (0 = TAO, 1 = TUSDT)."
+            ],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a scheduled market params update is executed."
+        ],
+        "label": "MarketParamsUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x589d066c7363c63d6d84abefe005ebd902764c159e83a2fe09e1d0a4a218ea4c"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Market id (0 = TAO, 1 = TUSDT)."
+            ],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a scheduled market params update is cancelled."
+        ],
+        "label": "MarketParamsUpdateCancelled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xd4fc8e97e2835b40ff889805e3665ab4176e4ebd71ad8ebbeae4499792ebe5a8"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Subnet id."
+            ],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          },
+          {
+            "docs": [
+              "Timestamp (ms) after which the update can execute."
+            ],
+            "indexed": false,
+            "label": "execute_after",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when an alpha market params update is scheduled for a netuid."
+        ],
+        "label": "AlphaParamsUpdateScheduled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xc9e850ed568e5ed59d6f29a82afc0ec0cde5f6fe1a30751c2dbe288f0d13c239"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Subnet id."
+            ],
+            "indexed": true,
             "label": "netuid",
             "type": {
               "displayName": [
@@ -1481,11 +1086,489 @@
           }
         ],
         "docs": [
-          "Emitted when the governing subnet netuid is updated."
+          "Emitted when a scheduled alpha params update is executed."
         ],
-        "label": "NetuidUpdated",
-        "module_path": "tusdt_oracle::oracle",
-        "signature_topic": "0xb62491ff2dec7341b9b30f90adc6a7fcd382e6284c444b7f9622622efbd4aad7"
+        "label": "AlphaParamsUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x6c11a8b3e424961845b6e6faa262d2233174f351643aab3404237a39aa3c14f2"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Subnet id."
+            ],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a scheduled alpha params update is cancelled."
+        ],
+        "label": "AlphaParamsUpdateCancelled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x9bca74a7cb2287aa2c42792c3198b38c463030a1664b7deefc2ed126d96ce753"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Timestamp (ms) after which the update can execute."
+            ],
+            "indexed": false,
+            "label": "execute_after",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a global params update is scheduled."
+        ],
+        "label": "GlobalParamsUpdateScheduled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xdf475581dad5c4cbc47334803a30f6b0cdf2b1d425c2ac20c6ee4eee891b0980"
+      },
+      {
+        "args": [],
+        "docs": [
+          "Emitted when a scheduled global params update is executed."
+        ],
+        "label": "GlobalParamsUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x53ff499b7903e9014abbae06fabe1de32e3ae6b546010672470dec79b3a5b347"
+      },
+      {
+        "args": [],
+        "docs": [
+          "Emitted when a scheduled global params update is cancelled."
+        ],
+        "label": "GlobalParamsUpdateCancelled",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x3202e87bd4f46591dfeb78b1c78f4f22faae7f2d9cc8ef4e5d2692264043d426"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Subnet id."
+            ],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          },
+          {
+            "docs": [
+              "Whether the netuid was approved (true) or removed (false)."
+            ],
+            "indexed": false,
+            "label": "approved",
+            "type": {
+              "displayName": [
+                "bool"
+              ],
+              "type": 3
+            }
+          },
+          {
+            "docs": [
+              "Alpha market id assigned when approved; None when removed."
+            ],
+            "indexed": false,
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "Option"
+              ],
+              "type": 119
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a subnet is approved or removed as an alpha market."
+        ],
+        "label": "NetuidApproved",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x12963c53cceef935121e6b48e91981778ae3dee569e51a62fbfd3a68518a27d4"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Market id (0 = TAO, 1 = TUSDT)."
+            ],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [
+              "Previous lToken address."
+            ],
+            "indexed": false,
+            "label": "old_ltoken",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "New lToken address."
+            ],
+            "indexed": false,
+            "label": "new_ltoken",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a market's lToken contract address is updated."
+        ],
+        "label": "LTokenAddressUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x64095aa2b22793236d5fd9f2934153dab41a7b1cecd55c1c26f3747df5cf93a2"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Previous governance account."
+            ],
+            "indexed": false,
+            "label": "previous",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "New governance account."
+            ],
+            "indexed": false,
+            "label": "new",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the governance role is transferred."
+        ],
+        "label": "PoolGovernanceUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x959f919be7d41d9f2ef1bae199585baa2bbecb515e60b088562aeb24679c1f3f"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Previous treasury account."
+            ],
+            "indexed": false,
+            "label": "previous",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "New treasury account."
+            ],
+            "indexed": false,
+            "label": "new",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the treasury account is updated."
+        ],
+        "label": "PoolTreasuryUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x17b853c8aa30347f1bd906dd8c0311e8965e6ef93430bbdc376c5f68c5ef015f"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Previous platform account."
+            ],
+            "indexed": false,
+            "label": "previous",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "New platform account."
+            ],
+            "indexed": false,
+            "label": "new",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the platform account is updated."
+        ],
+        "label": "PoolPlatformUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x568223596c72c1f6d2a35ab0a7c2b86e8ef7597b770306487deeb8294bdb7d59"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Previous staking hotkey."
+            ],
+            "indexed": true,
+            "label": "old_hotkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "New staking hotkey."
+            ],
+            "indexed": true,
+            "label": "new_hotkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the pool's staking hotkey is migrated."
+        ],
+        "label": "PoolHotkeyChanged",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xe34339f8e15901da07a53ad3fa956ac94884866fc9ada507a26b91412f114444"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Previous oracle address."
+            ],
+            "indexed": false,
+            "label": "previous",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "New oracle address."
+            ],
+            "indexed": false,
+            "label": "new",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the oracle contract address is updated."
+        ],
+        "label": "PoolOracleAddressUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x89fe6af35bd9138ec4852411e75f304fc647db79a4c43510c6e97b2878c7c185"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Previous TUSDT address."
+            ],
+            "indexed": false,
+            "label": "previous",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "New TUSDT address."
+            ],
+            "indexed": false,
+            "label": "new",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the TUSDT token contract address is updated."
+        ],
+        "label": "TusdtAddressUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x963c9f4f7e7eccfc87af511d757d31de7980a3d12f001f5ff37a605c3d40aa58"
+      },
+      {
+        "args": [],
+        "docs": [
+          "Emitted when the pool is paused (emergency pause)."
+        ],
+        "label": "PoolPaused",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xd358456bb8bd5a6c40aece602d73868c625a3c0ec751e0b1060fa0570d66931d"
+      },
+      {
+        "args": [],
+        "docs": [
+          "Emitted when the pool is unpaused."
+        ],
+        "label": "PoolUnpaused",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x4924837407f0e4fb9a0facb764214ec45ebbb874dc9825d91c336083a1f42e64"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Treasury account that received the sweep."
+            ],
+            "indexed": false,
+            "label": "recipient",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "TUSDT amount swept (9-decimal units)."
+            ],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when surplus TUSDT is swept from the pool to the treasury."
+        ],
+        "label": "PoolSurplusTusdtClaimed",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x62d369bf818f983cf2243a924bd78345807b971ca7846c2a035183a3d7357082"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Native TAO amount transferred (9-decimal units)."
+            ],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the pool's native TAO balance is swept to the treasury."
+        ],
+        "label": "PoolNativeTransferredToTreasury",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x82243fa92c1903f2158da7c2355fefada1b3c0959aa94b01525600f5d09a07f6"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "New maintainer account."
+            ],
+            "indexed": true,
+            "label": "new_maintainer",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the maintainer role is updated."
+        ],
+        "label": "PoolMaintainerUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xfd6c7713a08885eb5c83103722d8e93576df52403d60a4013eb411addef14fce"
       },
       {
         "args": [
@@ -1530,7 +1613,7 @@
               "displayName": [
                 "PriceSubmissionMetadata"
               ],
-              "type": 114
+              "type": 120
             }
           },
           {
@@ -1622,12 +1705,44 @@
           {
             "docs": [],
             "indexed": true,
+            "label": "previous_governance",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_governance",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when oracle governance is transferred to a new account."
+        ],
+        "label": "OracleGovernanceUpdated",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0x8076edb2c7ad187c70699e83a771437602b58b5145ad1c777bb879abe3f990c8"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
             "label": "validator",
             "type": {
               "displayName": [
                 "Option"
               ],
-              "type": 107
+              "type": 113
             }
           }
         ],
@@ -1637,6 +1752,101 @@
         "label": "ValidatorUpdated",
         "module_path": "tusdt_oracle::oracle",
         "signature_topic": "0x9b9e984a30cbf16f16b8bb47b35802825876301f2562ae285a379d3e2b0cef05"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "max_price_deviation",
+            "type": {
+              "displayName": [
+                "Ratio"
+              ],
+              "type": 8
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the maximum allowed price deviation is changed."
+        ],
+        "label": "MaxPriceDeviationUpdated",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0xdf92cfe8304a7dfe48998ca021158b2d606b3dd9d86bab86d14c4c2b0d2a2259"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 23
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the governing subnet netuid is updated."
+        ],
+        "label": "NetuidUpdated",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0xb62491ff2dec7341b9b30f90adc6a7fcd382e6284c444b7f9622622efbd4aad7"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "min_submitter_stake",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the minimum required submitter stake is changed."
+        ],
+        "label": "MinSubmitterStakeUpdated",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0x862f9b8f733953c288061b3a21bb6955a625374e5f24afe32da33fd31a38aa7f"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "old_controller",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_controller",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the controller (vault) address is updated by governance."
+        ],
+        "label": "OracleControllerUpdated",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0x55d38df882b90edfd62fbebb6af44c6f3dd73129e23e9d1b6e6907d845646c29"
       }
     ],
     "lang_error": {
@@ -1644,7 +1854,7 @@
         "ink",
         "LangError"
       ],
-      "type": 74
+      "type": 77
     },
     "messages": [
       {
@@ -1672,7 +1882,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0x0515fac7"
       },
@@ -1701,7 +1911,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0x480ea41f"
       },
@@ -1729,7 +1939,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0x2158083f"
       },
@@ -1757,7 +1967,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0x4bc10c7f"
       },
@@ -1785,7 +1995,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0x0adb5295"
       },
@@ -1813,7 +2023,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0xf9111622"
       },
@@ -1841,7 +2051,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0xa1fa9168"
       },
@@ -1869,7 +2079,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0xb1a2684b"
       },
@@ -1907,7 +2117,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 78
+          "type": 81
         },
         "selector": "0x7bfb2b17"
       },
@@ -1953,7 +2163,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0xd6108f6e"
       },
@@ -2009,7 +2219,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0x4e3c6966"
       },
@@ -2039,7 +2249,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0xa3454707"
       },
@@ -2068,7 +2278,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0x584c0dc7"
       },
@@ -2105,7 +2315,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0x16af1e00"
       },
@@ -2142,7 +2352,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0x8286b23d"
       },
@@ -2170,7 +2380,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0x891a2e88"
       },
@@ -2198,7 +2408,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0xbd3fdc88"
       },
@@ -2224,7 +2434,12 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Schedules an interest-rate params update for a market (0 = TAO,",
+          " 1 = TUSDT), executable after the timelock. Maintainer only. Errors:",
+          " `Error::NotMaintainer`, `Error::MarketNotFound`, `Error::InvalidParam`,",
+          " `Error::InvalidRatio`, `Error::ArithmeticError`."
+        ],
         "label": "set_market_params",
         "mutates": true,
         "payable": false,
@@ -2233,7 +2448,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0x59499fd5"
       },
@@ -2250,7 +2465,12 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Executes a scheduled market params update. Permissionless, but blocked",
+          " until the timelock expires. Errors:",
+          " `Error::NoPendingMarketParamsUpdate`, `Error::ParamsUpdateTimelockActive`,",
+          " `Error::InvalidParam`, `Error::InvalidRatio`."
+        ],
         "label": "execute_market_params_update",
         "mutates": true,
         "payable": false,
@@ -2259,7 +2479,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0x6ace992a"
       },
@@ -2276,7 +2496,10 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Cancels a scheduled market params update. Maintainer only. Errors:",
+          " `Error::NotMaintainer`, `Error::NoPendingMarketParamsUpdate`."
+        ],
         "label": "cancel_market_params_update",
         "mutates": true,
         "payable": false,
@@ -2285,7 +2508,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0xc57d958e"
       },
@@ -2297,12 +2520,16 @@
               "displayName": [
                 "PoolGlobalParamsConfig"
               ],
-              "type": 71
+              "type": 74
             }
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Schedules a global params update, executable after the timelock.",
+          " Maintainer only. Errors: `Error::NotMaintainer`, `Error::InvalidParam`,",
+          " `Error::InvalidRatio`, `Error::ArithmeticError`."
+        ],
         "label": "set_global_params",
         "mutates": true,
         "payable": false,
@@ -2311,14 +2538,19 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0x0f0976e0"
       },
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Executes a scheduled global params update. Permissionless, but blocked",
+          " until the timelock expires. Errors:",
+          " `Error::NoPendingGlobalParamsUpdate`, `Error::ParamsUpdateTimelockActive`,",
+          " `Error::InvalidParam`, `Error::InvalidRatio`."
+        ],
         "label": "execute_global_params_update",
         "mutates": true,
         "payable": false,
@@ -2327,14 +2559,17 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0x5c7c2987"
       },
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Cancels a scheduled global params update. Maintainer only. Errors:",
+          " `Error::NotMaintainer`, `Error::NoPendingGlobalParamsUpdate`."
+        ],
         "label": "cancel_global_params_update",
         "mutates": true,
         "payable": false,
@@ -2343,7 +2578,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0x238a6656"
       },
@@ -2360,7 +2595,10 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Transfers the governance role. Governance only. Errors:",
+          " `Error::NotGovernance`."
+        ],
         "label": "update_governance",
         "mutates": true,
         "payable": false,
@@ -2369,7 +2607,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0xc33c8b6a"
       },
@@ -2386,7 +2624,10 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Sets the maintainer role. Governance only. Errors:",
+          " `Error::NotGovernance`."
+        ],
         "label": "update_maintainer",
         "mutates": true,
         "payable": false,
@@ -2395,14 +2636,16 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0xd3412c0f"
       },
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the current maintainer account."
+        ],
         "label": "maintainer",
         "mutates": false,
         "payable": false,
@@ -2411,7 +2654,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 80
+          "type": 83
         },
         "selector": "0xd1cba863"
       },
@@ -2428,7 +2671,10 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Sets the treasury account. Governance only. Errors:",
+          " `Error::NotGovernance`."
+        ],
         "label": "update_treasury",
         "mutates": true,
         "payable": false,
@@ -2437,7 +2683,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0xef6ee141"
       },
@@ -2454,7 +2700,10 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Sets the platform account. Maintainer only. Errors:",
+          " `Error::NotMaintainer`."
+        ],
         "label": "update_platform",
         "mutates": true,
         "payable": false,
@@ -2463,7 +2712,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0xa59697ab"
       },
@@ -2480,7 +2729,10 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Points the pool at a new oracle contract. Maintainer only. Errors:",
+          " `Error::NotMaintainer`."
+        ],
         "label": "update_oracle_address",
         "mutates": true,
         "payable": false,
@@ -2489,7 +2741,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0x90a92fb5"
       },
@@ -2515,7 +2767,10 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Replaces the lToken contract address for a market. Maintainer only.",
+          " Errors: `Error::NotMaintainer`, `Error::MarketNotFound`."
+        ],
         "label": "update_ltoken_address",
         "mutates": true,
         "payable": false,
@@ -2524,7 +2779,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0x94073a3f"
       },
@@ -2545,7 +2800,7 @@
               "displayName": [
                 "Vec"
               ],
-              "type": 81
+              "type": 84
             }
           }
         ],
@@ -2561,14 +2816,18 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0x4b6f69a2"
       },
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Pauses the pool, blocking supply/withdraw/borrow/repay/deposit",
+          " operations. Governance or platform only. Errors:",
+          " `Error::NotGovernanceOrPlatform`."
+        ],
         "label": "pause",
         "mutates": true,
         "payable": false,
@@ -2577,14 +2836,16 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0x81e0c604"
       },
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Unpauses the pool. Maintainer only. Errors: `Error::NotMaintainer`."
+        ],
         "label": "unpause",
         "mutates": true,
         "payable": false,
@@ -2593,7 +2854,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0x67616649"
       },
@@ -2610,7 +2871,11 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Transfers `amount` of surplus TUSDT from the pool to the treasury.",
+          " Maintainer only. Errors: `Error::NotMaintainer`,",
+          " `Error::TokenContractCallFailed`."
+        ],
         "label": "claim_surplus_tusdt",
         "mutates": true,
         "payable": false,
@@ -2619,14 +2884,18 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0x3b645db8"
       },
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Sweeps the pool's native TAO balance (minus the 1 existential deposit",
+          " guard) to the treasury. Maintainer only. Errors:",
+          " `Error::NotMaintainer`, `Error::TransferFailed`."
+        ],
         "label": "transfer_native_to_treasury",
         "mutates": true,
         "payable": false,
@@ -2635,7 +2904,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 75
+          "type": 78
         },
         "selector": "0x9f08997a"
       },
@@ -2652,7 +2921,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the runtime state of a market, or `None` if it does not exist."
+        ],
         "label": "get_market_state",
         "mutates": false,
         "payable": false,
@@ -2661,7 +2932,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 82
+          "type": 85
         },
         "selector": "0xc34cbbfc"
       },
@@ -2687,7 +2958,10 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the position of a user in a market, or `None` if it does not",
+          " exist."
+        ],
         "label": "get_position",
         "mutates": false,
         "payable": false,
@@ -2696,7 +2970,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 84
+          "type": 87
         },
         "selector": "0x941d9844"
       },
@@ -2713,7 +2987,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the lToken exchange rate (1e18) for a market, or `None`."
+        ],
         "label": "get_exchange_rate",
         "mutates": false,
         "payable": false,
@@ -2722,7 +2998,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 86
+          "type": 89
         },
         "selector": "0x1fa71131"
       },
@@ -2739,7 +3015,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the borrow index (1e18) for a market, or `None`."
+        ],
         "label": "get_borrow_index",
         "mutates": false,
         "payable": false,
@@ -2748,7 +3026,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 86
+          "type": 89
         },
         "selector": "0xf552dc5b"
       },
@@ -2765,7 +3043,10 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the market utilization as `total_debt / (total_debt + cash)`",
+          " (1e18 ratio), or `None`."
+        ],
         "label": "get_utilization",
         "mutates": false,
         "payable": false,
@@ -2774,7 +3055,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 86
+          "type": 89
         },
         "selector": "0x858f986c"
       },
@@ -2791,7 +3072,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the current annual borrow rate (1e18) for a market, or `None`."
+        ],
         "label": "get_borrow_rate",
         "mutates": false,
         "payable": false,
@@ -2800,7 +3083,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 86
+          "type": 89
         },
         "selector": "0xffc4f680"
       },
@@ -2817,7 +3100,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the current annual supply rate (1e18) for a market, or `None`."
+        ],
         "label": "get_supply_rate",
         "mutates": false,
         "payable": false,
@@ -2826,7 +3111,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 86
+          "type": 89
         },
         "selector": "0x1988d6be"
       },
@@ -2852,7 +3137,10 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the underlying amount a user's lToken balance is worth in a",
+          " market, or `None`."
+        ],
         "label": "get_underlying_balance",
         "mutates": false,
         "payable": false,
@@ -2861,7 +3149,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 88
+          "type": 91
         },
         "selector": "0xc4a89c1d"
       },
@@ -2887,7 +3175,10 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns a user's current debt in a market in underlying units",
+          " (including accrued interest), or `None`."
+        ],
         "label": "get_user_debt",
         "mutates": false,
         "payable": false,
@@ -2896,14 +3187,59 @@
             "ink",
             "MessageResult"
           ],
-          "type": 88
+          "type": 91
         },
         "selector": "0x75715311"
       },
       {
+        "args": [
+          {
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Returns a user's debt breakdown in a market as `(debt, principal)`",
+          " in underlying units. `debt` includes accrued interest; `principal`",
+          " is the borrow principal not yet repaid. Interest owed = debt −",
+          " principal. Positions created before principal tracking existed",
+          " fall back to treating `scaled_debt` as principal (exact when",
+          " borrowed at borrow_index = 1.0, otherwise a slight under-estimate",
+          " of principal / over-estimate of interest)."
+        ],
+        "label": "get_user_debt_details",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 93
+        },
+        "selector": "0x8771d4dc"
+      },
+      {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns all approved alpha markets as `(netuid, params)` pairs."
+        ],
         "label": "get_alpha_markets",
         "mutates": false,
         "payable": false,
@@ -2912,7 +3248,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 90
+          "type": 96
         },
         "selector": "0x7f442e12"
       },
@@ -2938,7 +3274,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns a user's alpha principal collateral for a netuid, or `None`."
+        ],
         "label": "get_user_alpha_position",
         "mutates": false,
         "payable": false,
@@ -2947,7 +3285,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 88
+          "type": 91
         },
         "selector": "0x00baec12"
       },
@@ -2964,7 +3302,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the per-netuid yield index (1e18), or `None`."
+        ],
         "label": "get_alpha_yield_index",
         "mutates": false,
         "payable": false,
@@ -2973,7 +3313,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 86
+          "type": 89
         },
         "selector": "0x0dd24140"
       },
@@ -2990,7 +3330,10 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the total alpha principal collateral booked for a netuid, or",
+          " `None`."
+        ],
         "label": "get_netuid_total_collateral",
         "mutates": false,
         "payable": false,
@@ -2999,7 +3342,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 88
+          "type": 91
         },
         "selector": "0x4a70f9b9"
       },
@@ -3016,7 +3359,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns `true` if the netuid is an approved alpha market."
+        ],
         "label": "is_approved_netuid",
         "mutates": false,
         "payable": false,
@@ -3025,14 +3370,16 @@
             "ink",
             "MessageResult"
           ],
-          "type": 93
+          "type": 99
         },
         "selector": "0x43efc996"
       },
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the number of approved alpha markets (market ids >= 2)."
+        ],
         "label": "get_active_netuids_count",
         "mutates": false,
         "payable": false,
@@ -3041,7 +3388,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 94
+          "type": 100
         },
         "selector": "0xc8ff3f8c"
       },
@@ -3067,7 +3414,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns up to `PAGE_SIZE` positions of a user on the given page."
+        ],
         "label": "get_positions",
         "mutates": false,
         "payable": false,
@@ -3076,7 +3425,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 95
+          "type": 101
         },
         "selector": "0x55b8003e"
       },
@@ -3093,7 +3442,10 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns up to `PAGE_SIZE` positions across all users on the given",
+          " page."
+        ],
         "label": "get_all_positions",
         "mutates": false,
         "payable": false,
@@ -3102,7 +3454,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 98
+          "type": 104
         },
         "selector": "0x44c07acf"
       },
@@ -3119,7 +3471,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the pending alpha params update for a netuid, or `None`."
+        ],
         "label": "get_pending_alpha_params_update",
         "mutates": false,
         "payable": false,
@@ -3128,7 +3482,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 101
+          "type": 107
         },
         "selector": "0x76ba5a01"
       },
@@ -3145,7 +3499,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the pending market params update for a market, or `None`."
+        ],
         "label": "get_pending_market_params_update",
         "mutates": false,
         "payable": false,
@@ -3154,14 +3510,16 @@
             "ink",
             "MessageResult"
           ],
-          "type": 103
+          "type": 109
         },
         "selector": "0x3f13c376"
       },
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the pending global params update, or `None`."
+        ],
         "label": "get_pending_global_params_update",
         "mutates": false,
         "payable": false,
@@ -3170,14 +3528,16 @@
             "ink",
             "MessageResult"
           ],
-          "type": 105
+          "type": 111
         },
         "selector": "0x9259f07d"
       },
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the governance account."
+        ],
         "label": "governance",
         "mutates": false,
         "payable": false,
@@ -3186,14 +3546,16 @@
             "ink",
             "MessageResult"
           ],
-          "type": 80
+          "type": 83
         },
         "selector": "0x9f90cf17"
       },
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the treasury account."
+        ],
         "label": "treasury",
         "mutates": false,
         "payable": false,
@@ -3202,14 +3564,16 @@
             "ink",
             "MessageResult"
           ],
-          "type": 80
+          "type": 83
         },
         "selector": "0xa9b78461"
       },
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the platform account."
+        ],
         "label": "platform",
         "mutates": false,
         "payable": false,
@@ -3218,14 +3582,16 @@
             "ink",
             "MessageResult"
           ],
-          "type": 80
+          "type": 83
         },
         "selector": "0x2b86e96a"
       },
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns whether the pool is currently paused."
+        ],
         "label": "paused",
         "mutates": false,
         "payable": false,
@@ -3234,14 +3600,16 @@
             "ink",
             "MessageResult"
           ],
-          "type": 93
+          "type": 99
         },
         "selector": "0xd8fea916"
       },
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the oracle contract address."
+        ],
         "label": "get_oracle_address",
         "mutates": false,
         "payable": false,
@@ -3250,14 +3618,16 @@
             "ink",
             "MessageResult"
           ],
-          "type": 80
+          "type": 83
         },
         "selector": "0xdc4c0ffe"
       },
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the TUSDT token contract address."
+        ],
         "label": "get_tusdt_address",
         "mutates": false,
         "payable": false,
@@ -3266,7 +3636,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 80
+          "type": 83
         },
         "selector": "0x0edac3bf"
       },
@@ -3283,7 +3653,9 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the lToken contract address for a market, or `None`."
+        ],
         "label": "get_ltoken_address",
         "mutates": false,
         "payable": false,
@@ -3292,14 +3664,16 @@
             "ink",
             "MessageResult"
           ],
-          "type": 106
+          "type": 112
         },
         "selector": "0x59c8f9ea"
       },
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the pool's staking hotkey."
+        ],
         "label": "get_pool_hotkey",
         "mutates": false,
         "payable": false,
@@ -3308,14 +3682,17 @@
             "ink",
             "MessageResult"
           ],
-          "type": 80
+          "type": 83
         },
         "selector": "0x0801118d"
       },
       {
         "args": [],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the current global params as an external config (ratios in",
+          " basis points)."
+        ],
         "label": "get_global_params",
         "mutates": false,
         "payable": false,
@@ -3324,7 +3701,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 108
+          "type": 114
         },
         "selector": "0xc65d30fc"
       },
@@ -3341,7 +3718,10 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the current interest-rate params of a market as an external",
+          " config (basis points), or `None`."
+        ],
         "label": "get_market_params",
         "mutates": false,
         "payable": false,
@@ -3350,7 +3730,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 109
+          "type": 115
         },
         "selector": "0x6a278c15"
       },
@@ -3367,7 +3747,10 @@
           }
         ],
         "default": false,
-        "docs": [],
+        "docs": [
+          " Returns the current alpha market params of a netuid as an external",
+          " config (basis points), or `None`."
+        ],
         "label": "get_alpha_params",
         "mutates": false,
         "payable": false,
@@ -3376,7 +3759,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 111
+          "type": 117
         },
         "selector": "0x914e8470"
       }
@@ -4332,13 +4715,28 @@
                 }
               },
               "name": "position_keys"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "leaf": {
+                      "key": "0x976cdcba",
+                      "ty": 4
+                    }
+                  },
+                  "root_key": "0x976cdcba",
+                  "ty": 63
+                }
+              },
+              "name": "debt_principal"
             }
           ],
           "name": "TusdtLendingPool"
         }
       },
       "root_key": "0x00000000",
-      "ty": 63
+      "ty": 66
     }
   },
   "types": [
@@ -4982,6 +5380,7 @@
         "path": [
           "tusdt_lending_pool",
           "lending_pool",
+          "params",
           "InterestRateParams"
         ]
       }
@@ -5088,6 +5487,7 @@
         "path": [
           "tusdt_lending_pool",
           "lending_pool",
+          "params",
           "AlphaMarketParams"
         ]
       }
@@ -5184,6 +5584,7 @@
         "path": [
           "tusdt_lending_pool",
           "lending_pool",
+          "params",
           "PendingInterestParamsUpdate"
         ]
       }
@@ -5225,6 +5626,7 @@
         "path": [
           "tusdt_lending_pool",
           "lending_pool",
+          "params",
           "InterestRateParamsConfig"
         ]
       }
@@ -5321,6 +5723,7 @@
         "path": [
           "tusdt_lending_pool",
           "lending_pool",
+          "params",
           "PendingAlphaParamsUpdate"
         ]
       }
@@ -5357,6 +5760,7 @@
         "path": [
           "tusdt_lending_pool",
           "lending_pool",
+          "params",
           "AlphaMarketParamsConfig"
         ]
       }
@@ -5789,6 +6193,76 @@
       "id": 63,
       "type": {
         "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "K",
+            "type": 54
+          },
+          {
+            "name": "V",
+            "type": 4
+          },
+          {
+            "name": "KeyType",
+            "type": 64
+          }
+        ],
+        "path": [
+          "ink_storage",
+          "lazy",
+          "mapping",
+          "Mapping"
+        ]
+      }
+    },
+    {
+      "id": 64,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "L",
+            "type": 10
+          },
+          {
+            "name": "R",
+            "type": 65
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ResolverKey"
+        ]
+      }
+    },
+    {
+      "id": 65,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "ParentKey",
+            "type": 12
+          }
+        ],
+        "path": [
+          "ink_storage_traits",
+          "impls",
+          "ManualKey"
+        ]
+      }
+    },
+    {
+      "id": 66,
+      "type": {
+        "def": {
           "composite": {
             "fields": [
               {
@@ -5823,12 +6297,12 @@
               },
               {
                 "name": "oracle",
-                "type": 64,
+                "type": 67,
                 "typeName": "<TusdtOracleRef as::ink::storage::traits::AutoStorableHint<::ink\n::storage::traits::ManualKey<1545505214u32, ()>,>>::Type"
               },
               {
                 "name": "tusdt",
-                "type": 66,
+                "type": 69,
                 "typeName": "<TusdtErc20Ref as::ink::storage::traits::AutoStorableHint<::ink::\nstorage::traits::ManualKey<2228760745u32, ()>,>>::Type"
               },
               {
@@ -5888,12 +6362,12 @@
               },
               {
                 "name": "global_params",
-                "type": 68,
+                "type": 71,
                 "typeName": "<PoolGlobalParams as::ink::storage::traits::AutoStorableHint<::ink\n::storage::traits::ManualKey<635838979u32, ()>,>>::Type"
               },
               {
                 "name": "pending_global_params",
-                "type": 69,
+                "type": 72,
                 "typeName": "<Option<PendingGlobalParamsUpdate> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<175000758u32, ()\n>,>>::Type"
               },
               {
@@ -5915,6 +6389,11 @@
                 "name": "position_keys",
                 "type": 58,
                 "typeName": "<StorageVec<(u8, AccountId)> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<1013433923u32,\n()>,>>::Type"
+              },
+              {
+                "name": "debt_principal",
+                "type": 63,
+                "typeName": "<Mapping<(u8, AccountId), Balance> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<3135007895u32,\n()>,>>::Type"
               }
             ]
           }
@@ -5927,14 +6406,14 @@
       }
     },
     {
-      "id": 64,
+      "id": 67,
       "type": {
         "def": {
           "composite": {
             "fields": [
               {
                 "name": "inner",
-                "type": 65,
+                "type": 68,
                 "typeName": "<TusdtOracle as::ink::codegen::ContractCallBuilder>::Type"
               }
             ]
@@ -5948,7 +6427,7 @@
       }
     },
     {
-      "id": 65,
+      "id": 68,
       "type": {
         "def": {
           "composite": {
@@ -5969,14 +6448,14 @@
       }
     },
     {
-      "id": 66,
+      "id": 69,
       "type": {
         "def": {
           "composite": {
             "fields": [
               {
                 "name": "inner",
-                "type": 67,
+                "type": 70,
                 "typeName": "<TusdtErc20 as::ink::codegen::ContractCallBuilder>::Type"
               }
             ]
@@ -5990,7 +6469,7 @@
       }
     },
     {
-      "id": 67,
+      "id": 70,
       "type": {
         "def": {
           "composite": {
@@ -6007,116 +6486,6 @@
           "tusdt_erc20",
           "tusdt",
           "CallBuilder"
-        ]
-      }
-    },
-    {
-      "id": 68,
-      "type": {
-        "def": {
-          "composite": {
-            "fields": [
-              {
-                "name": "max_oracle_age_ms",
-                "type": 4,
-                "typeName": "u64"
-              },
-              {
-                "name": "close_factor",
-                "type": 8,
-                "typeName": "Ratio"
-              },
-              {
-                "name": "performance_fee",
-                "type": 8,
-                "typeName": "Ratio"
-              },
-              {
-                "name": "supply_cap_tao",
-                "type": 4,
-                "typeName": "Balance"
-              },
-              {
-                "name": "supply_cap_tusdt",
-                "type": 4,
-                "typeName": "Balance"
-              },
-              {
-                "name": "borrow_cap_tao",
-                "type": 4,
-                "typeName": "Balance"
-              },
-              {
-                "name": "borrow_cap_tusdt",
-                "type": 4,
-                "typeName": "Balance"
-              }
-            ]
-          }
-        },
-        "path": [
-          "tusdt_lending_pool",
-          "lending_pool",
-          "PoolGlobalParams"
-        ]
-      }
-    },
-    {
-      "id": 69,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "index": 0,
-                "name": "None"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 70
-                  }
-                ],
-                "index": 1,
-                "name": "Some"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 70
-          }
-        ],
-        "path": [
-          "Option"
-        ]
-      }
-    },
-    {
-      "id": 70,
-      "type": {
-        "def": {
-          "composite": {
-            "fields": [
-              {
-                "name": "params",
-                "type": 71,
-                "typeName": "PoolGlobalParamsConfig"
-              },
-              {
-                "name": "execute_after",
-                "type": 4,
-                "typeName": "u64"
-              }
-            ]
-          }
-        },
-        "path": [
-          "tusdt_lending_pool",
-          "lending_pool",
-          "PendingGlobalParamsUpdate"
         ]
       }
     },
@@ -6133,6 +6502,118 @@
               },
               {
                 "name": "close_factor",
+                "type": 8,
+                "typeName": "Ratio"
+              },
+              {
+                "name": "performance_fee",
+                "type": 8,
+                "typeName": "Ratio"
+              },
+              {
+                "name": "supply_cap_tao",
+                "type": 4,
+                "typeName": "Balance"
+              },
+              {
+                "name": "supply_cap_tusdt",
+                "type": 4,
+                "typeName": "Balance"
+              },
+              {
+                "name": "borrow_cap_tao",
+                "type": 4,
+                "typeName": "Balance"
+              },
+              {
+                "name": "borrow_cap_tusdt",
+                "type": 4,
+                "typeName": "Balance"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_lending_pool",
+          "lending_pool",
+          "params",
+          "PoolGlobalParams"
+        ]
+      }
+    },
+    {
+      "id": 72,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 73
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 73
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 73,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "params",
+                "type": 74,
+                "typeName": "PoolGlobalParamsConfig"
+              },
+              {
+                "name": "execute_after",
+                "type": 4,
+                "typeName": "u64"
+              }
+            ]
+          }
+        },
+        "path": [
+          "tusdt_lending_pool",
+          "lending_pool",
+          "params",
+          "PendingGlobalParamsUpdate"
+        ]
+      }
+    },
+    {
+      "id": 74,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "max_oracle_age_ms",
+                "type": 4,
+                "typeName": "u64"
+              },
+              {
+                "name": "close_factor",
                 "type": 17,
                 "typeName": "u32"
               },
@@ -6167,12 +6648,13 @@
         "path": [
           "tusdt_lending_pool",
           "lending_pool",
+          "params",
           "PoolGlobalParamsConfig"
         ]
       }
     },
     {
-      "id": 72,
+      "id": 75,
       "type": {
         "def": {
           "composite": {
@@ -6188,109 +6670,6 @@
           "ink_primitives",
           "types",
           "Hash"
-        ]
-      }
-    },
-    {
-      "id": 73,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 12
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 74
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 12
-          },
-          {
-            "name": "E",
-            "type": 74
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 74,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "index": 1,
-                "name": "CouldNotReadInput"
-              }
-            ]
-          }
-        },
-        "path": [
-          "ink_primitives",
-          "LangError"
-        ]
-      }
-    },
-    {
-      "id": 75,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 76
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 74
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 76
-          },
-          {
-            "name": "E",
-            "type": 74
-          }
-        ],
-        "path": [
-          "Result"
         ]
       }
     },
@@ -6338,6 +6717,109 @@
     },
     {
       "id": 77,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 1,
+                "name": "CouldNotReadInput"
+              }
+            ]
+          }
+        },
+        "path": [
+          "ink_primitives",
+          "LangError"
+        ]
+      }
+    },
+    {
+      "id": 78,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 79
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 77
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 79
+          },
+          {
+            "name": "E",
+            "type": 77
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 79,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 12
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 80
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 12
+          },
+          {
+            "name": "E",
+            "type": 80
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 80,
       "type": {
         "def": {
           "variant": {
@@ -6525,7 +7007,7 @@
       }
     },
     {
-      "id": 78,
+      "id": 81,
       "type": {
         "def": {
           "variant": {
@@ -6533,49 +7015,7 @@
               {
                 "fields": [
                   {
-                    "type": 79
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 74
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 79
-          },
-          {
-            "name": "E",
-            "type": 74
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 79,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 2
+                    "type": 82
                   }
                 ],
                 "index": 0,
@@ -6596,7 +7036,7 @@
         "params": [
           {
             "name": "T",
-            "type": 2
+            "type": 82
           },
           {
             "name": "E",
@@ -6609,7 +7049,49 @@
       }
     },
     {
-      "id": 80,
+      "id": 82,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 2
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 80
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 2
+          },
+          {
+            "name": "E",
+            "type": 80
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 83,
       "type": {
         "def": {
           "variant": {
@@ -6626,7 +7108,7 @@
               {
                 "fields": [
                   {
-                    "type": 74
+                    "type": 77
                   }
                 ],
                 "index": 1,
@@ -6642,7 +7124,7 @@
           },
           {
             "name": "E",
-            "type": 74
+            "type": 77
           }
         ],
         "path": [
@@ -6651,7 +7133,7 @@
       }
     },
     {
-      "id": 81,
+      "id": 84,
       "type": {
         "def": {
           "sequence": {
@@ -6661,7 +7143,7 @@
       }
     },
     {
-      "id": 82,
+      "id": 85,
       "type": {
         "def": {
           "variant": {
@@ -6669,7 +7151,7 @@
               {
                 "fields": [
                   {
-                    "type": 83
+                    "type": 86
                   }
                 ],
                 "index": 0,
@@ -6678,7 +7160,7 @@
               {
                 "fields": [
                   {
-                    "type": 74
+                    "type": 77
                   }
                 ],
                 "index": 1,
@@ -6690,11 +7172,11 @@
         "params": [
           {
             "name": "T",
-            "type": 83
+            "type": 86
           },
           {
             "name": "E",
-            "type": 74
+            "type": 77
           }
         ],
         "path": [
@@ -6703,7 +7185,7 @@
       }
     },
     {
-      "id": 83,
+      "id": 86,
       "type": {
         "def": {
           "variant": {
@@ -6736,7 +7218,7 @@
       }
     },
     {
-      "id": 84,
+      "id": 87,
       "type": {
         "def": {
           "variant": {
@@ -6744,7 +7226,7 @@
               {
                 "fields": [
                   {
-                    "type": 85
+                    "type": 88
                   }
                 ],
                 "index": 0,
@@ -6753,7 +7235,7 @@
               {
                 "fields": [
                   {
-                    "type": 74
+                    "type": 77
                   }
                 ],
                 "index": 1,
@@ -6765,11 +7247,11 @@
         "params": [
           {
             "name": "T",
-            "type": 85
+            "type": 88
           },
           {
             "name": "E",
-            "type": 74
+            "type": 77
           }
         ],
         "path": [
@@ -6778,7 +7260,7 @@
       }
     },
     {
-      "id": 85,
+      "id": 88,
       "type": {
         "def": {
           "variant": {
@@ -6811,7 +7293,7 @@
       }
     },
     {
-      "id": 86,
+      "id": 89,
       "type": {
         "def": {
           "variant": {
@@ -6819,7 +7301,7 @@
               {
                 "fields": [
                   {
-                    "type": 87
+                    "type": 90
                   }
                 ],
                 "index": 0,
@@ -6828,7 +7310,7 @@
               {
                 "fields": [
                   {
-                    "type": 74
+                    "type": 77
                   }
                 ],
                 "index": 1,
@@ -6840,11 +7322,11 @@
         "params": [
           {
             "name": "T",
-            "type": 87
+            "type": 90
           },
           {
             "name": "E",
-            "type": 74
+            "type": 77
           }
         ],
         "path": [
@@ -6853,7 +7335,7 @@
       }
     },
     {
-      "id": 87,
+      "id": 90,
       "type": {
         "def": {
           "variant": {
@@ -6886,7 +7368,7 @@
       }
     },
     {
-      "id": 88,
+      "id": 91,
       "type": {
         "def": {
           "variant": {
@@ -6894,7 +7376,7 @@
               {
                 "fields": [
                   {
-                    "type": 89
+                    "type": 92
                   }
                 ],
                 "index": 0,
@@ -6903,7 +7385,7 @@
               {
                 "fields": [
                   {
-                    "type": 74
+                    "type": 77
                   }
                 ],
                 "index": 1,
@@ -6915,11 +7397,11 @@
         "params": [
           {
             "name": "T",
-            "type": 89
+            "type": 92
           },
           {
             "name": "E",
-            "type": 74
+            "type": 77
           }
         ],
         "path": [
@@ -6928,7 +7410,7 @@
       }
     },
     {
-      "id": 89,
+      "id": 92,
       "type": {
         "def": {
           "variant": {
@@ -6961,7 +7443,7 @@
       }
     },
     {
-      "id": 90,
+      "id": 93,
       "type": {
         "def": {
           "variant": {
@@ -6969,7 +7451,7 @@
               {
                 "fields": [
                   {
-                    "type": 91
+                    "type": 94
                   }
                 ],
                 "index": 0,
@@ -6978,7 +7460,7 @@
               {
                 "fields": [
                   {
-                    "type": 74
+                    "type": 77
                   }
                 ],
                 "index": 1,
@@ -6990,11 +7472,11 @@
         "params": [
           {
             "name": "T",
-            "type": 91
+            "type": 94
           },
           {
             "name": "E",
-            "type": 74
+            "type": 77
           }
         ],
         "path": [
@@ -7003,17 +7485,103 @@
       }
     },
     {
-      "id": 91,
+      "id": 94,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 95
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 95
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 95,
+      "type": {
+        "def": {
+          "tuple": [
+            4,
+            4
+          ]
+        }
+      }
+    },
+    {
+      "id": 96,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 97
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 77
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 97
+          },
+          {
+            "name": "E",
+            "type": 77
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 97,
       "type": {
         "def": {
           "sequence": {
-            "type": 92
+            "type": 98
           }
         }
       }
     },
     {
-      "id": 92,
+      "id": 98,
       "type": {
         "def": {
           "tuple": [
@@ -7024,7 +7592,7 @@
       }
     },
     {
-      "id": 93,
+      "id": 99,
       "type": {
         "def": {
           "variant": {
@@ -7041,7 +7609,7 @@
               {
                 "fields": [
                   {
-                    "type": 74
+                    "type": 77
                   }
                 ],
                 "index": 1,
@@ -7057,7 +7625,7 @@
           },
           {
             "name": "E",
-            "type": 74
+            "type": 77
           }
         ],
         "path": [
@@ -7066,7 +7634,7 @@
       }
     },
     {
-      "id": 94,
+      "id": 100,
       "type": {
         "def": {
           "variant": {
@@ -7083,7 +7651,7 @@
               {
                 "fields": [
                   {
-                    "type": 74
+                    "type": 77
                   }
                 ],
                 "index": 1,
@@ -7099,138 +7667,12 @@
           },
           {
             "name": "E",
-            "type": 74
+            "type": 77
           }
         ],
         "path": [
           "Result"
         ]
-      }
-    },
-    {
-      "id": 95,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 96
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 74
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 96
-          },
-          {
-            "name": "E",
-            "type": 74
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 96,
-      "type": {
-        "def": {
-          "sequence": {
-            "type": 97
-          }
-        }
-      }
-    },
-    {
-      "id": 97,
-      "type": {
-        "def": {
-          "tuple": [
-            2,
-            55
-          ]
-        }
-      }
-    },
-    {
-      "id": 98,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 99
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 74
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 99
-          },
-          {
-            "name": "E",
-            "type": 74
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 99,
-      "type": {
-        "def": {
-          "sequence": {
-            "type": 100
-          }
-        }
-      }
-    },
-    {
-      "id": 100,
-      "type": {
-        "def": {
-          "tuple": [
-            54,
-            55
-          ]
-        }
       }
     },
     {
@@ -7251,7 +7693,7 @@
               {
                 "fields": [
                   {
-                    "type": 74
+                    "type": 77
                   }
                 ],
                 "index": 1,
@@ -7267,7 +7709,7 @@
           },
           {
             "name": "E",
-            "type": 74
+            "type": 77
           }
         ],
         "path": [
@@ -7277,6 +7719,132 @@
     },
     {
       "id": 102,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 103
+          }
+        }
+      }
+    },
+    {
+      "id": 103,
+      "type": {
+        "def": {
+          "tuple": [
+            2,
+            55
+          ]
+        }
+      }
+    },
+    {
+      "id": 104,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 105
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 77
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 105
+          },
+          {
+            "name": "E",
+            "type": 77
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 105,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 106
+          }
+        }
+      }
+    },
+    {
+      "id": 106,
+      "type": {
+        "def": {
+          "tuple": [
+            54,
+            55
+          ]
+        }
+      }
+    },
+    {
+      "id": 107,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 108
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 77
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 108
+          },
+          {
+            "name": "E",
+            "type": 77
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 108,
       "type": {
         "def": {
           "variant": {
@@ -7309,7 +7877,7 @@
       }
     },
     {
-      "id": 103,
+      "id": 109,
       "type": {
         "def": {
           "variant": {
@@ -7317,7 +7885,7 @@
               {
                 "fields": [
                   {
-                    "type": 104
+                    "type": 110
                   }
                 ],
                 "index": 0,
@@ -7326,7 +7894,7 @@
               {
                 "fields": [
                   {
-                    "type": 74
+                    "type": 77
                   }
                 ],
                 "index": 1,
@@ -7338,11 +7906,11 @@
         "params": [
           {
             "name": "T",
-            "type": 104
+            "type": 110
           },
           {
             "name": "E",
-            "type": 74
+            "type": 77
           }
         ],
         "path": [
@@ -7351,7 +7919,7 @@
       }
     },
     {
-      "id": 104,
+      "id": 110,
       "type": {
         "def": {
           "variant": {
@@ -7384,7 +7952,7 @@
       }
     },
     {
-      "id": 105,
+      "id": 111,
       "type": {
         "def": {
           "variant": {
@@ -7392,7 +7960,7 @@
               {
                 "fields": [
                   {
-                    "type": 69
+                    "type": 72
                   }
                 ],
                 "index": 0,
@@ -7401,7 +7969,7 @@
               {
                 "fields": [
                   {
-                    "type": 74
+                    "type": 77
                   }
                 ],
                 "index": 1,
@@ -7413,11 +7981,11 @@
         "params": [
           {
             "name": "T",
-            "type": 69
+            "type": 72
           },
           {
             "name": "E",
-            "type": 74
+            "type": 77
           }
         ],
         "path": [
@@ -7426,7 +7994,7 @@
       }
     },
     {
-      "id": 106,
+      "id": 112,
       "type": {
         "def": {
           "variant": {
@@ -7434,7 +8002,7 @@
               {
                 "fields": [
                   {
-                    "type": 107
+                    "type": 113
                   }
                 ],
                 "index": 0,
@@ -7443,7 +8011,7 @@
               {
                 "fields": [
                   {
-                    "type": 74
+                    "type": 77
                   }
                 ],
                 "index": 1,
@@ -7455,11 +8023,11 @@
         "params": [
           {
             "name": "T",
-            "type": 107
+            "type": 113
           },
           {
             "name": "E",
-            "type": 74
+            "type": 77
           }
         ],
         "path": [
@@ -7468,7 +8036,7 @@
       }
     },
     {
-      "id": 107,
+      "id": 113,
       "type": {
         "def": {
           "variant": {
@@ -7501,7 +8069,7 @@
       }
     },
     {
-      "id": 108,
+      "id": 114,
       "type": {
         "def": {
           "variant": {
@@ -7509,7 +8077,7 @@
               {
                 "fields": [
                   {
-                    "type": 71
+                    "type": 74
                   }
                 ],
                 "index": 0,
@@ -7518,7 +8086,7 @@
               {
                 "fields": [
                   {
-                    "type": 74
+                    "type": 77
                   }
                 ],
                 "index": 1,
@@ -7530,11 +8098,11 @@
         "params": [
           {
             "name": "T",
-            "type": 71
+            "type": 74
           },
           {
             "name": "E",
-            "type": 74
+            "type": 77
           }
         ],
         "path": [
@@ -7543,7 +8111,7 @@
       }
     },
     {
-      "id": 109,
+      "id": 115,
       "type": {
         "def": {
           "variant": {
@@ -7551,7 +8119,7 @@
               {
                 "fields": [
                   {
-                    "type": 110
+                    "type": 116
                   }
                 ],
                 "index": 0,
@@ -7560,7 +8128,7 @@
               {
                 "fields": [
                   {
-                    "type": 74
+                    "type": 77
                   }
                 ],
                 "index": 1,
@@ -7572,11 +8140,11 @@
         "params": [
           {
             "name": "T",
-            "type": 110
+            "type": 116
           },
           {
             "name": "E",
-            "type": 74
+            "type": 77
           }
         ],
         "path": [
@@ -7585,7 +8153,7 @@
       }
     },
     {
-      "id": 110,
+      "id": 116,
       "type": {
         "def": {
           "variant": {
@@ -7618,7 +8186,7 @@
       }
     },
     {
-      "id": 111,
+      "id": 117,
       "type": {
         "def": {
           "variant": {
@@ -7626,7 +8194,7 @@
               {
                 "fields": [
                   {
-                    "type": 112
+                    "type": 118
                   }
                 ],
                 "index": 0,
@@ -7635,7 +8203,7 @@
               {
                 "fields": [
                   {
-                    "type": 74
+                    "type": 77
                   }
                 ],
                 "index": 1,
@@ -7647,11 +8215,11 @@
         "params": [
           {
             "name": "T",
-            "type": 112
+            "type": 118
           },
           {
             "name": "E",
-            "type": 74
+            "type": 77
           }
         ],
         "path": [
@@ -7660,7 +8228,7 @@
       }
     },
     {
-      "id": 112,
+      "id": 118,
       "type": {
         "def": {
           "variant": {
@@ -7693,7 +8261,7 @@
       }
     },
     {
-      "id": 113,
+      "id": 119,
       "type": {
         "def": {
           "variant": {
@@ -7726,7 +8294,7 @@
       }
     },
     {
-      "id": 114,
+      "id": 120,
       "type": {
         "def": {
           "composite": {
@@ -7738,7 +8306,7 @@
               },
               {
                 "name": "provider",
-                "type": 115,
+                "type": 121,
                 "typeName": "Option<Vec<u8>>"
               }
             ]
@@ -7752,7 +8320,7 @@
       }
     },
     {
-      "id": 115,
+      "id": 121,
       "type": {
         "def": {
           "variant": {
@@ -7764,7 +8332,7 @@
               {
                 "fields": [
                   {
-                    "type": 116
+                    "type": 122
                   }
                 ],
                 "index": 1,
@@ -7776,7 +8344,7 @@
         "params": [
           {
             "name": "T",
-            "type": 116
+            "type": 122
           }
         ],
         "path": [
@@ -7785,7 +8353,7 @@
       }
     },
     {
-      "id": 116,
+      "id": 122,
       "type": {
         "def": {
           "sequence": {
@@ -7795,7 +8363,7 @@
       }
     },
     {
-      "id": 117,
+      "id": 123,
       "type": {
         "def": {
           "variant": {}

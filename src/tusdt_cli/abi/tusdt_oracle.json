@@ -1,8 +1,8 @@
 {
   "source": {
-    "hash": "0x67862d34a6fa42869d23994d5167cbcaab067d6716bcda274144805ca57b20e1",
+    "hash": "0x8e7a807565ba576a7b63ae9cbb46b336b629a2ef7f36f3e7bf7494b61d644805",
     "language": "ink! 5.1.1",
-    "compiler": "rustc 1.91.1",
+    "compiler": "rustc 1.89.0",
     "build_info": {
       "build_mode": "Release",
       "cargo_contract_version": "5.0.3",
@@ -112,133 +112,6 @@
       }
     },
     "events": [
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "old_controller",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "new_controller",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the controller (vault) address is updated by governance."
-        ],
-        "label": "OracleControllerUpdated",
-        "module_path": "tusdt_oracle::oracle",
-        "signature_topic": "0x55d38df882b90edfd62fbebb6af44c6f3dd73129e23e9d1b6e6907d845646c29"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "previous_governance",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "new_governance",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when oracle governance is transferred to a new account."
-        ],
-        "label": "OracleGovernanceUpdated",
-        "module_path": "tusdt_oracle::oracle",
-        "signature_topic": "0x8076edb2c7ad187c70699e83a771437602b58b5145ad1c777bb879abe3f990c8"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "max_price_deviation",
-            "type": {
-              "displayName": [
-                "Ratio"
-              ],
-              "type": 10
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the maximum allowed price deviation is changed."
-        ],
-        "label": "MaxPriceDeviationUpdated",
-        "module_path": "tusdt_oracle::oracle",
-        "signature_topic": "0xdf92cfe8304a7dfe48998ca021158b2d606b3dd9d86bab86d14c4c2b0d2a2259"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "min_submitter_stake",
-            "type": {
-              "displayName": [
-                "u128"
-              ],
-              "type": 4
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the minimum required submitter stake is changed."
-        ],
-        "label": "MinSubmitterStakeUpdated",
-        "module_path": "tusdt_oracle::oracle",
-        "signature_topic": "0x862f9b8f733953c288061b3a21bb6955a625374e5f24afe32da33fd31a38aa7f"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "netuid",
-            "type": {
-              "displayName": [
-                "u16"
-              ],
-              "type": 3
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the governing subnet netuid is updated."
-        ],
-        "label": "NetuidUpdated",
-        "module_path": "tusdt_oracle::oracle",
-        "signature_topic": "0xb62491ff2dec7341b9b30f90adc6a7fcd382e6284c444b7f9622622efbd4aad7"
-      },
       {
         "args": [
           {
@@ -374,6 +247,38 @@
           {
             "docs": [],
             "indexed": true,
+            "label": "previous_governance",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_governance",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when oracle governance is transferred to a new account."
+        ],
+        "label": "OracleGovernanceUpdated",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0x8076edb2c7ad187c70699e83a771437602b58b5145ad1c777bb879abe3f990c8"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
             "label": "validator",
             "type": {
               "displayName": [
@@ -389,6 +294,101 @@
         "label": "ValidatorUpdated",
         "module_path": "tusdt_oracle::oracle",
         "signature_topic": "0x9b9e984a30cbf16f16b8bb47b35802825876301f2562ae285a379d3e2b0cef05"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "max_price_deviation",
+            "type": {
+              "displayName": [
+                "Ratio"
+              ],
+              "type": 10
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the maximum allowed price deviation is changed."
+        ],
+        "label": "MaxPriceDeviationUpdated",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0xdf92cfe8304a7dfe48998ca021158b2d606b3dd9d86bab86d14c4c2b0d2a2259"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 3
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the governing subnet netuid is updated."
+        ],
+        "label": "NetuidUpdated",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0xb62491ff2dec7341b9b30f90adc6a7fcd382e6284c444b7f9622622efbd4aad7"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "min_submitter_stake",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the minimum required submitter stake is changed."
+        ],
+        "label": "MinSubmitterStakeUpdated",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0x862f9b8f733953c288061b3a21bb6955a625374e5f24afe32da33fd31a38aa7f"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "old_controller",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "new_controller",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the controller (vault) address is updated by governance."
+        ],
+        "label": "OracleControllerUpdated",
+        "module_path": "tusdt_oracle::oracle",
+        "signature_topic": "0x55d38df882b90edfd62fbebb6af44c6f3dd73129e23e9d1b6e6907d845646c29"
       }
     ],
     "lang_error": {
