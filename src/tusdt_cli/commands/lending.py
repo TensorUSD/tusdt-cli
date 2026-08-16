@@ -1,5 +1,7 @@
 """Lending pool CLI commands."""
 
+from datetime import datetime, timezone
+
 import click
 
 from tusdt_cli.context import CLIContext
@@ -800,6 +802,30 @@ def transfer_native_to_treasury(ctx: click.Context, wallet_name: str | None, net
 
 
 # ======================================================================
+# Interest Accrual
+# ======================================================================
+
+
+@lending_group.command("accrue-market-interest")
+@wallet_option
+@network_option
+@click.pass_context
+def accrue_market_interest(ctx: click.Context, wallet_name: str | None, network: str | None) -> None:
+    """Accrue interest for both debt markets (permissionless).
+
+    Refreshes each market's borrow index, exchange rate, and reserve against
+    the time elapsed since its last accrual. Markets with no debt or with less
+    than one full hour elapsed accrue nothing.
+    """
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.make_config()
+    state.submit(lambda c, kp: c.lending_accrue_market_interest(kp))
+    state.output.success("Interest accrued for both debt markets!")
+
+
+# ======================================================================
 # Queries / Getters
 # ======================================================================
 
@@ -961,6 +987,34 @@ def user_debt_details(ctx: click.Context, market_id: int, user: str, network: st
         "User Debt Details",
         {"Debt": debt, "Principal": principal, "Interest": debt - principal},
     )
+
+
+@lending_group.command("last-interest-accrual")
+@network_option
+@click.pass_context
+def last_interest_accrual(ctx: click.Context, network: str | None) -> None:
+    """Show the last interest-accrual timestamps for both debt markets.
+
+    Timestamps are block timestamps in milliseconds; a zero value means the
+    market has never accrued interest.
+    """
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    result = state.run_read(lambda c: c.lending_get_last_interest_accrual_times(kp))
+    if result is None:
+        state.output.detail("Last Interest Accrual", {"Result": None})
+        return
+    ms0, ms1 = result
+    details: dict[str, str] = {}
+    for market_label, ms in (("Market 0 (TAO)", ms0), ("Market 1 (TUSDT)", ms1)):
+        if ms == 0:
+            details[market_label] = "0 ms (never accrued)"
+        else:
+            utc = datetime.fromtimestamp(ms / 1000, timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+            details[market_label] = f"{ms} ms ({utc})"
+    state.output.detail("Last Interest Accrual", details)
 
 
 @lending_group.command("alpha-markets")

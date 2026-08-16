@@ -29,6 +29,8 @@ def minimal_config():
         "treasury_metadata": "/fake/path/tusdt_treasury.json",
         "election_address": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
         "election_metadata": "/fake/path/tusdt_election.json",
+        "lending_address": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+        "lending_metadata": "/fake/path/tusdt_lending_pool.json",
         "network": "finney",
         "decimals": 9,
     }
@@ -527,4 +529,57 @@ class TestGovernanceNewForwarders:
         client.gov_transfer_native_to_treasury(mock_kp)
         client._exec.assert_called_once_with(
             client.governance, mock_kp, "vault_transfer_native_to_treasury", args={},
+        )
+
+
+class TestLendingNewMessages:
+    """Tests for the new interest-accrual lending messages."""
+
+    @patch("tusdt_cli.client.SubstrateInterface")
+    @patch("tusdt_cli.client.ContractMetadata")
+    @patch("tusdt_cli.client.ContractInstance")
+    def test_lending_get_last_interest_accrual_times(
+        self, mock_ci, mock_meta, mock_sub, minimal_config
+    ):
+        """lending_get_last_interest_accrual_times reads with no args and unwraps the Option."""
+        client = TUSDTClient(minimal_config)
+        client._read = MagicMock()
+        mock_kp = MagicMock()
+        with patch("tusdt_cli.client.unwrap_option", return_value=[1723766400000, 1723852800000]):
+            result = client.lending_get_last_interest_accrual_times(mock_kp)
+            assert result == [1723766400000, 1723852800000]
+        client._read.assert_called_once_with(
+            client.lending, mock_kp, "get_last_interest_accrual_times"
+        )
+
+    @patch("tusdt_cli.client.SubstrateInterface")
+    @patch("tusdt_cli.client.ContractMetadata")
+    @patch("tusdt_cli.client.ContractInstance")
+    def test_lending_get_last_interest_accrual_times_none(
+        self, mock_ci, mock_meta, mock_sub, minimal_config
+    ):
+        """lending_get_last_interest_accrual_times returns None when the Option is None."""
+        client = TUSDTClient(minimal_config)
+        client._read = MagicMock()
+        mock_kp = MagicMock()
+        with patch("tusdt_cli.client.unwrap_option", return_value=None):
+            result = client.lending_get_last_interest_accrual_times(mock_kp)
+            assert result is None
+        client._read.assert_called_once_with(
+            client.lending, mock_kp, "get_last_interest_accrual_times"
+        )
+
+    @patch("tusdt_cli.client.SubstrateInterface")
+    @patch("tusdt_cli.client.ContractMetadata")
+    @patch("tusdt_cli.client.ContractInstance")
+    def test_lending_accrue_market_interest(
+        self, mock_ci, mock_meta, mock_sub, minimal_config
+    ):
+        """lending_accrue_market_interest execs with empty args (no-arg permissionless call)."""
+        client = TUSDTClient(minimal_config)
+        client._exec = MagicMock()
+        mock_kp = MagicMock()
+        client.lending_accrue_market_interest(mock_kp)
+        client._exec.assert_called_once_with(
+            client.lending, mock_kp, "accrue_market_interest", args={},
         )

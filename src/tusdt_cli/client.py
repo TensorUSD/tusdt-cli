@@ -1982,6 +1982,19 @@ class TUSDTClient:
             args={"amount": amount},
         )
 
+    def lending_accrue_market_interest(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
+        """Accrue interest for both debt markets (permissionless).
+
+        Refreshes each market's borrow index, exchange rate, and reserve
+        against the time elapsed since its last accrual.
+        """
+        return self._exec(
+            self.lending,
+            keypair,
+            "accrue_market_interest",
+            args={},
+        )
+
     # ==================================================================
     # Lending pool — alpha collateral
     # ==================================================================
@@ -2338,6 +2351,13 @@ class TUSDTClient:
             "get_user_debt_details",
             args={"market_id": market_id, "user": user},
         )
+        return unwrap_option(result)
+
+    def lending_get_last_interest_accrual_times(self, keypair: Keypair) -> tuple[int, int] | None:
+        """Get the last interest-accrual timestamps (block timestamp in ms) for
+        both debt markets as ``(market 0, market 1)``, or ``None`` if either
+        market is missing."""
+        result = self._read(self.lending, keypair, "get_last_interest_accrual_times")
         return unwrap_option(result)
 
     def lending_get_alpha_markets(self, keypair: Keypair) -> list:
