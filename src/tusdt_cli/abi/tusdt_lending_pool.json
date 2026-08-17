@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x8236306bcb32ddec5cd6f30fe030e8c338dec32485051d4ac011e460a98ca178",
+    "hash": "0x194be635f92436a5a5b020c04e02c1b64f8090c22edf4e25156ccde450c748f1",
     "language": "ink! 5.1.1",
     "compiler": "rustc 1.89.0",
     "build_info": {
@@ -2214,8 +2214,10 @@
           " market's borrow index, exchange rate, and reserve against the time",
           " elapsed since the last accrual, so off-chain debt calculations stay",
           " in sync with the chain. No interest accrues for a market with no",
-          " debt or with less than one full hour elapsed (its last-update",
-          " timestamp still advances)."
+          " debt or with less than one full hour elapsed. A debt market",
+          " advances its last-update timestamp by whole hours only (the",
+          " sub-hour remainder is preserved); a debt-free market tracks the",
+          " latest write."
         ],
         "label": "accrue_market_interest",
         "mutates": true,

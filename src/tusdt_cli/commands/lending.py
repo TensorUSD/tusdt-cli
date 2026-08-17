@@ -1,9 +1,12 @@
 """Lending pool CLI commands."""
 
+import time
 from datetime import datetime, timezone
+from typing import Any
 
 import click
 
+from tusdt_cli import lending_interest
 from tusdt_cli.context import CLIContext
 from tusdt_cli.globals import network_option, wallet_option
 from tusdt_cli.utils import (
@@ -12,7 +15,7 @@ from tusdt_cli.utils import (
     format_balance,
     parse_balance,
 )
-from tusdt_cli.wallet import get_reader_keypair
+from tusdt_cli.wallet import get_reader_keypair, resolve_signer_address
 
 # Commands hidden unless the saved config has access_mode = "dev".
 _ADVANCED: set[str] = {"root-stake-config", "sweep"}
@@ -161,12 +164,42 @@ def repay_tao(ctx: click.Context, amount: str, wallet_name: str | None, network:
 @network_option
 @click.pass_context
 def repay_tusdt(ctx: click.Context, amount: str, wallet_name: str | None, network: str | None) -> None:
-    """Repay a TUSDT loan. Requires prior token approval."""
+    """Repay a TUSDT loan. Requires prior token approval.
+
+    Before submitting, the signer's TUSDT allowance to the lending pool is
+    verified and the command aborts (with an `approve` hint) when it cannot
+    cover the repayment.  The check runs before submission, so --dry-run
+    validates it too.  When the signer address cannot be derived (encrypted
+    wallets) the check is skipped with a warning instead of blocking.
+    """
     state: CLIContext = ctx.obj
     state.network = network or state.network
     state.wallet_name = wallet_name or state.wallet_name
     cfg = state.make_config()
     raw_amount = parse_balance(amount, cfg.get("decimals", 9))
+
+    # Allowance pre-check: refuse to submit a repayment the pool's
+    # transfer_from cannot collect.  The spender is the lending pool
+    # contract, resolved from the same config key client.py uses for its
+    # lazy `lending` property so it can never drift from the real target.
+    spender = cfg.get("lending_address")
+    if spender:
+        owner = resolve_signer_address(cfg)
+        if owner is None:
+            state.output.info(
+                "Signer address unavailable (encrypted wallet?) — TUSDT allowance could not be verified."
+            )
+        else:
+            kp = get_reader_keypair(cfg)
+            allowance = state.run_read(lambda c: c.allowance(kp, owner, spender))
+            if allowance is None or allowance < raw_amount:
+                raise click.ClickException(
+                    f"TUSDT allowance {allowance} is below the {raw_amount} needed to repay — "
+                    f"approve first: tusdt token approve {spender} {amount} --wallet-name <name>"
+                )
+    else:
+        state.output.info("Lending pool address not configured — skipping TUSDT allowance pre-check.")
+
     state.submit(lambda c, kp: c.lending_repay_tusdt(kp, raw_amount))
     state.output.success("TUSDT repaid successfully!")
 
@@ -973,7 +1006,11 @@ def user_debt_details(ctx: click.Context, market_id: int, user: str, network: st
     """Show a user's debt, principal, and accrued interest in a market.
 
     Falls back to the plain debt when the deployed pool predates principal
-    tracking.
+    tracking.  For debt markets (0 or 1) the output additionally carries an
+    off-chain projection of the debt including unaccrued interest, computed
+    by replaying the pool's whole-hour accrual math locally (see
+    ``tusdt_cli.lending_interest``); the projection is silently omitted when
+    any required state read fails.
     """
     state: CLIContext = ctx.obj
     state.network = network or state.network
@@ -988,10 +1025,117 @@ def user_debt_details(ctx: click.Context, market_id: int, user: str, network: st
         )
         return
     debt, principal = result
-    state.output.detail(
-        "User Debt Details",
-        {"Debt": debt, "Principal": principal, "Interest": debt - principal},
-    )
+    details: dict[str, object] = {
+        "Debt (on-chain)": debt,
+        "Principal": principal,
+        "Interest (on-chain)": debt - principal,
+    }
+    if market_id in (0, 1):
+        projection = _project_user_debt(state, kp, market_id, user)
+        if projection is not None:
+            details.update(projection)
+    state.output.detail("User Debt Details", details)
+
+
+def _dict_field(data: Any, *names: str, default: Any = None) -> Any:
+    """Read the first present key of ``names`` from a decoded contract dict.
+
+    substrate-interface decodes ink! structs to snake_case dicts, but key
+    shapes can drift across deployed ABIs — accept each snake_case name and
+    a camelCase alias defensively.
+    """
+    if isinstance(data, dict):
+        for name in names:
+            if name in data:
+                return data[name]
+    return default
+
+
+def _project_user_debt(state: CLIContext, kp: Any, market_id: int, user: str) -> dict[str, Any] | None:
+    """Project the user's debt including unaccrued interest (off-chain).
+
+    Replays the lending pool's whole-hour accrual math
+    (``lending_interest.project_debt``, mirroring ``rates.rs``) from on-chain
+    state: the position's scaled debt, the market borrow index, total debt
+    and last accrual time.  Pool cash — not exposed as a message — is derived
+    from the MarketState invariant ``cash = total_supplied * exchange_rate -
+    total_debt + reserve_accrued`` (exact up to per-accrual exchange-rate
+    floor dust).  Returns the extra detail rows, or ``None`` when any read
+    fails or a required value is missing so the caller silently falls back to
+    the on-chain-only output.  Never raises.
+    """
+    try:
+        position = state.run_read(lambda c: c.lending_get_position(kp, market_id, user))
+        scaled_debt = _dict_field(position, "scaled_debt")
+        borrow_index_inner = state.run_read(lambda c: c.lending_get_borrow_index(kp, market_id))
+        market_state = state.run_read(lambda c: c.lending_get_market_state(kp, market_id))
+        params = state.run_read(lambda c: c.lending_get_market_params(kp, market_id))
+        if scaled_debt is None or borrow_index_inner is None:
+            return None
+        total_debt = _dict_field(market_state, "total_debt")
+        if total_debt is None:
+            return None
+
+        cash = 0
+        if total_debt > 0:
+            total_supplied = _dict_field(market_state, "total_supplied")
+            exchange_rate = _dict_field(market_state, "exchange_rate")
+            reserve_accrued = _dict_field(market_state, "reserve_accrued")
+            if total_supplied is None or exchange_rate is None or reserve_accrued is None:
+                return None
+            cash = (
+                total_supplied * exchange_rate // lending_interest.RATIO_SCALE - total_debt + reserve_accrued
+            )
+            if cash < 0:
+                cash = 0
+
+        # Last accrual time: prefer the dedicated message's tuple element;
+        # fall back to the market state's last_update when it is missing/zero.
+        accrual_times = state.run_read(lambda c: c.lending_get_last_interest_accrual_times(kp))
+        last_update_ms: Any = None
+        if isinstance(accrual_times, (list, tuple)) and len(accrual_times) > market_id:
+            last_update_ms = accrual_times[market_id]
+        if not last_update_ms:
+            last_update_ms = _dict_field(market_state, "last_update")
+        if last_update_ms is None:
+            return None
+        if last_update_ms == 0 and scaled_debt:
+            # last_update == 0 means "never accrued" — impossible for a
+            # consistent market with live debt (borrow accrues first and
+            # stamps the clock). Bail out rather than projecting interest
+            # from the Unix epoch.
+            return None
+
+        # client.py exposes no chain-timestamp helper (no Timestamp pallet
+        # read), so approximate the chain clock with the local wall clock.
+        now_ms = int(time.time() * 1000)
+
+        params_inner = {
+            "base": lending_interest.bps_to_ratio_inner(_dict_field(params, "base_rate", 0)),
+            "slope1": lending_interest.bps_to_ratio_inner(_dict_field(params, "slope1", 0)),
+            "slope2": lending_interest.bps_to_ratio_inner(_dict_field(params, "slope2", 0)),
+            "optimal": lending_interest.bps_to_ratio_inner(_dict_field(params, "optimal_utilization", 0)),
+        }
+        projection = lending_interest.project_debt(
+            scaled_debt,
+            borrow_index_inner,
+            total_debt,
+            cash,
+            params_inner,
+            last_update_ms,
+            now_ms,
+        )
+        projected_to = datetime.fromtimestamp(now_ms / 1000, timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+        return {
+            "Projected Debt (incl. unaccrued interest)": projection["projected_debt"],
+            "Projected Interest": projection["interest_delta"],
+            "Projected to (UTC)": projected_to,
+        }
+    except Exception:
+        # The projection is advisory: any failure (missing state, an
+        # impossible rate-curve branch, unexpected shapes) falls back to the
+        # on-chain-only output instead of breaking the command.
+        return None
 
 
 @lending_group.command("last-interest-accrual")

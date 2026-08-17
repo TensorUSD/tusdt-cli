@@ -8,6 +8,7 @@ import pytest
 from click.testing import CliRunner
 
 from tusdt_cli.cli import cli
+from tusdt_cli.context import CLIContext
 
 
 @pytest.fixture
@@ -185,6 +186,68 @@ class TestTokenMinterCommands:
     def test_minter_command_help(self, command, runner):
         result = runner.invoke(cli, ["token", command, "--help"])
         assert result.exit_code == 0, f"token {command} --help failed: {result.output[:200]}"
+
+
+class TestRepayTusdtAllowanceCheck:
+    """repay-tusdt verifies the TUSDT allowance to the pool before submitting."""
+
+    @patch.object(CLIContext, "submit")
+    @patch.object(CLIContext, "run_read")
+    @patch("tusdt_cli.commands.lending.resolve_signer_address")
+    @patch("tusdt_cli.context.load_config")
+    def test_insufficient_allowance_aborts_with_approve_hint(
+        self, mock_load_config, mock_resolve_signer, mock_run_read, mock_submit, runner
+    ):
+        mock_load_config.return_value = {
+            "decimals": 9,
+            "network": "finney",
+            "rpc": "ws://127.0.0.1:9944",
+            "lending_address": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+        }
+        mock_resolve_signer.return_value = "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty"
+        mock_run_read.return_value = 50  # allowance far below 100 TUSDT
+        result = runner.invoke(cli, ["lending", "repay-tusdt", "100"])
+        # Click standalone mode wraps ClickException in SystemExit(1); the
+        # message still lands in the captured output.
+        assert result.exit_code == 1
+        assert "approve" in result.output.lower(), result.output
+        mock_submit.assert_not_called()
+
+    @patch.object(CLIContext, "submit")
+    @patch.object(CLIContext, "run_read")
+    @patch("tusdt_cli.commands.lending.resolve_signer_address")
+    @patch("tusdt_cli.context.load_config")
+    def test_sufficient_allowance_submits(
+        self, mock_load_config, mock_resolve_signer, mock_run_read, mock_submit, runner
+    ):
+        mock_load_config.return_value = {
+            "decimals": 9,
+            "network": "finney",
+            "rpc": "ws://127.0.0.1:9944",
+            "lending_address": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+        }
+        mock_resolve_signer.return_value = "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty"
+        mock_run_read.return_value = 10**11  # exactly 100 TUSDT
+        result = runner.invoke(cli, ["lending", "repay-tusdt", "100"])
+        assert result.exit_code == 0
+        mock_submit.assert_called_once()
+
+    @patch.object(CLIContext, "submit")
+    @patch("tusdt_cli.commands.lending.resolve_signer_address")
+    @patch("tusdt_cli.context.load_config")
+    def test_unresolvable_signer_skips_check_and_submits(
+        self, mock_load_config, mock_resolve_signer, mock_submit, runner
+    ):
+        mock_load_config.return_value = {
+            "decimals": 9,
+            "network": "finney",
+            "rpc": "ws://127.0.0.1:9944",
+            "lending_address": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+        }
+        mock_resolve_signer.return_value = None  # encrypted wallet
+        result = runner.invoke(cli, ["lending", "repay-tusdt", "100"])
+        assert result.exit_code == 0
+        mock_submit.assert_called_once()
 
 
 class TestAuctionActiveCount:
