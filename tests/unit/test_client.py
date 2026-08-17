@@ -51,9 +51,7 @@ class TestTUSDTClientInit:
 class TestTUSDTClientSubstrate:
     @patch("tusdt_cli.client.SubstrateInterface")
     @patch("tusdt_cli.client.ContractMetadata")
-    def test_substrate_property_creates_connection(
-        self, MockMetadata, MockSubstrate, minimal_config
-    ):
+    def test_substrate_property_creates_connection(self, MockMetadata, MockSubstrate, minimal_config):
         """Accessing .substrate creates a SubstrateInterface."""
         client = TUSDTClient(minimal_config)
         substrate = client.substrate
@@ -62,9 +60,7 @@ class TestTUSDTClientSubstrate:
 
     @patch("tusdt_cli.client.SubstrateInterface")
     @patch("tusdt_cli.client.ContractMetadata")
-    def test_substrate_is_cached(
-        self, MockMetadata, MockSubstrate, minimal_config
-    ):
+    def test_substrate_is_cached(self, MockMetadata, MockSubstrate, minimal_config):
         """Second access to .substrate returns the cached instance."""
         client = TUSDTClient(minimal_config)
         s1 = client.substrate
@@ -75,9 +71,7 @@ class TestTUSDTClientSubstrate:
 
     @patch("tusdt_cli.client.SubstrateInterface")
     @patch("tusdt_cli.client.ContractMetadata")
-    def test_substrate_uses_u64_balance_type(
-        self, MockMetadata, MockSubstrate, minimal_config
-    ):
+    def test_substrate_uses_u64_balance_type(self, MockMetadata, MockSubstrate, minimal_config):
         """SubstrateInterface is configured with Balance = u64."""
         client = TUSDTClient(minimal_config)
         client.substrate
@@ -90,9 +84,7 @@ class TestTUSDTClientContractProperties:
     @patch("tusdt_cli.client.SubstrateInterface")
     @patch("tusdt_cli.client.ContractMetadata")
     @patch("tusdt_cli.client.ContractInstance")
-    def test_vault_property_is_lazy(
-        self, MockContractInstance, MockMetadata, MockSubstrate, minimal_config
-    ):
+    def test_vault_property_is_lazy(self, MockContractInstance, MockMetadata, MockSubstrate, minimal_config):
         """Accessing .vault creates a ContractInstance (mocked)."""
         client = TUSDTClient(minimal_config)
         vault = client.vault
@@ -136,8 +128,11 @@ class TestVaultAlphaMethods:
         client._exec = MagicMock()
         client.create_alpha_vault(mock_kp, 1000000000, 1)
         client._exec.assert_called_once_with(
-            mock_vault, mock_kp, "create_alpha_vault",
-            args={"amount": 1000000000, "netuid": 1}, value=0,
+            mock_vault,
+            mock_kp,
+            "create_alpha_vault",
+            args={"amount": 1000000000, "netuid": 1},
+            value=0,
         )
 
     @patch("tusdt_cli.client.SubstrateInterface")
@@ -154,7 +149,9 @@ class TestVaultAlphaMethods:
         client._exec = MagicMock()
         client.add_alpha_collateral(mock_kp, 0, 500000000)
         client._exec.assert_called_once_with(
-            mock_vault, mock_kp, "add_alpha_collateral",
+            mock_vault,
+            mock_kp,
+            "add_alpha_collateral",
             args={"vault_id": 0, "amount": 500000000},
         )
 
@@ -174,7 +171,9 @@ class TestVaultAlphaMethods:
             mock_kp, 0, 500000000, "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
         )
         client._exec.assert_called_once_with(
-            mock_vault, mock_kp, "release_alpha_collateral",
+            mock_vault,
+            mock_kp,
+            "release_alpha_collateral",
             args={
                 "vault_id": 0,
                 "amount": 500000000,
@@ -199,9 +198,7 @@ class TestVaultAlphaMethods:
         with patch("tusdt_cli.client.unwrap_plain", unwrap_result):
             client.set_contract_params(mock_kp, 1, {"collateral_ratio": 200})
 
-        client._read.assert_called_once_with(
-            client.vault, mock_kp, "get_contract_params", args={"netuid": 1}
-        )
+        client._read.assert_called_once_with(client.vault, mock_kp, "get_contract_params", args={"netuid": 1})
 
     @patch("tusdt_cli.client.SubstrateInterface")
     @patch("tusdt_cli.client.ContractMetadata")
@@ -217,7 +214,9 @@ class TestVaultAlphaMethods:
         client._exec = MagicMock()
         client.execute_contract_params_update(mock_kp, 1)
         client._exec.assert_called_once_with(
-            mock_vault, mock_kp, "execute_contract_params_update",
+            mock_vault,
+            mock_kp,
+            "execute_contract_params_update",
             args={"netuid": 1},
         )
 
@@ -235,7 +234,9 @@ class TestVaultAlphaMethods:
         client._exec = MagicMock()
         client.cancel_contract_params_update(mock_kp, 1)
         client._exec.assert_called_once_with(
-            mock_vault, mock_kp, "cancel_contract_params_update",
+            mock_vault,
+            mock_kp,
+            "cancel_contract_params_update",
             args={"netuid": 1},
         )
 
@@ -256,7 +257,9 @@ class TestVaultAlphaMethods:
             result = client.get_pending_contract_params_update(mock_kp, 1)
             assert result is None
         client._read.assert_called_once_with(
-            client.vault, mock_kp, "get_pending_contract_params_update",
+            client.vault,
+            mock_kp,
+            "get_pending_contract_params_update",
             args={"netuid": 1},
         )
 
@@ -273,7 +276,9 @@ class TestERC20MinterMethods:
         mock_kp = MagicMock()
         client.add_minter(mock_kp, "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY")
         client._exec.assert_called_once_with(
-            client.token, mock_kp, "add_minter",
+            client.token,
+            mock_kp,
+            "add_minter",
             args={"minter": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"},
         )
 
@@ -286,7 +291,9 @@ class TestERC20MinterMethods:
         mock_kp = MagicMock()
         client.remove_minter(mock_kp, "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY")
         client._exec.assert_called_once_with(
-            client.token, mock_kp, "remove_minter",
+            client.token,
+            mock_kp,
+            "remove_minter",
             args={"minter": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"},
         )
 
@@ -300,7 +307,9 @@ class TestERC20MinterMethods:
         with patch("tusdt_cli.client.unwrap_plain", return_value=True):
             assert client.is_minter(mock_kp, "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY") is True
         client._read.assert_called_once_with(
-            client.token, mock_kp, "is_minter",
+            client.token,
+            mock_kp,
+            "is_minter",
             args={"account": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"},
         )
 
@@ -313,7 +322,9 @@ class TestERC20MinterMethods:
         mock_kp = MagicMock()
         client.set_controller(mock_kp, "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY")
         client._exec.assert_called_once_with(
-            client.token, mock_kp, "set_controller",
+            client.token,
+            mock_kp,
+            "set_controller",
             args={"new_controller": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"},
         )
 
@@ -326,7 +337,9 @@ class TestERC20MinterMethods:
         client = TUSDTClient(minimal_config)
         client._read = MagicMock()
         mock_kp = MagicMock()
-        with patch("tusdt_cli.client.unwrap_plain", return_value="5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"):
+        with patch(
+            "tusdt_cli.client.unwrap_plain", return_value="5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+        ):
             result = client.get_vault_hotkey(mock_kp)
             assert result == "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
         client._read.assert_called_once_with(client.vault, mock_kp, "get_vault_hotkey")
@@ -354,7 +367,9 @@ class TestERC20MinterMethods:
         mock_kp = MagicMock()
         client.set_vault_hotkey(mock_kp, "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", [1, 3])
         client._exec.assert_called_once_with(
-            client.vault, mock_kp, "set_vault_hotkey",
+            client.vault,
+            mock_kp,
+            "set_vault_hotkey",
             args={"new_hotkey": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", "netuids": [1, 3]},
         )
 
@@ -369,7 +384,10 @@ class TestERC20MinterMethods:
         mock_kp = MagicMock()
         client.transfer_native_to_treasury(mock_kp)
         client._exec.assert_called_once_with(
-            client.vault, mock_kp, "transfer_native_to_treasury", args={},
+            client.vault,
+            mock_kp,
+            "transfer_native_to_treasury",
+            args={},
         )
 
 
@@ -385,7 +403,9 @@ class TestGovernanceNewForwarders:
         mock_kp = MagicMock()
         client.gov_vault_claim_excess_alpha(mock_kp, 1)
         client._exec.assert_called_once_with(
-            client.governance, mock_kp, "vault_claim_excess_alpha",
+            client.governance,
+            mock_kp,
+            "vault_claim_excess_alpha",
             args={"netuid": 1},
         )
 
@@ -398,7 +418,9 @@ class TestGovernanceNewForwarders:
         mock_kp = MagicMock()
         client.gov_vault_set_approved_netuid(mock_kp, 1, True)
         client._exec.assert_called_once_with(
-            client.governance, mock_kp, "vault_set_approved_netuid",
+            client.governance,
+            mock_kp,
+            "vault_set_approved_netuid",
             args={"netuid": 1, "approved": True},
         )
 
@@ -412,7 +434,9 @@ class TestGovernanceNewForwarders:
         config = {"transaction_fee": 30, "auction_duration_ms": 3600000}
         client.gov_vault_set_global_params(mock_kp, config)
         client._exec.assert_called_once_with(
-            client.governance, mock_kp, "vault_set_global_params",
+            client.governance,
+            mock_kp,
+            "vault_set_global_params",
             args={"config": config},
         )
 
@@ -425,7 +449,9 @@ class TestGovernanceNewForwarders:
         mock_kp = MagicMock()
         client.gov_vault_cancel_global_params_update(mock_kp)
         client._exec.assert_called_once_with(
-            client.governance, mock_kp, "vault_cancel_global_params_update",
+            client.governance,
+            mock_kp,
+            "vault_cancel_global_params_update",
         )
 
     @patch("tusdt_cli.client.SubstrateInterface")
@@ -437,7 +463,9 @@ class TestGovernanceNewForwarders:
         mock_kp = MagicMock()
         client.elect_maintainer(mock_kp, "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY")
         client._exec.assert_called_once_with(
-            client.governance, mock_kp, "elect_maintainer",
+            client.governance,
+            mock_kp,
+            "elect_maintainer",
             args={"new_maintainer": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"},
         )
 
@@ -450,16 +478,16 @@ class TestGovernanceNewForwarders:
         mock_kp = MagicMock()
         client.election_set_netuid(mock_kp, 42)
         client._exec.assert_called_once_with(
-            client.governance, mock_kp, "election_set_netuid",
+            client.governance,
+            mock_kp,
+            "election_set_netuid",
             args={"netuid": 42},
         )
 
     @patch("tusdt_cli.client.SubstrateInterface")
     @patch("tusdt_cli.client.ContractMetadata")
     @patch("tusdt_cli.client.ContractInstance")
-    def test_gov_vault_set_contract_params_with_netuid(
-        self, MockCI, MockMeta, MockSub, minimal_config
-    ):
+    def test_gov_vault_set_contract_params_with_netuid(self, MockCI, MockMeta, MockSub, minimal_config):
         """gov_vault_set_contract_params passes netuid and reads with netuid."""
         client = TUSDTClient(minimal_config)
         client._exec = MagicMock()
@@ -470,23 +498,21 @@ class TestGovernanceNewForwarders:
         client._read.return_value = mock_result
         with patch("tusdt_cli.client.unwrap_plain", return_value={"collateral_ratio": 150}):
             client.gov_vault_set_contract_params(mock_kp, 1, {"collateral_ratio": 200})
-        client._read.assert_called_once_with(
-            client.vault, mock_kp, "get_contract_params", args={"netuid": 1}
-        )
+        client._read.assert_called_once_with(client.vault, mock_kp, "get_contract_params", args={"netuid": 1})
 
     @patch("tusdt_cli.client.SubstrateInterface")
     @patch("tusdt_cli.client.ContractMetadata")
     @patch("tusdt_cli.client.ContractInstance")
-    def test_gov_vault_cancel_update_with_netuid(
-        self, MockCI, MockMeta, MockSub, minimal_config
-    ):
+    def test_gov_vault_cancel_update_with_netuid(self, MockCI, MockMeta, MockSub, minimal_config):
         """gov_vault_cancel_update passes netuid in args."""
         client = TUSDTClient(minimal_config)
         client._exec = MagicMock()
         mock_kp = MagicMock()
         client.gov_vault_cancel_update(mock_kp, 1)
         client._exec.assert_called_once_with(
-            client.governance, mock_kp, "vault_cancel_contract_params_update",
+            client.governance,
+            mock_kp,
+            "vault_cancel_contract_params_update",
             args={"netuid": 1},
         )
 
@@ -499,7 +525,9 @@ class TestGovernanceNewForwarders:
         client = TUSDTClient(minimal_config)
         client._read = MagicMock()
         mock_kp = MagicMock()
-        with patch("tusdt_cli.client.unwrap_plain", return_value="5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"):
+        with patch(
+            "tusdt_cli.client.unwrap_plain", return_value="5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+        ):
             result = client.gov_get_vault_hotkey(mock_kp)
             assert result == "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
         client._read.assert_called_once_with(client.governance, mock_kp, "vault_get_hotkey")
@@ -511,11 +539,11 @@ class TestGovernanceNewForwarders:
         client = TUSDTClient(minimal_config)
         client._exec = MagicMock()
         mock_kp = MagicMock()
-        client.gov_set_vault_hotkey(
-            mock_kp, "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", [1, 3]
-        )
+        client.gov_set_vault_hotkey(mock_kp, "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", [1, 3])
         client._exec.assert_called_once_with(
-            client.governance, mock_kp, "vault_set_hotkey",
+            client.governance,
+            mock_kp,
+            "vault_set_hotkey",
             args={"new_hotkey": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", "netuids": [1, 3]},
         )
 
@@ -528,7 +556,10 @@ class TestGovernanceNewForwarders:
         mock_kp = MagicMock()
         client.gov_transfer_native_to_treasury(mock_kp)
         client._exec.assert_called_once_with(
-            client.governance, mock_kp, "vault_transfer_native_to_treasury", args={},
+            client.governance,
+            mock_kp,
+            "vault_transfer_native_to_treasury",
+            args={},
         )
 
 
@@ -538,9 +569,7 @@ class TestLendingNewMessages:
     @patch("tusdt_cli.client.SubstrateInterface")
     @patch("tusdt_cli.client.ContractMetadata")
     @patch("tusdt_cli.client.ContractInstance")
-    def test_lending_get_last_interest_accrual_times(
-        self, mock_ci, mock_meta, mock_sub, minimal_config
-    ):
+    def test_lending_get_last_interest_accrual_times(self, mock_ci, mock_meta, mock_sub, minimal_config):
         """lending_get_last_interest_accrual_times reads with no args and unwraps the Option."""
         client = TUSDTClient(minimal_config)
         client._read = MagicMock()
@@ -548,16 +577,12 @@ class TestLendingNewMessages:
         with patch("tusdt_cli.client.unwrap_option", return_value=[1723766400000, 1723852800000]):
             result = client.lending_get_last_interest_accrual_times(mock_kp)
             assert result == [1723766400000, 1723852800000]
-        client._read.assert_called_once_with(
-            client.lending, mock_kp, "get_last_interest_accrual_times"
-        )
+        client._read.assert_called_once_with(client.lending, mock_kp, "get_last_interest_accrual_times")
 
     @patch("tusdt_cli.client.SubstrateInterface")
     @patch("tusdt_cli.client.ContractMetadata")
     @patch("tusdt_cli.client.ContractInstance")
-    def test_lending_get_last_interest_accrual_times_none(
-        self, mock_ci, mock_meta, mock_sub, minimal_config
-    ):
+    def test_lending_get_last_interest_accrual_times_none(self, mock_ci, mock_meta, mock_sub, minimal_config):
         """lending_get_last_interest_accrual_times returns None when the Option is None."""
         client = TUSDTClient(minimal_config)
         client._read = MagicMock()
@@ -565,21 +590,102 @@ class TestLendingNewMessages:
         with patch("tusdt_cli.client.unwrap_option", return_value=None):
             result = client.lending_get_last_interest_accrual_times(mock_kp)
             assert result is None
-        client._read.assert_called_once_with(
-            client.lending, mock_kp, "get_last_interest_accrual_times"
-        )
+        client._read.assert_called_once_with(client.lending, mock_kp, "get_last_interest_accrual_times")
 
     @patch("tusdt_cli.client.SubstrateInterface")
     @patch("tusdt_cli.client.ContractMetadata")
     @patch("tusdt_cli.client.ContractInstance")
-    def test_lending_accrue_market_interest(
-        self, mock_ci, mock_meta, mock_sub, minimal_config
-    ):
+    def test_lending_accrue_market_interest(self, mock_ci, mock_meta, mock_sub, minimal_config):
         """lending_accrue_market_interest execs with empty args (no-arg permissionless call)."""
         client = TUSDTClient(minimal_config)
         client._exec = MagicMock()
         mock_kp = MagicMock()
         client.lending_accrue_market_interest(mock_kp)
         client._exec.assert_called_once_with(
-            client.lending, mock_kp, "accrue_market_interest", args={},
+            client.lending,
+            mock_kp,
+            "accrue_market_interest",
+            args={},
         )
+
+
+class TestLendingRootStakeMessages:
+    """Tests for the new idle-TAO root-stake lending messages."""
+
+    @patch("tusdt_cli.client.SubstrateInterface")
+    @patch("tusdt_cli.client.ContractMetadata")
+    @patch("tusdt_cli.client.ContractInstance")
+    def test_lending_set_root_stake_config(self, mock_ci, mock_meta, mock_sub, minimal_config):
+        """lending_set_root_stake_config execs with all five config args."""
+        client = TUSDTClient(minimal_config)
+        client._exec = MagicMock()
+        mock_kp = MagicMock()
+        client.lending_set_root_stake_config(
+            mock_kp,
+            root_hotkey="5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+            staking_enabled=True,
+            stake_buffer=1_000_000_000,
+            sweep_threshold=0,
+            stake_floor=2_000_000,
+        )
+        client._exec.assert_called_once_with(
+            client.lending,
+            mock_kp,
+            "set_root_stake_config",
+            args={
+                "root_hotkey": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+                "staking_enabled": True,
+                "stake_buffer": 1_000_000_000,
+                "sweep_threshold": 0,
+                "stake_floor": 2_000_000,
+            },
+        )
+
+    @patch("tusdt_cli.client.SubstrateInterface")
+    @patch("tusdt_cli.client.ContractMetadata")
+    @patch("tusdt_cli.client.ContractInstance")
+    def test_lending_sweep(self, mock_ci, mock_meta, mock_sub, minimal_config):
+        """lending_sweep execs with empty args (no-arg permissionless call)."""
+        client = TUSDTClient(minimal_config)
+        client._exec = MagicMock()
+        mock_kp = MagicMock()
+        client.lending_sweep(mock_kp)
+        client._exec.assert_called_once_with(
+            client.lending,
+            mock_kp,
+            "sweep",
+            args={},
+        )
+
+    @patch("tusdt_cli.client.SubstrateInterface")
+    @patch("tusdt_cli.client.ContractMetadata")
+    @patch("tusdt_cli.client.ContractInstance")
+    def test_lending_get_tao_staked(self, mock_ci, mock_meta, mock_sub, minimal_config):
+        """lending_get_tao_staked reads with no args and unwraps the Result."""
+        client = TUSDTClient(minimal_config)
+        client._read = MagicMock()
+        mock_kp = MagicMock()
+        with patch("tusdt_cli.client.unwrap_result", return_value=1_000_000_000):
+            result = client.lending_get_tao_staked(mock_kp)
+            assert result == 1_000_000_000
+        client._read.assert_called_once_with(client.lending, mock_kp, "get_tao_staked")
+
+    @patch("tusdt_cli.client.SubstrateInterface")
+    @patch("tusdt_cli.client.ContractMetadata")
+    @patch("tusdt_cli.client.ContractInstance")
+    def test_lending_get_root_stake_config(self, mock_ci, mock_meta, mock_sub, minimal_config):
+        """lending_get_root_stake_config reads with no args and unwraps the Result."""
+        client = TUSDTClient(minimal_config)
+        client._read = MagicMock()
+        mock_kp = MagicMock()
+        fake_config = {
+            "root_hotkey": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+            "staking_enabled": False,
+            "stake_buffer": 1_000_000_000,
+            "sweep_threshold": 0,
+            "stake_floor": 2_000_000,
+        }
+        with patch("tusdt_cli.client.unwrap_result", return_value=fake_config):
+            result = client.lending_get_root_stake_config(mock_kp)
+            assert result == fake_config
+        client._read.assert_called_once_with(client.lending, mock_kp, "get_root_stake_config")

@@ -41,6 +41,56 @@ class HelpfulGroup(click.Group):
     command_class = HelpfulCommand
 
 
+class ModeAwareGroup(HelpfulGroup):
+    """Group that hides advanced/dev commands unless ``access_mode == "dev"``.
+
+    Command names in *advanced* are dropped from ``--help`` listings and
+    rejected when the saved config's ``access_mode`` is not ``dev``
+    (switch with ``tusdt config set --access-mode dev``).  In user mode a
+    tip is appended to the help output.
+    """
+
+    def __init__(self, *args: Any, advanced: set[str] | None = None, **kwargs: Any) -> None:
+        self.advanced_commands: set[str] = set(advanced or ())
+        super().__init__(*args, **kwargs)
+        # Click may deliver unknown attrs via ``setattr`` on older versions —
+        # pick up an ``advanced`` attribute if it was set that way.
+        legacy: Any = getattr(self, "advanced", None)
+        if legacy:
+            self.advanced_commands = set(legacy)
+
+    def _dev_mode(self) -> bool:
+        try:
+            from tusdt_cli.config import load_config
+        except ImportError:  # pragma: no cover - config module is always present
+            return False
+        try:
+            return load_config().get("access_mode", "user") == "dev"
+        except Exception:
+            return False
+
+    def list_commands(self, ctx: click.Context) -> list[str]:
+        commands = super().list_commands(ctx)
+        if self._dev_mode():
+            return commands
+        return [name for name in commands if name not in self.advanced_commands]
+
+    def get_command(self, ctx: click.Context, cmd_name: str):
+        if not self._dev_mode() and cmd_name in self.advanced_commands:
+            return None
+        return super().get_command(ctx, cmd_name)
+
+    def format_help(self, ctx: click.Context, formatter: click.HelpFormatter) -> None:
+        super().format_help(ctx, formatter)
+        if not self._dev_mode() and self.advanced_commands:
+            formatter.write_paragraph()
+            with formatter.section("Tip"):
+                formatter.write_text(
+                    "Some advanced commands are hidden in user mode. "
+                    "Show them with: tusdt config set --access-mode dev"
+                )
+
+
 # ---------------------------------------------------------------------------
 # Balance conversion
 # ---------------------------------------------------------------------------

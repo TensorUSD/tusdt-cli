@@ -67,6 +67,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "wallet_hotkey": "default",
     "wallet_path": str(Path.home() / ".bittensor" / "wallets"),
     "decimals": 9,
+    "access_mode": "user",
     "signer_address": None,
 }
 

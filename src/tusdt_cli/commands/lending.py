@@ -8,12 +8,17 @@ from tusdt_cli.context import CLIContext
 from tusdt_cli.globals import network_option, wallet_option
 from tusdt_cli.utils import (
     HelpfulGroup,
+    ModeAwareGroup,
+    format_balance,
     parse_balance,
 )
 from tusdt_cli.wallet import get_reader_keypair
 
+# Commands hidden unless the saved config has access_mode = "dev".
+_ADVANCED: set[str] = {"root-stake-config", "sweep"}
 
-@click.group("lending", cls=HelpfulGroup)
+
+@click.group("lending", cls=ModeAwareGroup, advanced=_ADVANCED)
 def lending_group() -> None:
     """Manage the TUSDT lending pool — supply, borrow, and alpha collateral."""
 
@@ -1352,3 +1357,138 @@ def update_maintainer(
     state.wallet_name = wallet_name or state.wallet_name
     state.submit(lambda c, kp: c.lending_update_maintainer(kp, new_maintainer))
     state.output.success("Maintainer updated successfully.")
+
+
+# ======================================================================
+# Idle-TAO root staking
+# ======================================================================
+
+
+@lending_group.command("tao-staked")
+@network_option
+@click.pass_context
+def tao_staked(ctx: click.Context, network: str | None) -> None:
+    """Show the booked TAO currently staked on the root subnet (netuid 0)."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    result = state.run_read(lambda c: c.lending_get_tao_staked(kp))
+    decimals = cfg.get("decimals", 9)
+    state.output.detail(
+        "TAO Staked (Root Subnet)",
+        {
+            "Raw (rao)": result,
+            "TAO": format_balance(result, decimals),
+        },
+    )
+
+
+@lending_group.group("root-stake-config", cls=HelpfulGroup, invoke_without_command=True)
+@network_option
+@click.pass_context
+def root_stake_config(ctx: click.Context, network: str | None) -> None:
+    """Show the idle-TAO root-subnet staking configuration (advanced command).
+
+    Use ``root-stake-config set`` to update it.
+    """
+    if ctx.invoked_subcommand is not None:
+        return
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    result = state.run_read(lambda c: c.lending_get_root_stake_config(kp))
+    if not isinstance(result, dict):
+        state.output.detail("Root Stake Config", {"Result": result})
+        return
+    decimals = cfg.get("decimals", 9)
+    state.output.table(
+        "Root Stake Config",
+        ["Root Hotkey", "Staking Enabled", "Stake Buffer", "Sweep Threshold", "Stake Floor"],
+        [
+            [
+                result.get("root_hotkey"),
+                result.get("staking_enabled"),
+                format_balance(result.get("stake_buffer", 0), decimals),
+                format_balance(result.get("sweep_threshold", 0), decimals),
+                format_balance(result.get("stake_floor", 0), decimals),
+            ]
+        ],
+    )
+
+
+@root_stake_config.command("set")
+@click.option("--hotkey", required=True, help="Pool hotkey SS58 address used for root staking")
+@click.option(
+    "--enabled/--no-enabled",
+    "staking_enabled",
+    default=None,
+    required=True,
+    help="Enable or disable idle-TAO staking",
+)
+@click.option(
+    "--buffer",
+    required=True,
+    help="Idle TAO kept free for withdrawals (9-decimal amount, e.g. 1 = 1 TAO)",
+)
+@click.option(
+    "--threshold",
+    required=True,
+    help="Extra free TAO required before a sweep stakes (9-decimal amount)",
+)
+@click.option(
+    "--floor",
+    required=True,
+    help="Minimum TAO a single sweep stakes (9-decimal amount)",
+)
+@wallet_option
+@network_option
+@click.pass_context
+def root_stake_config_set(
+    ctx: click.Context,
+    hotkey: str,
+    staking_enabled: bool | None,
+    buffer: str,
+    threshold: str,
+    floor: str,
+    wallet_name: str | None,
+    network: str | None,
+) -> None:
+    """Update the idle-TAO root-subnet staking configuration (governance-gated).
+
+    The contract enforces ``stake_floor >= 2_000_000`` rao and
+    ``stake_buffer >= stake_floor``.  Rotating the hotkey while TAO is
+    staked fully unstakes the pool's root position first.
+    """
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    cfg = state.make_config()
+    decimals = cfg.get("decimals", 9)
+    raw_buffer = parse_balance(buffer, decimals)
+    raw_threshold = parse_balance(threshold, decimals)
+    raw_floor = parse_balance(floor, decimals)
+    state.submit(
+        lambda c, kp: c.lending_set_root_stake_config(
+            kp, hotkey, bool(staking_enabled), raw_buffer, raw_threshold, raw_floor
+        )
+    )
+    state.output.success("Root stake config updated successfully.")
+
+
+@lending_group.command("sweep")
+@wallet_option
+@network_option
+@click.pass_context
+def sweep(ctx: click.Context, wallet_name: str | None, network: str | None) -> None:
+    """Stake excess idle TAO into the root subnet (permissionless keeper call).
+
+    Advanced command.  No-op when staking is disabled, the pool is paused,
+    the excess is below the stake floor, or a sweep already ran this block.
+    """
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    state.wallet_name = wallet_name or state.wallet_name
+    state.submit(lambda c, kp: c.lending_sweep(kp))
+    state.output.success("Sweep submitted successfully.")

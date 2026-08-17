@@ -2670,6 +2670,128 @@
         "args": [
           {
             "docs": [
+              "TAO amount staked (9-decimal units)."
+            ],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when idle TAO is staked onto the root subnet (netuid 0)."
+        ],
+        "label": "StakedIdleTao",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xab9a8e732d8ca2d51504dfc7da4e28ebc0a6ae7b8d4785baef5fed46743d9dbe"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "TAO amount received back into the free balance (9-decimal units)."
+            ],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when staked TAO is unstaked from the root subnet (netuid 0)",
+          "to cover an outflow."
+        ],
+        "label": "UnstakedIdleTao",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xf57e315e0b5db79ce6c32dfc2fe93ee2ae65e45e7f3f042f7b66b09bc77ccf2a"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Hotkey the pool stakes idle TAO to on the root subnet (netuid 0)."
+            ],
+            "indexed": false,
+            "label": "root_hotkey",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "Whether staking is enabled."
+            ],
+            "indexed": false,
+            "label": "staking_enabled",
+            "type": {
+              "displayName": [
+                "bool"
+              ],
+              "type": 48
+            }
+          },
+          {
+            "docs": [
+              "Free native TAO the sweep leaves untouched."
+            ],
+            "indexed": false,
+            "label": "stake_buffer",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [
+              "Sweeps trigger only once the free balance exceeds buffer + threshold."
+            ],
+            "indexed": false,
+            "label": "sweep_threshold",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [
+              "Minimum root stake amount."
+            ],
+            "indexed": false,
+            "label": "stake_floor",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the root-subnet staking configuration is updated."
+        ],
+        "label": "RootStakeConfigUpdated",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x419c61c24946db812c53a52bfbf975d328fd0959788fc87620bd7dc75c8fb746"
+      },
+      {
+        "args": [
+          {
+            "docs": [
               "New maintainer account."
             ],
             "indexed": true,

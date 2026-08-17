@@ -2282,6 +2282,53 @@ class TUSDTClient:
         return self._exec(self.lending, keypair, "transfer_native_to_treasury")
 
     # ==================================================================
+    # Lending pool — idle-TAO root staking
+    # ==================================================================
+
+    def lending_set_root_stake_config(
+        self,
+        keypair: Keypair,
+        root_hotkey: str,
+        staking_enabled: bool,
+        stake_buffer: int,
+        sweep_threshold: int,
+        stake_floor: int,
+    ) -> dict[str, Any] | DryRunResult:
+        """Update the idle-TAO root-subnet staking configuration (governance-gated).
+
+        ``staking_enabled`` is an off-switch (default false).  ``sweep`` stakes
+        only the excess above ``stake_buffer + sweep_threshold`` and always
+        keeps ``stake_floor`` liquid.  The contract enforces
+        ``stake_floor >= 2_000_000`` rao and ``stake_buffer >= stake_floor``;
+        rotating the hotkey with stake outstanding fully unstakes first.
+        """
+        return self._exec(
+            self.lending,
+            keypair,
+            "set_root_stake_config",
+            args={
+                "root_hotkey": root_hotkey,
+                "staking_enabled": staking_enabled,
+                "stake_buffer": stake_buffer,
+                "sweep_threshold": sweep_threshold,
+                "stake_floor": stake_floor,
+            },
+        )
+
+    def lending_sweep(self, keypair: Keypair) -> dict[str, Any] | DryRunResult:
+        """Stake excess idle TAO into the root subnet (permissionless keeper call).
+
+        No-op when staking is disabled, the pool is paused, the excess is
+        below ``stake_floor``, or a sweep already ran this block.
+        """
+        return self._exec(
+            self.lending,
+            keypair,
+            "sweep",
+            args={},
+        )
+
+    # ==================================================================
     # Lending pool — queries / getters
     # ==================================================================
 
@@ -2463,6 +2510,16 @@ class TUSDTClient:
         """Get current global pool parameters."""
         result = self._read(self.lending, keypair, "get_global_params")
         return unwrap_plain(result)
+
+    def lending_get_tao_staked(self, keypair: Keypair) -> int:
+        """Get the booked TAO currently staked on the root subnet (raw rao)."""
+        result = self._read(self.lending, keypair, "get_tao_staked")
+        return unwrap_result(result)
+
+    def lending_get_root_stake_config(self, keypair: Keypair) -> dict:
+        """Get the current idle-TAO root-subnet staking configuration."""
+        result = self._read(self.lending, keypair, "get_root_stake_config")
+        return unwrap_result(result)
 
     def lending_get_market_params(self, keypair: Keypair, market_id: int) -> dict | None:
         """Get interest-rate parameters for a market (0 = TAO, 1 = TUSDT).
