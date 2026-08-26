@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x3288f04f2d463d49cfbdad69a9b70cadf38470eae65273f58ca12627d1ed492b",
+    "hash": "0xf01cc2b131a3b7577330f1b803c36a461d20477ef02639f90fa4a0b2e7982153",
     "language": "ink! 5.1.1",
     "compiler": "rustc 1.89.0",
     "build_info": {
@@ -1981,6 +1981,96 @@
         "label": "ReserveClaimed",
         "module_path": "tusdt_lending_pool::lending_pool",
         "signature_topic": "0xfaadc011c05216b2df7758319be5cfca55c59fc47f48e8291acf9766aeedc608"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Market id (0 = TAO, 1 = TUSDT)."
+            ],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [
+              "Borrower whose position was written off."
+            ],
+            "indexed": true,
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [
+              "Face amount written off (9-decimal units), frozen at this value."
+            ],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when a liquidation consumes a borrower's entire collateral",
+          "position on a netuid while debt remains on the debt market. The",
+          "residual debt is removed from the ledger (so utilization and rates are",
+          "not poisoned by uncollectible debt) and frozen as an unfunded market",
+          "deficit that does not compound."
+        ],
+        "label": "DeficitReported",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0x963457d66a90cd4ba268b078ba76a6a1fda609d827d2fa6ee203cbd576ee4eff"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Market id (0 = TAO, 1 = TUSDT)."
+            ],
+            "indexed": true,
+            "label": "market",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "docs": [
+              "Deficit amount covered (9-decimal units)."
+            ],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the maintainer covers part of a market's deficit from",
+          "`reserve_accrued` (the treasury's reserve claim absorbs the loss)."
+        ],
+        "label": "DeficitCovered",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xaaaa215f89a178aad6b6d0cc6fb1177cc254fd380bb1a9abeb3f4c030a8d4a82"
       },
       {
         "args": [
@@ -8420,6 +8510,11 @@
               },
               {
                 "name": "performance_fee",
+                "type": 6,
+                "typeName": "u32"
+              },
+              {
+                "name": "full_close_hf_threshold",
                 "type": 6,
                 "typeName": "u32"
               },

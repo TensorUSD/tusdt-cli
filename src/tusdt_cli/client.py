@@ -2337,6 +2337,11 @@ class TUSDTClient:
         result = self._read(self.lending, keypair, "get_market_state", args={"market_id": market_id})
         return unwrap_option(result)
 
+    def lending_get_market_deficit(self, keypair: Keypair, market_id: int) -> int | None:
+        """Get a market's frozen bad-debt deficit (face units), or None when nothing is booked."""
+        result = self._read(self.lending, keypair, "get_market_deficit", args={"market_id": market_id})
+        return unwrap_option(result)
+
     def lending_get_position(self, keypair: Keypair, market_id: int, user: str) -> dict | None:
         """Get a user's position in a lending market."""
         result = self._read(

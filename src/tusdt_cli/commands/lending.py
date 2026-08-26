@@ -570,6 +570,12 @@ def cancel_market_params_update(
 @click.option("--max-oracle-age-ms", type=int, default=None, help="Maximum oracle price age in ms")
 @click.option("--close-factor", type=int, default=None, help="Close factor in BPS (e.g. 5000 = 50%)")
 @click.option("--performance-fee", type=int, default=None, help="Performance fee in BPS")
+@click.option(
+    "--full-close-hf-threshold",
+    type=int,
+    default=9500,
+    help="Full-close health-factor threshold in BPS (e.g. 9500 = 0.95); below it a liquidation may cover 100% of debt (0 < value <= 10000)",
+)
 @click.option("--supply-cap-tao", type=str, default=None, help="TAO supply cap (0 = unlimited)")
 @click.option("--supply-cap-tusdt", type=str, default=None, help="TUSDT supply cap (0 = unlimited)")
 @click.option("--borrow-cap-tao", type=str, default=None, help="TAO borrow cap (0 = unlimited)")
@@ -582,6 +588,7 @@ def set_global_params(
     max_oracle_age_ms: int | None,
     close_factor: int | None,
     performance_fee: int | None,
+    full_close_hf_threshold: int | None,
     supply_cap_tao: str | None,
     supply_cap_tusdt: str | None,
     borrow_cap_tao: str | None,
@@ -592,6 +599,8 @@ def set_global_params(
     """Schedule global params update (60s timelock). Governance only.
 
     Only provided options are changed; others keep their current values.
+    ``--full-close-hf-threshold`` defaults to the contract default (9500 BPS);
+    pass it explicitly to change the full-close liquidation threshold.
     """
     state: CLIContext = ctx.obj
     state.network = network or state.network
@@ -605,6 +614,8 @@ def set_global_params(
         config["close_factor"] = close_factor
     if performance_fee is not None:
         config["performance_fee"] = performance_fee
+    if full_close_hf_threshold is not None:
+        config["full_close_hf_threshold"] = full_close_hf_threshold
     if supply_cap_tao is not None:
         config["supply_cap_tao"] = parse_balance(supply_cap_tao, decimals)
     if supply_cap_tusdt is not None:
@@ -882,6 +893,27 @@ def market_state(ctx: click.Context, market_id: int, network: str | None) -> Non
     state.output.detail("Market State", {"Result": result})
 
 
+@lending_group.command("market-deficit")
+@click.option("--market-id", required=True, type=int, help="Market ID: 0 for TAO, 1 for TUSDT")
+@network_option
+@click.pass_context
+def market_deficit(ctx: click.Context, market_id: int, network: str | None) -> None:
+    """Show a market's frozen bad-debt deficit (face units of the market's asset).
+
+    A deficit is the residual of a write-off during liquidation, booked when
+    the borrower's collateral was exhausted. None means nothing is booked.
+    """
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    result = state.run_read(lambda c: c.lending_get_market_deficit(kp, market_id))
+    if result is None:
+        state.output.info(f"No deficit booked for market {market_id}")
+        return
+    state.output.detail("Market Deficit", {"Result": result})
+
+
 @lending_group.command("position")
 @click.option("--market-id", required=True, type=int, help="Market ID: 0 for TAO, 1 for TUSDT")
 @click.option("--user", required=True, help="User SS58 address")
@@ -1111,10 +1143,12 @@ def _project_user_debt(state: CLIContext, kp: Any, market_id: int, user: str) ->
         now_ms = int(time.time() * 1000)
 
         params_inner = {
-            "base": lending_interest.bps_to_ratio_inner(_dict_field(params, "base_rate", 0)),
-            "slope1": lending_interest.bps_to_ratio_inner(_dict_field(params, "slope1", 0)),
-            "slope2": lending_interest.bps_to_ratio_inner(_dict_field(params, "slope2", 0)),
-            "optimal": lending_interest.bps_to_ratio_inner(_dict_field(params, "optimal_utilization", 0)),
+            "base": lending_interest.bps_to_ratio_inner(_dict_field(params, "base_rate", default=0)),
+            "slope1": lending_interest.bps_to_ratio_inner(_dict_field(params, "slope1", default=0)),
+            "slope2": lending_interest.bps_to_ratio_inner(_dict_field(params, "slope2", default=0)),
+            "optimal": lending_interest.bps_to_ratio_inner(
+                _dict_field(params, "optimal_utilization", default=0)
+            ),
         }
         projection = lending_interest.project_debt(
             scaled_debt,

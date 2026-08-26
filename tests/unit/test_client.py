@@ -608,6 +608,53 @@ class TestLendingNewMessages:
             args={},
         )
 
+    @patch("tusdt_cli.client.SubstrateInterface")
+    @patch("tusdt_cli.client.ContractMetadata")
+    @patch("tusdt_cli.client.ContractInstance")
+    def test_lending_set_global_params(self, mock_ci, mock_meta, mock_sub, minimal_config):
+        """lending_set_global_params passes the config dict (incl. full_close_hf_threshold)."""
+        client = TUSDTClient(minimal_config)
+        client._exec = MagicMock()
+        mock_kp = MagicMock()
+        config = {"close_factor": 5000, "full_close_hf_threshold": 9500}
+        client.lending_set_global_params(mock_kp, config)
+        client._exec.assert_called_once_with(
+            client.lending,
+            mock_kp,
+            "set_global_params",
+            args={"config": config},
+        )
+
+    @patch("tusdt_cli.client.SubstrateInterface")
+    @patch("tusdt_cli.client.ContractMetadata")
+    @patch("tusdt_cli.client.ContractInstance")
+    def test_lending_get_market_deficit(self, mock_ci, mock_meta, mock_sub, minimal_config):
+        """lending_get_market_deficit reads with market_id and unwraps the Option."""
+        client = TUSDTClient(minimal_config)
+        client._read = MagicMock()
+        mock_kp = MagicMock()
+        with patch("tusdt_cli.client.unwrap_option", return_value=1_250_000_000_000):
+            result = client.lending_get_market_deficit(mock_kp, 1)
+            assert result == 1_250_000_000_000
+        client._read.assert_called_once_with(
+            client.lending, mock_kp, "get_market_deficit", args={"market_id": 1}
+        )
+
+    @patch("tusdt_cli.client.SubstrateInterface")
+    @patch("tusdt_cli.client.ContractMetadata")
+    @patch("tusdt_cli.client.ContractInstance")
+    def test_lending_get_market_deficit_none(self, mock_ci, mock_meta, mock_sub, minimal_config):
+        """lending_get_market_deficit returns None when the Option is None (nothing booked)."""
+        client = TUSDTClient(minimal_config)
+        client._read = MagicMock()
+        mock_kp = MagicMock()
+        with patch("tusdt_cli.client.unwrap_option", return_value=None):
+            result = client.lending_get_market_deficit(mock_kp, 0)
+            assert result is None
+        client._read.assert_called_once_with(
+            client.lending, mock_kp, "get_market_deficit", args={"market_id": 0}
+        )
+
 
 class TestLendingRootStakeMessages:
     """Tests for the new idle-TAO root-stake lending messages."""
