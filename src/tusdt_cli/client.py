@@ -2029,22 +2029,20 @@ class TUSDTClient:
         self,
         keypair: Keypair,
         borrower: str,
-        debt_market: int,
-        debt_to_cover: int,
-        collateral_netuid: int,
         value: int = 0,
     ) -> dict[str, Any] | DryRunResult:
-        """Liquidate an underwater borrower. Attach native TAO when debt_market=0."""
+        """Liquidate an underwater borrower (full-seizure).
+
+        The borrower's full debt on both markets is repaid — TAO via the
+        attached native ``value`` and TUSDT via ``transfer_from`` — and all
+        of the borrower's alpha collateral is seized, minus the platform's
+        liquidation fee.
+        """
         return self._exec(
             self.lending,
             keypair,
             "liquidate",
-            args={
-                "borrower": borrower,
-                "debt_market": debt_market,
-                "debt_to_cover": debt_to_cover,
-                "collateral_netuid": collateral_netuid,
-            },
+            args={"borrower": borrower},
             value=value,
         )
 

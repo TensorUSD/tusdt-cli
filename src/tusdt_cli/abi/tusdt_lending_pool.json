@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xecc9004259268617f914522f0e022c7367c993fdbb3d0df19768707b39aaee96",
+    "hash": "0xc8d2cc807fe53a1ae533da0aaece0902eac1f27dbdd288d02c5525eba828be87",
     "language": "ink! 5.1.1",
     "compiler": "rustc 1.89.0",
     "build_info": {
@@ -668,58 +668,6 @@
           },
           {
             "docs": [
-              "Netuid of the seized alpha collateral."
-            ],
-            "indexed": true,
-            "label": "collateral_netuid",
-            "type": {
-              "displayName": [
-                "u16"
-              ],
-              "type": 23
-            }
-          },
-          {
-            "docs": [
-              "Debt market repaid (0 = TAO, 1 = TUSDT)."
-            ],
-            "indexed": false,
-            "label": "debt_market",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 2
-            }
-          },
-          {
-            "docs": [
-              "Debt units repaid by the liquidator."
-            ],
-            "indexed": false,
-            "label": "debt_covered",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
-          },
-          {
-            "docs": [
-              "Effective alpha seized (equals the principal seized)."
-            ],
-            "indexed": false,
-            "label": "collateral_alpha",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
-          },
-          {
-            "docs": [
               "Account that performed the liquidation."
             ],
             "indexed": true,
@@ -730,14 +678,97 @@
               ],
               "type": 0
             }
+          },
+          {
+            "docs": [
+              "Netuids of the seized alpha collateral."
+            ],
+            "indexed": false,
+            "label": "collateral_netuids",
+            "type": {
+              "displayName": [
+                "Vec"
+              ],
+              "type": 87
+            }
+          },
+          {
+            "docs": [
+              "Total alpha principal seized across all netuids."
+            ],
+            "indexed": false,
+            "label": "collateral_seized",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [
+              "Platform's share of the seized alpha, transferred to the platform",
+              "role account."
+            ],
+            "indexed": false,
+            "label": "platform_alpha",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [
+              "TAO debt repaid by the liquidator (9-decimal units)."
+            ],
+            "indexed": false,
+            "label": "debt_covered_tao",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [
+              "TUSDT debt repaid by the liquidator (9-decimal units)."
+            ],
+            "indexed": false,
+            "label": "debt_covered_tusdt",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [
+              "Face debt written off as a market deficit (0 when the collateral",
+              "covers the debt)."
+            ],
+            "indexed": false,
+            "label": "deficit",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 4
+            }
           }
         ],
         "docs": [
-          "Emitted when an underwater position is liquidated."
+          "Emitted when an underwater position is liquidated in full. The",
+          "liquidator pays the borrower's entire debt (with accrued interest) on",
+          "both markets and receives the borrower's full alpha collateral minus",
+          "the platform's liquidation fee (taken from the collateral itself)."
         ],
         "label": "Liquidated",
         "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x53b00c58bf25adde0c0c6aceba3e7fa27e8774dc382118b8e2482496cd55473a"
+        "signature_topic": "0xda18c5e03bf16970c152467906dd8d57e26c66653b67445b21acff4d78db685c"
       },
       {
         "args": [
@@ -2400,39 +2431,20 @@
               ],
               "type": 0
             }
-          },
-          {
-            "label": "debt_market",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 2
-            }
-          },
-          {
-            "label": "debt_to_cover",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
-          },
-          {
-            "label": "collateral_netuid",
-            "type": {
-              "displayName": [
-                "u16"
-              ],
-              "type": 23
-            }
           }
         ],
         "default": false,
         "docs": [
-          " Liquidates an underwater position. The liquidator repays debt on behalf of the",
-          " borrower and receives alpha collateral at a discount (liquidation bonus)."
+          " Liquidates an underwater position in full. The liquidator pays the",
+          " borrower's ENTIRE debt on both markets — TAO and TUSDT, with",
+          " accrued interest — and receives the borrower's full alpha",
+          " collateral across every approved netuid, minus the platform's",
+          " liquidation fee: a percentage of the collateral alpha taken by the",
+          " `platform` role account, capped at the surplus share",
+          " (`min(fee, (C − D) / C)`) so the liquidator never loses principal.",
+          " When the collateral cannot cover the debt, the liquidator pays the",
+          " collateral value (break-even) and the residual is written off as a",
+          " market deficit."
         ],
         "label": "liquidate",
         "mutates": true,
@@ -4674,7 +4686,7 @@
                               "name": "Ratio"
                             }
                           },
-                          "name": "liquidation_bonus"
+                          "name": "liquidation_fee"
                         },
                         {
                           "layout": {
@@ -4810,7 +4822,7 @@
                                       "ty": 17
                                     }
                                   },
-                                  "name": "liquidation_bonus"
+                                  "name": "liquidation_fee"
                                 },
                                 {
                                   "layout": {
@@ -4858,44 +4870,6 @@
                         }
                       },
                       "name": "max_oracle_age_ms"
-                    },
-                    {
-                      "layout": {
-                        "struct": {
-                          "fields": [
-                            {
-                              "layout": {
-                                "leaf": {
-                                  "key": "0x00000000",
-                                  "ty": 5
-                                }
-                              },
-                              "name": "0"
-                            }
-                          ],
-                          "name": "Ratio"
-                        }
-                      },
-                      "name": "close_factor"
-                    },
-                    {
-                      "layout": {
-                        "struct": {
-                          "fields": [
-                            {
-                              "layout": {
-                                "leaf": {
-                                  "key": "0x00000000",
-                                  "ty": 5
-                                }
-                              },
-                              "name": "0"
-                            }
-                          ],
-                          "name": "Ratio"
-                        }
-                      },
-                      "name": "full_close_hf_threshold"
                     },
                     {
                       "layout": {
@@ -4967,24 +4941,6 @@
                                             }
                                           },
                                           "name": "max_oracle_age_ms"
-                                        },
-                                        {
-                                          "layout": {
-                                            "leaf": {
-                                              "key": "0x00000000",
-                                              "ty": 17
-                                            }
-                                          },
-                                          "name": "close_factor"
-                                        },
-                                        {
-                                          "layout": {
-                                            "leaf": {
-                                              "key": "0x00000000",
-                                              "ty": 17
-                                            }
-                                          },
-                                          "name": "full_close_hf_threshold"
                                         },
                                         {
                                           "layout": {
@@ -6002,7 +5958,7 @@
                 "typeName": "Ratio"
               },
               {
-                "name": "liquidation_bonus",
+                "name": "liquidation_fee",
                 "type": 8,
                 "typeName": "Ratio"
               },
@@ -6275,7 +6231,7 @@
                 "typeName": "u32"
               },
               {
-                "name": "liquidation_bonus",
+                "name": "liquidation_fee",
                 "type": 17,
                 "typeName": "u32"
               },
@@ -7066,16 +7022,6 @@
                 "typeName": "u64"
               },
               {
-                "name": "close_factor",
-                "type": 8,
-                "typeName": "Ratio"
-              },
-              {
-                "name": "full_close_hf_threshold",
-                "type": 8,
-                "typeName": "Ratio"
-              },
-              {
                 "name": "supply_cap_tao",
                 "type": 4,
                 "typeName": "Balance"
@@ -7176,16 +7122,6 @@
                 "name": "max_oracle_age_ms",
                 "type": 4,
                 "typeName": "u64"
-              },
-              {
-                "name": "close_factor",
-                "type": 17,
-                "typeName": "u32"
-              },
-              {
-                "name": "full_close_hf_threshold",
-                "type": 17,
-                "typeName": "u32"
               },
               {
                 "name": "supply_cap_tao",
