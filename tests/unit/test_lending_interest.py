@@ -10,6 +10,7 @@ from tusdt_cli.lending_interest import (
     RATIO_SCALE,
     bps_to_ratio_inner,
     compute_borrow_rate,
+    derive_cash,
     pow_fixed,
     project_debt,
 )
@@ -180,3 +181,31 @@ class TestProjectDebtAccrual:
         assert result["projected_index_inner"] == RATIO_SCALE + 1
         assert result["projected_debt"] == 2
         assert result["interest_delta"] == 0
+
+
+class TestDeriveCash:
+    def test_invariant_matches_physical_cash_with_staked_tao(self):
+        # Balance-sheet invariant: cash = supplier_face + reserve − debt.
+        # Root-subnet-staked TAO is implicitly included — the contract's
+        # market_cash(0) = env().balance() + staked_tao, and the invariant is
+        # defined on that sum. Free 10 TAO + staked 40 TAO = 50 TAO cash with
+        # supplier face 100, debt 50, reserve 0.
+        cash = derive_cash(
+            total_supplied=100 * 10**9,
+            exchange_rate_inner=RATIO_SCALE,
+            total_debt=50 * 10**9,
+            reserve_accrued=0,
+        )
+        assert cash == 50 * 10**9
+
+    def test_reserve_is_included(self):
+        cash = derive_cash(
+            total_supplied=100 * 10**9,
+            exchange_rate_inner=RATIO_SCALE,
+            total_debt=50 * 10**9,
+            reserve_accrued=3 * 10**9,
+        )
+        assert cash == 53 * 10**9
+
+    def test_negative_result_clamps_to_zero(self):
+        assert derive_cash(10 * 10**9, RATIO_SCALE, 50 * 10**9, 0) == 0

@@ -316,22 +316,23 @@ def liquidate(
 # ======================================================================
 
 
-@lending_group.command("claim-alpha-yield")
+@lending_group.command("claim-alpha-excess")
 @click.option("--netuid", required=True, type=int, help="Subnet netuid")
 @wallet_option
 @network_option
 @click.pass_context
-def claim_alpha_yield(ctx: click.Context, netuid: int, wallet_name: str | None, network: str | None) -> None:
-    """Claim alpha staking yield for a netuid (permissionless).
+def claim_alpha_excess(ctx: click.Context, netuid: int, wallet_name: str | None, network: str | None) -> None:
+    """Claim excess alpha staking for a netuid (permissionless).
 
-    25 percent performance fee goes to the treasury; 75 percent grows the yield index.
+    Unstakes the full excess (available stake minus booked principal) and
+    sends the TAO directly to the treasury.
     """
     state: CLIContext = ctx.obj
     state.network = network or state.network
     state.wallet_name = wallet_name or state.wallet_name
     state.make_config()
-    state.submit(lambda c, kp: c.lending_claim_alpha_yield(kp, netuid))
-    state.output.success("Alpha yield claimed!")
+    state.submit(lambda c, kp: c.lending_claim_alpha_excess(kp, netuid))
+    state.output.success("Alpha excess claimed and sent to the treasury!")
 
 
 @lending_group.command("claim-reserve")
@@ -569,7 +570,6 @@ def cancel_market_params_update(
 @lending_group.command("set-global-params")
 @click.option("--max-oracle-age-ms", type=int, default=None, help="Maximum oracle price age in ms")
 @click.option("--close-factor", type=int, default=None, help="Close factor in BPS (e.g. 5000 = 50%)")
-@click.option("--performance-fee", type=int, default=None, help="Performance fee in BPS")
 @click.option(
     "--full-close-hf-threshold",
     type=int,
@@ -587,7 +587,6 @@ def set_global_params(
     ctx: click.Context,
     max_oracle_age_ms: int | None,
     close_factor: int | None,
-    performance_fee: int | None,
     full_close_hf_threshold: int | None,
     supply_cap_tao: str | None,
     supply_cap_tusdt: str | None,
@@ -612,8 +611,6 @@ def set_global_params(
         config["max_oracle_age_ms"] = max_oracle_age_ms
     if close_factor is not None:
         config["close_factor"] = close_factor
-    if performance_fee is not None:
-        config["performance_fee"] = performance_fee
     if full_close_hf_threshold is not None:
         config["full_close_hf_threshold"] = full_close_hf_threshold
     if supply_cap_tao is not None:
@@ -1115,11 +1112,12 @@ def _project_user_debt(state: CLIContext, kp: Any, market_id: int, user: str) ->
             reserve_accrued = _dict_field(market_state, "reserve_accrued")
             if total_supplied is None or exchange_rate is None or reserve_accrued is None:
                 return None
-            cash = (
-                total_supplied * exchange_rate // lending_interest.RATIO_SCALE - total_debt + reserve_accrued
+            cash = lending_interest.derive_cash(
+                total_supplied,
+                exchange_rate,
+                total_debt,
+                reserve_accrued,
             )
-            if cash < 0:
-                cash = 0
 
         # Last accrual time: prefer the dedicated message's tuple element;
         # fall back to the market state's last_update when it is missing/zero.
@@ -1138,9 +1136,12 @@ def _project_user_debt(state: CLIContext, kp: Any, market_id: int, user: str) ->
             # from the Unix epoch.
             return None
 
-        # client.py exposes no chain-timestamp helper (no Timestamp pallet
-        # read), so approximate the chain clock with the local wall clock.
-        now_ms = int(time.time() * 1000)
+        # Chain clock (Timestamp pallet, ms) — the same clock the contract's
+        # block_timestamp() reads. The local wall clock is only a fallback: a
+        # skewed client clock shifts dt_hours by a whole hour at boundaries.
+        now_ms = state.run_read(lambda c: c.lending_get_chain_timestamp(kp))
+        if not now_ms:
+            now_ms = int(time.time() * 1000)
 
         params_inner = {
             "base": lending_interest.bps_to_ratio_inner(_dict_field(params, "base_rate", default=0)),
@@ -1226,20 +1227,6 @@ def alpha_position(ctx: click.Context, user: str, netuid: int, network: str | No
     kp = get_reader_keypair(cfg)
     result = state.run_read(lambda c: c.lending_get_user_alpha_position(kp, user, netuid))
     state.output.detail("Alpha Position", {"Result": result})
-
-
-@lending_group.command("alpha-yield-index")
-@click.option("--netuid", required=True, type=int, help="Subnet netuid")
-@network_option
-@click.pass_context
-def alpha_yield_index(ctx: click.Context, netuid: int, network: str | None) -> None:
-    """Show the yield index for a netuid (1e18 scale)."""
-    state: CLIContext = ctx.obj
-    state.network = network or state.network
-    cfg = state.make_config()
-    kp = get_reader_keypair(cfg)
-    result = state.run_read(lambda c: c.lending_get_alpha_yield_index(kp, netuid))
-    state.output.detail("Alpha Yield Index", {"Result": result})
 
 
 @lending_group.command("netuid-total-collateral")

@@ -40,6 +40,27 @@ def bps_to_ratio_inner(bps: int) -> int:
     return bps * 10**14
 
 
+def derive_cash(
+    total_supplied: int,
+    exchange_rate_inner: int,
+    total_debt: int,
+    reserve_accrued: int,
+) -> int:
+    """Derive a market's physical cash from the MarketState balance-sheet
+    invariant ``cash = total_supplied × exchange_rate / 1e18 − total_debt +
+    reserve_accrued`` (all in underlying units, the ratio at 1e18).
+
+    This matches the contract's ``market_cash`` exactly when the pool's books
+    balance. Root-subnet-staked TAO is implicitly included: staking moves free
+    balance into ``staked_tao`` and the invariant is defined on their sum
+    (``market_cash(0) = env().balance() + staked_tao``), so the derived cash
+    must never be replaced by a free-balance-only read. Returns ``0`` for a
+    negative result (drifted/odd state).
+    """
+    cash = total_supplied * exchange_rate_inner // RATIO_SCALE - total_debt + reserve_accrued
+    return max(cash, 0)
+
+
 def pow_fixed(base_inner: int, exp: int) -> int:
     """Fixed-point integer power, flooring at ``RATIO_SCALE`` every step.
 

@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xcb731d4016523fa5e9c4d2c7874f13c7c0aba4c3fb18efe800fe791defcb2244",
+    "hash": "0xa5ad427c5157492a8fdf65115001cd4ad1d36c8351112709e233f730b038e659",
     "language": "ink! 5.1.1",
     "compiler": "rustc 1.89.0",
     "build_info": {
@@ -2399,7 +2399,11 @@
         "default": false,
         "docs": [
           " Transfers surplus TUSDT held by the vault contract to the treasury.",
-          " Callable by governance or platform."
+          " Callable by governance or platform. The claim is clamped to the",
+          " vault's actual TUSDT balance: every TUSDT the vault holds is",
+          " settlement surplus by construction (winning bid minus burned debt),",
+          " and the clamp makes that structural so a future committed-balance",
+          " path can never be swept."
         ],
         "label": "claim_surplus_tusdt",
         "mutates": true,
