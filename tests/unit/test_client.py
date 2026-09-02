@@ -612,17 +612,53 @@ class TestLendingNewMessages:
     @patch("tusdt_cli.client.ContractMetadata")
     @patch("tusdt_cli.client.ContractInstance")
     def test_lending_set_global_params(self, mock_ci, mock_meta, mock_sub, minimal_config):
-        """lending_set_global_params passes the config dict (incl. full_close_hf_threshold)."""
+        """lending_set_global_params passes the config dict through."""
         client = TUSDTClient(minimal_config)
         client._exec = MagicMock()
         mock_kp = MagicMock()
-        config = {"close_factor": 5000, "full_close_hf_threshold": 9500}
+        config = {"max_oracle_age_ms": 60_000, "borrow_cap_tao": 10**18}
         client.lending_set_global_params(mock_kp, config)
         client._exec.assert_called_once_with(
             client.lending,
             mock_kp,
             "set_global_params",
             args={"config": config},
+        )
+
+    @patch("tusdt_cli.client.SubstrateInterface")
+    @patch("tusdt_cli.client.ContractMetadata")
+    @patch("tusdt_cli.client.ContractInstance")
+    def test_lending_liquidate(self, mock_ci, mock_meta, mock_sub, minimal_config):
+        """lending_liquidate execs the full-seizure liquidate(borrower) message."""
+        client = TUSDTClient(minimal_config)
+        client._exec = MagicMock()
+        mock_kp = MagicMock()
+        borrower = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+        client.lending_liquidate(mock_kp, borrower, value=1_000_000_000_000)
+        client._exec.assert_called_once_with(
+            client.lending,
+            mock_kp,
+            "liquidate",
+            args={"borrower": borrower},
+            value=1_000_000_000_000,
+        )
+
+    @patch("tusdt_cli.client.SubstrateInterface")
+    @patch("tusdt_cli.client.ContractMetadata")
+    @patch("tusdt_cli.client.ContractInstance")
+    def test_lending_liquidate_default_value(self, mock_ci, mock_meta, mock_sub, minimal_config):
+        """lending_liquidate defaults to zero native value (dry-run/zero-debt case)."""
+        client = TUSDTClient(minimal_config)
+        client._exec = MagicMock()
+        mock_kp = MagicMock()
+        borrower = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+        client.lending_liquidate(mock_kp, borrower)
+        client._exec.assert_called_once_with(
+            client.lending,
+            mock_kp,
+            "liquidate",
+            args={"borrower": borrower},
+            value=0,
         )
 
     @patch("tusdt_cli.client.SubstrateInterface")

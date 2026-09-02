@@ -2029,22 +2029,20 @@ class TUSDTClient:
         self,
         keypair: Keypair,
         borrower: str,
-        debt_market: int,
-        debt_to_cover: int,
-        collateral_netuid: int,
         value: int = 0,
     ) -> dict[str, Any] | DryRunResult:
-        """Liquidate an underwater borrower. Attach native TAO when debt_market=0."""
+        """Liquidate an underwater borrower (full-seizure).
+
+        The borrower's full debt on both markets is repaid — TAO via the
+        attached native ``value`` and TUSDT via ``transfer_from`` — and all
+        of the borrower's alpha collateral is seized, minus the platform's
+        liquidation fee.
+        """
         return self._exec(
             self.lending,
             keypair,
             "liquidate",
-            args={
-                "borrower": borrower,
-                "debt_market": debt_market,
-                "debt_to_cover": debt_to_cover,
-                "collateral_netuid": collateral_netuid,
-            },
+            args={"borrower": borrower},
             value=value,
         )
 
@@ -2052,12 +2050,14 @@ class TUSDTClient:
     # Lending pool — permissionless claims
     # ==================================================================
 
-    def lending_claim_alpha_yield(self, keypair: Keypair, netuid: int) -> dict[str, Any] | DryRunResult:
-        """Claim alpha yield for a netuid (permissionless)."""
+    def lending_claim_alpha_excess(self, keypair: Keypair, netuid: int) -> dict[str, Any] | DryRunResult:
+        """Claim excess alpha staking for a netuid (permissionless). Unstakes
+        the full excess (available stake minus booked principal) and sends the
+        TAO to the treasury."""
         return self._exec(
             self.lending,
             keypair,
-            "claim_alpha_yield",
+            "claim_alpha_excess",
             args={"netuid": netuid},
         )
 
@@ -2424,10 +2424,16 @@ class TUSDTClient:
         )
         return unwrap_option(result)
 
-    def lending_get_alpha_yield_index(self, keypair: Keypair, netuid: int) -> int | None:
-        """Get the yield index for a netuid (1e18 scale)."""
-        result = self._read(self.lending, keypair, "get_alpha_yield_index", args={"netuid": netuid})
-        return unwrap_option(result)
+    def lending_get_chain_timestamp(self, keypair: Keypair) -> int | None:
+        """Read the chain clock (Timestamp pallet ``Now``, u64 ms) — the same
+        clock the contract's ``block_timestamp()`` uses for interest accrual.
+        Returns ``None`` when the read fails so callers can fall back."""
+        try:
+            sub = cast(Any, self.substrate)
+            value = sub.query("Timestamp", "Now")
+            return int(value)
+        except Exception:
+            return None
 
     def lending_get_netuid_total_collateral(self, keypair: Keypair, netuid: int) -> int | None:
         """Get total alpha collateral deposited for a netuid."""

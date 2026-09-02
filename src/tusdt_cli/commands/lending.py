@@ -271,44 +271,88 @@ def withdraw_alpha(
 
 @lending_group.command("liquidate")
 @click.option("--borrower", required=True, help="Borrower SS58 address to liquidate")
-@click.option("--debt-market", required=True, type=int, help="Debt market: 0 for TAO, 1 for TUSDT")
-@click.option("--debt-to-cover", required=True, help="Amount of debt to cover")
-@click.option("--collateral-netuid", required=True, type=int, help="Collateral netuid to seize")
 @wallet_option
 @network_option
 @click.pass_context
 def liquidate(
     ctx: click.Context,
     borrower: str,
-    debt_market: int,
-    debt_to_cover: str,
-    collateral_netuid: int,
     wallet_name: str | None,
     network: str | None,
 ) -> None:
-    """Liquidate an underwater borrower.
+    """Liquidate an underwater borrower (full seizure).
 
-    For debt_market=0 (TAO), attaches native TAO as transferred value.
-    For debt_market=1 (TUSDT), requires prior token approval.
-    Close factor caps the debt covered to 50 percent of the borrower's total debt.
+    The borrower's FULL debt on both markets is repaid — TAO via the
+    attached native value and TUSDT via transfer_from (requires prior
+    token approval) — and ALL of the borrower's alpha collateral is
+    seized, minus the platform's liquidation fee.
+
+    Before submitting, the borrower's debt on both markets and the
+    TUSDT/TAO oracle price are read so the liquidator sees the exact
+    payment amounts.  When the borrower is underwater the contract
+    clamps the seized collateral, so submitting with the full debt
+    values is safe.
     """
     state: CLIContext = ctx.obj
     state.network = network or state.network
     state.wallet_name = wallet_name or state.wallet_name
     cfg = state.make_config()
-    raw_debt = parse_balance(debt_to_cover, cfg.get("decimals", 9))
-    value = raw_debt if debt_market == 0 else 0
+
+    # Read the borrower's full debt on both markets plus the TUSDT/TAO
+    # oracle price (single client, three contract reads).
+    kp = get_reader_keypair(cfg)
+    debt_tao, debt_tusdt, price_data = state.run_read(
+        lambda c: (
+            c.lending_get_user_debt(kp, 0, borrower),
+            c.lending_get_user_debt(kp, 1, borrower),
+            c.get_latest_price(kp),
+        )
+    )
+
+    # Full-seizure model: the liquidator pays the borrower's whole debt on
+    # both markets.  TAO is paid as native value; TUSDT is pulled via
+    # transfer_from.  If the borrower is underwater the contract clamps the
+    # collateral seized, so the full debt values are always safe to submit.
+    payment_tao = int(debt_tao or 0)
+    payment_tusdt = int(debt_tusdt or 0)
+
+    raw_price = 0
+    if isinstance(price_data, dict):
+        raw_price = int(price_data.get("price", 0) or 0)
+    # Oracle price is TUSDT per TAO as a 1e18 ratio.
+    tusdt_per_tao = raw_price / 10**18 if raw_price else 0.0
+    # TUSDT → TAO equivalent: TUSDT_rao × 1e18 / price (never inverted).
+    tusdt_in_tao = int(payment_tusdt * 10**18 // raw_price) if raw_price else 0
+
+    if payment_tao == 0 and payment_tusdt == 0:
+        state.output.warning("Borrower has no outstanding debt on either market.")
+
+    state.output.info("Liquidation summary (full seizure):")
+    state.output.detail(
+        "Liquidation",
+        {
+            "Borrower": borrower,
+            "TAO payment (native value)": format_balance(payment_tao),
+            "TUSDT payment (transfer_from)": format_balance(payment_tusdt),
+            "TUSDT payment (≈ TAO)": (format_balance(tusdt_in_tao) if raw_price else "n/a (no oracle price)"),
+            "Oracle price (TUSDT per TAO)": (f"{tusdt_per_tao:.10f}" if raw_price else "n/a"),
+        },
+    )
+    state.output.info(
+        "Fee note: the platform retains its liquidation fee from the seized "
+        "alpha (see set-alpha-params --liquidation-fee)."
+    )
+
     state.submit(
         lambda c, kp: c.lending_liquidate(
             kp,
             borrower,
-            debt_market,
-            raw_debt,
-            collateral_netuid,
-            value=value,
+            value=payment_tao,
         )
     )
-    state.output.success("Liquidation submitted successfully!")
+    state.output.success(
+        f"Liquidation submitted successfully! Native TAO value attached: {format_balance(payment_tao)}."
+    )
 
 
 # ======================================================================
@@ -316,22 +360,23 @@ def liquidate(
 # ======================================================================
 
 
-@lending_group.command("claim-alpha-yield")
+@lending_group.command("claim-alpha-excess")
 @click.option("--netuid", required=True, type=int, help="Subnet netuid")
 @wallet_option
 @network_option
 @click.pass_context
-def claim_alpha_yield(ctx: click.Context, netuid: int, wallet_name: str | None, network: str | None) -> None:
-    """Claim alpha staking yield for a netuid (permissionless).
+def claim_alpha_excess(ctx: click.Context, netuid: int, wallet_name: str | None, network: str | None) -> None:
+    """Claim excess alpha staking for a netuid (permissionless).
 
-    25 percent performance fee goes to the treasury; 75 percent grows the yield index.
+    Unstakes the full excess (available stake minus booked principal) and
+    sends the TAO directly to the treasury.
     """
     state: CLIContext = ctx.obj
     state.network = network or state.network
     state.wallet_name = wallet_name or state.wallet_name
     state.make_config()
-    state.submit(lambda c, kp: c.lending_claim_alpha_yield(kp, netuid))
-    state.output.success("Alpha yield claimed!")
+    state.submit(lambda c, kp: c.lending_claim_alpha_excess(kp, netuid))
+    state.output.success("Alpha excess claimed and sent to the treasury!")
 
 
 @lending_group.command("claim-reserve")
@@ -386,7 +431,12 @@ def set_approved_netuid(
     "--collateral-factor", type=int, default=None, help="Collateral factor in BPS (e.g. 5000 = 50%)"
 )
 @click.option("--liquidation-threshold", type=int, default=None, help="Liquidation threshold in BPS")
-@click.option("--liquidation-bonus", type=int, default=None, help="Liquidation bonus in BPS")
+@click.option(
+    "--liquidation-fee",
+    type=int,
+    default=None,
+    help="Liquidation fee in BPS (e.g. 500 = 5% of seized alpha taken by the platform)",
+)
 @click.option("--supply-cap", type=str, default=None, help="Supply cap (0 = unlimited)")
 @wallet_option
 @network_option
@@ -396,7 +446,7 @@ def set_alpha_params(
     netuid: int,
     collateral_factor: int | None,
     liquidation_threshold: int | None,
-    liquidation_bonus: int | None,
+    liquidation_fee: int | None,
     supply_cap: str | None,
     wallet_name: str | None,
     network: str | None,
@@ -427,9 +477,9 @@ def set_alpha_params(
             "liquidation_threshold": liquidation_threshold
             if liquidation_threshold is not None
             else existing.get("liquidation_threshold", 0),
-            "liquidation_bonus": liquidation_bonus
-            if liquidation_bonus is not None
-            else existing.get("liquidation_bonus", 0),
+            "liquidation_fee": liquidation_fee
+            if liquidation_fee is not None
+            else existing.get("liquidation_fee", 0),
             "supply_cap": raw_supply_cap if raw_supply_cap is not None else existing.get("supply_cap", 0),
         }
         return c.lending_set_alpha_params(kp, netuid, config)
@@ -568,14 +618,6 @@ def cancel_market_params_update(
 
 @lending_group.command("set-global-params")
 @click.option("--max-oracle-age-ms", type=int, default=None, help="Maximum oracle price age in ms")
-@click.option("--close-factor", type=int, default=None, help="Close factor in BPS (e.g. 5000 = 50%)")
-@click.option("--performance-fee", type=int, default=None, help="Performance fee in BPS")
-@click.option(
-    "--full-close-hf-threshold",
-    type=int,
-    default=9500,
-    help="Full-close health-factor threshold in BPS (e.g. 9500 = 0.95); below it a liquidation may cover 100% of debt (0 < value <= 10000)",
-)
 @click.option("--supply-cap-tao", type=str, default=None, help="TAO supply cap (0 = unlimited)")
 @click.option("--supply-cap-tusdt", type=str, default=None, help="TUSDT supply cap (0 = unlimited)")
 @click.option("--borrow-cap-tao", type=str, default=None, help="TAO borrow cap (0 = unlimited)")
@@ -586,9 +628,6 @@ def cancel_market_params_update(
 def set_global_params(
     ctx: click.Context,
     max_oracle_age_ms: int | None,
-    close_factor: int | None,
-    performance_fee: int | None,
-    full_close_hf_threshold: int | None,
     supply_cap_tao: str | None,
     supply_cap_tusdt: str | None,
     borrow_cap_tao: str | None,
@@ -599,8 +638,6 @@ def set_global_params(
     """Schedule global params update (60s timelock). Governance only.
 
     Only provided options are changed; others keep their current values.
-    ``--full-close-hf-threshold`` defaults to the contract default (9500 BPS);
-    pass it explicitly to change the full-close liquidation threshold.
     """
     state: CLIContext = ctx.obj
     state.network = network or state.network
@@ -610,12 +647,6 @@ def set_global_params(
     config: dict = {}
     if max_oracle_age_ms is not None:
         config["max_oracle_age_ms"] = max_oracle_age_ms
-    if close_factor is not None:
-        config["close_factor"] = close_factor
-    if performance_fee is not None:
-        config["performance_fee"] = performance_fee
-    if full_close_hf_threshold is not None:
-        config["full_close_hf_threshold"] = full_close_hf_threshold
     if supply_cap_tao is not None:
         config["supply_cap_tao"] = parse_balance(supply_cap_tao, decimals)
     if supply_cap_tusdt is not None:
@@ -1115,11 +1146,12 @@ def _project_user_debt(state: CLIContext, kp: Any, market_id: int, user: str) ->
             reserve_accrued = _dict_field(market_state, "reserve_accrued")
             if total_supplied is None or exchange_rate is None or reserve_accrued is None:
                 return None
-            cash = (
-                total_supplied * exchange_rate // lending_interest.RATIO_SCALE - total_debt + reserve_accrued
+            cash = lending_interest.derive_cash(
+                total_supplied,
+                exchange_rate,
+                total_debt,
+                reserve_accrued,
             )
-            if cash < 0:
-                cash = 0
 
         # Last accrual time: prefer the dedicated message's tuple element;
         # fall back to the market state's last_update when it is missing/zero.
@@ -1138,9 +1170,12 @@ def _project_user_debt(state: CLIContext, kp: Any, market_id: int, user: str) ->
             # from the Unix epoch.
             return None
 
-        # client.py exposes no chain-timestamp helper (no Timestamp pallet
-        # read), so approximate the chain clock with the local wall clock.
-        now_ms = int(time.time() * 1000)
+        # Chain clock (Timestamp pallet, ms) — the same clock the contract's
+        # block_timestamp() reads. The local wall clock is only a fallback: a
+        # skewed client clock shifts dt_hours by a whole hour at boundaries.
+        now_ms = state.run_read(lambda c: c.lending_get_chain_timestamp(kp))
+        if not now_ms:
+            now_ms = int(time.time() * 1000)
 
         params_inner = {
             "base": lending_interest.bps_to_ratio_inner(_dict_field(params, "base_rate", default=0)),
@@ -1226,20 +1261,6 @@ def alpha_position(ctx: click.Context, user: str, netuid: int, network: str | No
     kp = get_reader_keypair(cfg)
     result = state.run_read(lambda c: c.lending_get_user_alpha_position(kp, user, netuid))
     state.output.detail("Alpha Position", {"Result": result})
-
-
-@lending_group.command("alpha-yield-index")
-@click.option("--netuid", required=True, type=int, help="Subnet netuid")
-@network_option
-@click.pass_context
-def alpha_yield_index(ctx: click.Context, netuid: int, network: str | None) -> None:
-    """Show the yield index for a netuid (1e18 scale)."""
-    state: CLIContext = ctx.obj
-    state.network = network or state.network
-    cfg = state.make_config()
-    kp = get_reader_keypair(cfg)
-    result = state.run_read(lambda c: c.lending_get_alpha_yield_index(kp, netuid))
-    state.output.detail("Alpha Yield Index", {"Result": result})
 
 
 @lending_group.command("netuid-total-collateral")

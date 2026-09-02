@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xcb731d4016523fa5e9c4d2c7874f13c7c0aba4c3fb18efe800fe791defcb2244",
+    "hash": "0x68ac65c22a6b488966bff83f7022ade3d316eb1449b5d9636eeb991552ea04f2",
     "language": "ink! 5.1.1",
     "compiler": "rustc 1.89.0",
     "build_info": {
@@ -2286,7 +2286,7 @@
         "default": false,
         "docs": [
           " Pauses the contract, blocking deposits, borrowing, repayments, collateral",
-          " operations, liquidation triggers, and interest accrual.",
+          " operations, and liquidation triggers.",
           " Callable by governance or platform (emergency halt)."
         ],
         "label": "pause",
@@ -2399,7 +2399,11 @@
         "default": false,
         "docs": [
           " Transfers surplus TUSDT held by the vault contract to the treasury.",
-          " Callable by governance or platform."
+          " Callable by governance or platform. The claim is clamped to the",
+          " vault's actual TUSDT balance: every TUSDT the vault holds is",
+          " settlement surplus by construction (winning bid minus burned debt),",
+          " and the clamp makes that structural so a future committed-balance",
+          " path can never be swept."
         ],
         "label": "claim_surplus_tusdt",
         "mutates": true,
@@ -2496,7 +2500,8 @@
         "args": [],
         "default": false,
         "docs": [
-          " Transfers the vault contract's entire native TAO balance to the treasury.",
+          " Transfers the vault contract's entire native TAO balance (reserving the",
+          " existential deposit) to the treasury.",
           " Governance only. Reverts if any liquidation auction is active (native TAO",
           " from liquidation must remain in the contract until settlement).",
           "",
@@ -2790,7 +2795,9 @@
         "default": false,
         "docs": [
           " Settles a finalized liquidation auction, transferring collateral to the winner,",
-          " routing accrued interest to the treasury, and burning only principal."
+          " burning the debt cleared (`min(auction.debt_balance, vault.borrowed_token_balance)`),",
+          " transferring the collateral (net of transaction fee) to the winning bidder, and leaving",
+          " any unburned bid surplus (`winning_bid - debt_cleared`) in the vault as settlement surplus."
         ],
         "label": "settle_liquidation_auction",
         "mutates": true,
@@ -3147,7 +3154,7 @@
         ],
         "default": false,
         "docs": [
-          " Returns the total debt accrued by an owner across all their vaults."
+          " Returns the total borrowed token debt of an owner across all their vaults."
         ],
         "label": "get_total_debt",
         "mutates": false,

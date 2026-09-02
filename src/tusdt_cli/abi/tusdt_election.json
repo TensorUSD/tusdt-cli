@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xa32cfbfa66984dd9eadf39302a47f6decf72d61b685e8ec4bfd2cb8aebfb39e4",
+    "hash": "0x8e7abe33b1c8ac4394eeb7d830b5b1c3840ad87f2d61dc85ca056651c513269d",
     "language": "ink! 5.1.1",
     "compiler": "rustc 1.89.0",
     "build_info": {
@@ -163,7 +163,7 @@
           }
         ],
         "docs": [
-          "Emitted when a new election cycle is opened by `schedule_election`(TusdtElection::schedule_election)."
+          "Emitted when a new election cycle is opened by [`schedule_election`](TusdtElection::schedule_election)."
         ],
         "label": "ElectionScheduled",
         "module_path": "tusdt_election::election",
@@ -762,7 +762,7 @@
         "default": false,
         "docs": [
           " Raw (snapshot-frozen) alpha balance that has voted; measured against",
-          " `quorum()`(TusdtElection::quorum)."
+          " [`quorum()`](TusdtElection::quorum)."
         ],
         "label": "total_voted_balance",
         "mutates": false,
@@ -780,7 +780,7 @@
         "args": [],
         "default": false,
         "docs": [
-          " The turnout quorum threshold for the current cycle: `circulating_supply * QUORUM_BPS`.",
+          " The turnout quorum threshold for the current cycle: `circulating_supply * QUORUM_BPS / 10_000`.",
           " Returns 0 when no electorate snapshot is recorded."
         ],
         "label": "quorum",
@@ -1006,8 +1006,8 @@
           " second `cast_approval` from the same leaf — for any candidate — is rejected.",
           "",
           " The first vote of the cycle, cast on/after the `VOTE_OPEN_DAY` (the 5th), moves the cycle from",
-          " `Registration` to `Voting` and starts the 5-day calendar window (fixed to the 5th–10th of",
-          " the month) from that vote."
+          " `Registration` to `Voting` and opens the calendar-fixed voting window, which always closes at",
+          " 00:00 UTC on the 10th (its length depends on when the first vote lands)."
         ],
         "label": "cast_approval",
         "mutates": true,
@@ -1054,7 +1054,7 @@
           " maintainer seats their own council on governance afterward. If the winner governs a",
           " different subnet, opens a 6-month transition during which the previous subnet stays",
           " authoritative and the netuid switch is deferred to",
-          " `end_transition()`(TusdtElection::end_transition)."
+          " [`end_transition()`](TusdtElection::end_transition)."
         ],
         "label": "activate",
         "mutates": true,
