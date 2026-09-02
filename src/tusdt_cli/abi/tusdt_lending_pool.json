@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xc8d2cc807fe53a1ae533da0aaece0902eac1f27dbdd288d02c5525eba828be87",
+    "hash": "0xd5bef0793cc13b95d4e885d2ff199161d52012c0aca492ad0ee73600795c920b",
     "language": "ink! 5.1.1",
     "compiler": "rustc 1.89.0",
     "build_info": {
@@ -78,7 +78,7 @@
           "",
           "Spawns two lToken children (lTAO and lTUSDT) using the provided `ltoken_code_hash`",
           "(which should be the `tusdt-erc20` code hash). The deployer becomes the initial",
-          "governance and platform."
+          "governance, platform, and maintainer."
         ],
         "label": "new",
         "payable": false,

@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xf01cc2b131a3b7577330f1b803c36a461d20477ef02639f90fa4a0b2e7982153",
+    "hash": "0x691bd6c2018fe02187837c9007baf0cfb7ee0e69643de111e613a5c5354fbf50",
     "language": "ink! 5.1.1",
     "compiler": "rustc 1.89.0",
     "build_info": {
@@ -83,8 +83,10 @@
         "default": false,
         "docs": [
           "Initializes governance with an explicit `maintainer`, references to the treasury, vault,",
-          "auction, and oracle contracts, and default params. The maintainer is passed in (typically",
-          "the subnet owner) rather than defaulting to the deployer.",
+          "auction, and oracle contracts, and default params. The lending-pool reference is NOT",
+          "passed here — it starts at the zero account and is wired later via `update_pool_address`.",
+          "The maintainer is passed in (typically the subnet owner) rather than defaulting to the",
+          "deployer.",
           "",
           "The election contract is **instantiated here** from `election_code_hash` and retained;",
           "it is authorized to install maintainers (`elect_maintainer`) and apply netuid switches",
@@ -537,7 +539,7 @@
           }
         ],
         "docs": [
-          "Emitted when a new election cycle is opened by `schedule_election`(TusdtElection::schedule_election)."
+          "Emitted when a new election cycle is opened by [`schedule_election`](TusdtElection::schedule_election)."
         ],
         "label": "ElectionScheduled",
         "module_path": "tusdt_election::election",
@@ -1050,7 +1052,7 @@
           },
           {
             "docs": [
-              "Voting power added to the tally: `sqrt(SN113 alpha) * time-staked multiplier`."
+              "Voting power added to the tally: `sqrt(snapshot alpha balance) * time-staked multiplier`."
             ],
             "indexed": false,
             "label": "weight",
@@ -1738,7 +1740,7 @@
           },
           {
             "docs": [
-              "Effective alpha withdrawn (principal x yield index)."
+              "Effective alpha withdrawn (equals the principal withdrawn)."
             ],
             "indexed": false,
             "label": "effective",
@@ -1787,58 +1789,6 @@
           },
           {
             "docs": [
-              "Netuid of the seized alpha collateral."
-            ],
-            "indexed": true,
-            "label": "collateral_netuid",
-            "type": {
-              "displayName": [
-                "u16"
-              ],
-              "type": 4
-            }
-          },
-          {
-            "docs": [
-              "Debt market repaid (0 = TAO, 1 = TUSDT)."
-            ],
-            "indexed": false,
-            "label": "debt_market",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 2
-            }
-          },
-          {
-            "docs": [
-              "Debt units repaid by the liquidator."
-            ],
-            "indexed": false,
-            "label": "debt_covered",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
-          },
-          {
-            "docs": [
-              "Effective alpha seized (before yield-index conversion)."
-            ],
-            "indexed": false,
-            "label": "collateral_alpha",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 5
-            }
-          },
-          {
-            "docs": [
               "Account that performed the liquidation."
             ],
             "indexed": true,
@@ -1849,14 +1799,160 @@
               ],
               "type": 0
             }
+          },
+          {
+            "docs": [
+              "Netuids of the seized alpha collateral."
+            ],
+            "indexed": false,
+            "label": "collateral_netuids",
+            "type": {
+              "displayName": [
+                "Vec"
+              ],
+              "type": 53
+            }
+          },
+          {
+            "docs": [
+              "Total alpha principal seized across all netuids."
+            ],
+            "indexed": false,
+            "label": "collateral_seized",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [
+              "Platform's share of the seized alpha, transferred to the platform",
+              "role account."
+            ],
+            "indexed": false,
+            "label": "platform_alpha",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [
+              "TAO debt repaid by the liquidator (9-decimal units)."
+            ],
+            "indexed": false,
+            "label": "debt_covered_tao",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [
+              "TUSDT debt repaid by the liquidator (9-decimal units)."
+            ],
+            "indexed": false,
+            "label": "debt_covered_tusdt",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [
+              "Face debt written off as a market deficit (0 when the collateral",
+              "covers the debt)."
+            ],
+            "indexed": false,
+            "label": "deficit",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
           }
         ],
         "docs": [
-          "Emitted when an underwater position is liquidated."
+          "Emitted when an underwater position is liquidated in full. The",
+          "liquidator pays the borrower's entire debt (with accrued interest) on",
+          "both markets and receives the borrower's full alpha collateral minus",
+          "the platform's liquidation fee (taken from the collateral itself)."
         ],
         "label": "Liquidated",
         "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x53b00c58bf25adde0c0c6aceba3e7fa27e8774dc382118b8e2482496cd55473a"
+        "signature_topic": "0xda18c5e03bf16970c152467906dd8d57e26c66653b67445b21acff4d78db685c"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "Subnet the excess was claimed for."
+            ],
+            "indexed": true,
+            "label": "netuid",
+            "type": {
+              "displayName": [
+                "u16"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "docs": [
+              "Excess alpha found beyond booked collateral, unstaked in full."
+            ],
+            "indexed": false,
+            "label": "excess_alpha",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [
+              "Native TAO received from unstaking, forwarded to the treasury."
+            ],
+            "indexed": false,
+            "label": "tao_received",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [
+              "Treasury that received the unstaked TAO."
+            ],
+            "indexed": true,
+            "label": "recipient",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when excess alpha staking is unstaked in full for a netuid and",
+          "the resulting native TAO is sent to the treasury."
+        ],
+        "label": "AlphaExcessClaimed",
+        "module_path": "tusdt_lending_pool::lending_pool",
+        "signature_topic": "0xe3fff170d3c1a24a3694cba7aa1a5a5b4628e460d38227da52223b5e48dd5df0"
       },
       {
         "args": [
@@ -4146,7 +4242,8 @@
         "args": [],
         "default": false,
         "docs": [
-          " Returns the governing subnet netuid (bound to the maintainer; set only by the election)."
+          " Returns the governing subnet netuid. Set only by the election contract: unchanged on",
+          " same-subnet `elect_maintainer`, switched via `end_transition` after a cross-subnet winner."
         ],
         "label": "netuid",
         "mutates": false,
@@ -8342,7 +8439,7 @@
                 "typeName": "u32"
               },
               {
-                "name": "liquidation_bonus",
+                "name": "liquidation_fee",
                 "type": 6,
                 "typeName": "u32"
               },
@@ -8414,21 +8511,6 @@
                 "name": "max_oracle_age_ms",
                 "type": 5,
                 "typeName": "u64"
-              },
-              {
-                "name": "close_factor",
-                "type": 6,
-                "typeName": "u32"
-              },
-              {
-                "name": "performance_fee",
-                "type": 6,
-                "typeName": "u32"
-              },
-              {
-                "name": "full_close_hf_threshold",
-                "type": 6,
-                "typeName": "u32"
               },
               {
                 "name": "supply_cap_tao",

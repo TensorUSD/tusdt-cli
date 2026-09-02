@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xa5ad427c5157492a8fdf65115001cd4ad1d36c8351112709e233f730b038e659",
+    "hash": "0x68ac65c22a6b488966bff83f7022ade3d316eb1449b5d9636eeb991552ea04f2",
     "language": "ink! 5.1.1",
     "compiler": "rustc 1.89.0",
     "build_info": {
@@ -2286,7 +2286,7 @@
         "default": false,
         "docs": [
           " Pauses the contract, blocking deposits, borrowing, repayments, collateral",
-          " operations, liquidation triggers, and interest accrual.",
+          " operations, and liquidation triggers.",
           " Callable by governance or platform (emergency halt)."
         ],
         "label": "pause",
@@ -2500,7 +2500,8 @@
         "args": [],
         "default": false,
         "docs": [
-          " Transfers the vault contract's entire native TAO balance to the treasury.",
+          " Transfers the vault contract's entire native TAO balance (reserving the",
+          " existential deposit) to the treasury.",
           " Governance only. Reverts if any liquidation auction is active (native TAO",
           " from liquidation must remain in the contract until settlement).",
           "",
@@ -2794,7 +2795,9 @@
         "default": false,
         "docs": [
           " Settles a finalized liquidation auction, transferring collateral to the winner,",
-          " routing accrued interest to the treasury, and burning only principal."
+          " burning the debt cleared (`min(auction.debt_balance, vault.borrowed_token_balance)`),",
+          " transferring the collateral (net of transaction fee) to the winning bidder, and leaving",
+          " any unburned bid surplus (`winning_bid - debt_cleared`) in the vault as settlement surplus."
         ],
         "label": "settle_liquidation_auction",
         "mutates": true,
@@ -3151,7 +3154,7 @@
         ],
         "default": false,
         "docs": [
-          " Returns the total debt accrued by an owner across all their vaults."
+          " Returns the total borrowed token debt of an owner across all their vaults."
         ],
         "label": "get_total_debt",
         "mutates": false,
