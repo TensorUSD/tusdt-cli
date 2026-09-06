@@ -61,6 +61,16 @@ def derive_cash(
     return max(cash, 0)
 
 
+def face_from_ltao(ltoken_amount: int, exchange_rate_inner: int) -> int:
+    """Face (underlying) value of an lToken balance — ``floor(ltoken × ER / 1e18)``.
+
+    The contract redeems ``ltoken_amount`` for exactly this many underlying
+    rao (its ``compute_redeem_amount`` floors at 1e18), so this is the TAO /
+    TUSDT a user actually receives when burning ``ltoken_amount`` lTokens.
+    """
+    return ltoken_amount * exchange_rate_inner // RATIO_SCALE
+
+
 def pow_fixed(base_inner: int, exp: int) -> int:
     """Fixed-point integer power, flooring at ``RATIO_SCALE`` every step.
 

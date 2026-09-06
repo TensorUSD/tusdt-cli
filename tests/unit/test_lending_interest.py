@@ -11,11 +11,31 @@ from tusdt_cli.lending_interest import (
     bps_to_ratio_inner,
     compute_borrow_rate,
     derive_cash,
+    face_from_ltao,
     pow_fixed,
     project_debt,
 )
 
+# Live pool exchange-rate inner observed on-chain (pinned, not approximate):
+# 1 lTAO ≈ 1.002816870398849427 TAO.  All math below is exact integer
+# arithmetic at 1e18 scale.
+ER_INNER = 1_002_816_870_398_849_427
+
 PARAMS = {"base": 0, "slope1": 0, "slope2": 0, "optimal": 8 * 10**17}
+
+
+class TestFaceFromLtao:
+    def test_par_rate_face_equals_ltoken(self):
+        # ER 1.0: supply of 2_000_000_000 rao mints 2_000_000_000 lTAO.
+        assert face_from_ltao(2_000_000_000, RATIO_SCALE) == 2_000_000_000
+
+    def test_live_rate_pin_redeems_999999999(self):
+        # Real-chain pin: burning 997_191_042 lTAO at the live rate redeems
+        # 999_999_999 rao (~1.0 TAO) — NOT 997_191_042 rao (0.9972 TAO).
+        assert face_from_ltao(997_191_042, ER_INNER) == 999_999_999
+
+    def test_zero_ltoken(self):
+        assert face_from_ltao(0, ER_INNER) == 0
 
 
 class TestBpsToRatioInner:
