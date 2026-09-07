@@ -915,13 +915,62 @@ def accrue_market_interest(ctx: click.Context, wallet_name: str | None, network:
 @network_option
 @click.pass_context
 def market_state(ctx: click.Context, market_id: int, network: str | None) -> None:
-    """Show market state (supply, debt, rates, reserve)."""
+    """Show market state (supply, debt, rates, reserve).
+
+    MarketState tracks supply in lToken units, so alongside the raw lToken
+    count the command shows the face (underlying) supply it represents at
+    the current exchange rate — raw lTAO counts are never presented as TAO.
+    """
     state: CLIContext = ctx.obj
     state.network = network or state.network
     cfg = state.make_config()
     kp = get_reader_keypair(cfg)
     result = state.run_read(lambda c: c.lending_get_market_state(kp, market_id))
-    state.output.detail("Market State", {"Result": result})
+    state.output.detail("Market State", _market_state_details(result, market_id))
+
+
+def _market_state_details(result: Any, market_id: int) -> dict[str, Any]:
+    """Curate a decoded MarketState for display, adding face-scaled supply.
+
+    ``MarketState.total_supplied`` is denominated in lToken (scaled) units —
+    the face value owed to suppliers is ``total_supplied × exchange_rate``
+    (see the contract's MarketState docs).  The raw dict passes through
+    key-for-key except the supply/rate fields, which are re-emitted with
+    explicit unit labels, and a derived face row is added so a raw lTAO
+    count is never mistaken for plain TAO.
+    """
+    if not isinstance(result, dict):
+        # Unexpected payload shape (not a decoded struct) — keep it raw.
+        return {"Result": result}
+    if market_id == 0:
+        asset, ltoken = "TAO", "lTAO"
+    elif market_id == 1:
+        asset, ltoken = "TUSDT", "lTUSDT"
+    else:
+        asset, ltoken = "underlying", "lToken"
+    total_supplied = _dict_field(result, "total_supplied", "totalSupplied")
+    exchange_rate_inner = _dict_field(result, "exchange_rate", "exchangeRate")
+    has_supply = isinstance(total_supplied, int)
+    has_rate = isinstance(exchange_rate_inner, int) and exchange_rate_inner > 0
+
+    details: dict[str, Any] = {"market": f"{market_id} ({asset})"}
+    for key, value in result.items():
+        # The supply/rate fields are re-emitted below with explicit units.
+        if key.replace("_", "").lower() in ("totalsupplied", "exchangerate"):
+            continue
+        details[key] = value
+    if has_supply:
+        details[f"total_supplied ({ltoken}, raw)"] = total_supplied
+        details[f"total_supplied ({ltoken})"] = format_balance(total_supplied)
+    if has_supply and has_rate:
+        face = lending_interest.face_from_ltao(total_supplied, exchange_rate_inner)
+        details[f"total supplied (face {asset})"] = format_balance(face)
+        details[f"total supplied (face {asset}, raw)"] = face
+        details["exchange_rate (1e18 inner)"] = exchange_rate_inner
+        details[f"exchange_rate ({asset} per {ltoken})"] = format_balance(exchange_rate_inner, 18)
+    elif has_supply:
+        details[f"total supplied (face {asset})"] = "n/a (no exchange rate in state)"
+    return details
 
 
 @lending_group.command("market-deficit")
