@@ -280,18 +280,20 @@ def liquidate(
     wallet_name: str | None,
     network: str | None,
 ) -> None:
-    """Liquidate an underwater borrower (full seizure).
+    """Liquidate a borrower's full position (full-debt payment).
 
-    The borrower's FULL debt on both markets is repaid — TAO via the
-    attached native value and TUSDT via transfer_from (requires prior
-    token approval) — and ALL of the borrower's alpha collateral is
-    seized, minus the platform's liquidation fee.
+    The liquidator always pays the borrower's FULL debt on both markets —
+    TAO via the attached native value and TUSDT via transfer_from (requires
+    prior token approval) — with accrued interest, whether or not the
+    collateral covers the debt. All of the borrower's alpha collateral is
+    seized: while the collateral covers the debt (C > D) the platform keeps
+    min(fee, (C - D) / C) of each netuid's seized alpha and the liquidator
+    keeps the rest; underwater (C <= D) the platform fee is 0, the
+    liquidator receives ALL the alpha and may take a value loss.
 
-    Before submitting, the borrower's debt on both markets and the
-    TUSDT/TAO oracle price are read so the liquidator sees the exact
-    payment amounts.  When the borrower is underwater the contract
-    clamps the seized collateral, so submitting with the full debt
-    values is safe.
+    The borrower is always fully cleared and the pool never books a deficit.
+    Before submitting, the borrower's debt on both markets and the TUSDT/TAO
+    oracle price are read so the liquidator sees the exact payment amounts.
     """
     state: CLIContext = ctx.obj
     state.network = network or state.network
@@ -309,10 +311,11 @@ def liquidate(
         )
     )
 
-    # Full-seizure model: the liquidator pays the borrower's whole debt on
-    # both markets.  TAO is paid as native value; TUSDT is pulled via
-    # transfer_from.  If the borrower is underwater the contract clamps the
-    # collateral seized, so the full debt values are always safe to submit.
+    # Full-debt model: the liquidator pays the borrower's whole debt on both
+    # markets — TAO as native value, TUSDT via transfer_from.  When the
+    # collateral cannot cover the debt (underwater) the platform fee is 0,
+    # all the alpha goes to the liquidator, and the liquidator may take a
+    # value loss; the full debt values are still what must be submitted.
     payment_tao = int(debt_tao or 0)
     payment_tusdt = int(debt_tusdt or 0)
 
@@ -339,8 +342,10 @@ def liquidate(
         },
     )
     state.output.info(
-        "Fee note: the platform retains its liquidation fee from the seized "
-        "alpha (see set-alpha-params --liquidation-fee)."
+        "Fee note: the platform's liquidation fee applies only while the "
+        "collateral covers the debt (min(fee, (C - D) / C) of the seized "
+        "alpha, see set-alpha-params --liquidation-fee).  Underwater the fee "
+        "is 0 and the liquidator receives all the alpha."
     )
 
     state.submit(
@@ -971,27 +976,6 @@ def _market_state_details(result: Any, market_id: int) -> dict[str, Any]:
     elif has_supply:
         details[f"total supplied (face {asset})"] = "n/a (no exchange rate in state)"
     return details
-
-
-@lending_group.command("market-deficit")
-@click.option("--market-id", required=True, type=int, help="Market ID: 0 for TAO, 1 for TUSDT")
-@network_option
-@click.pass_context
-def market_deficit(ctx: click.Context, market_id: int, network: str | None) -> None:
-    """Show a market's frozen bad-debt deficit (face units of the market's asset).
-
-    A deficit is the residual of a write-off during liquidation, booked when
-    the borrower's collateral was exhausted. None means nothing is booked.
-    """
-    state: CLIContext = ctx.obj
-    state.network = network or state.network
-    cfg = state.make_config()
-    kp = get_reader_keypair(cfg)
-    result = state.run_read(lambda c: c.lending_get_market_deficit(kp, market_id))
-    if result is None:
-        state.output.info(f"No deficit booked for market {market_id}")
-        return
-    state.output.detail("Market Deficit", {"Result": result})
 
 
 @lending_group.command("position")
