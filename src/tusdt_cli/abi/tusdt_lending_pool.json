@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xd5bef0793cc13b95d4e885d2ff199161d52012c0aca492ad0ee73600795c920b",
+    "hash": "0x4ed67221426667762a6de3dabcc8f157cc883b89dda173a05cfde45cc104e22f",
     "language": "ink! 5.1.1",
     "compiler": "rustc 1.89.0",
     "build_info": {
@@ -59,7 +59,7 @@
               "displayName": [
                 "Hash"
               ],
-              "type": 76
+              "type": 73
             }
           },
           {
@@ -87,7 +87,7 @@
             "ink_primitives",
             "ConstructorResult"
           ],
-          "type": 77
+          "type": 74
         },
         "selector": "0x9bae9d5e"
       },
@@ -159,7 +159,7 @@
             "ink_primitives",
             "ConstructorResult"
           ],
-          "type": 77
+          "type": 74
         },
         "selector": "0xf3c2cbb8"
       }
@@ -188,13 +188,13 @@
         "displayName": [
           "ChainExtension"
         ],
-        "type": 127
+        "type": 124
       },
       "hash": {
         "displayName": [
           "Hash"
         ],
-        "type": 76
+        "type": 73
       },
       "maxEventTopics": 4,
       "staticBufferSize": 16384,
@@ -216,7 +216,7 @@
               "displayName": [
                 "Option"
               ],
-              "type": 117
+              "type": 114
             }
           },
           {
@@ -227,7 +227,7 @@
               "displayName": [
                 "Option"
               ],
-              "type": 117
+              "type": 114
             }
           },
           {
@@ -689,7 +689,7 @@
               "displayName": [
                 "Vec"
               ],
-              "type": 87
+              "type": 82
             }
           },
           {
@@ -744,31 +744,18 @@
               ],
               "type": 4
             }
-          },
-          {
-            "docs": [
-              "Face debt written off as a market deficit (0 when the collateral",
-              "covers the debt)."
-            ],
-            "indexed": false,
-            "label": "deficit",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
           }
         ],
         "docs": [
-          "Emitted when an underwater position is liquidated in full. The",
-          "liquidator pays the borrower's entire debt (with accrued interest) on",
-          "both markets and receives the borrower's full alpha collateral minus",
-          "the platform's liquidation fee (taken from the collateral itself)."
+          "Emitted when a position is liquidated in full. The liquidator pays the",
+          "borrower's entire debt (with accrued interest) on both markets and",
+          "receives the borrower's full alpha collateral minus the platform's",
+          "liquidation fee (taken from the collateral itself; waived when the",
+          "collateral cannot cover the debt)."
         ],
         "label": "Liquidated",
         "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0xda18c5e03bf16970c152467906dd8d57e26c66653b67445b21acff4d78db685c"
+        "signature_topic": "0x6dc464c9bd6fcfb95081374fb41f817481beb866f922b156c054dcc2bd474cc2"
       },
       {
         "args": [
@@ -868,96 +855,6 @@
         "label": "ReserveClaimed",
         "module_path": "tusdt_lending_pool::lending_pool",
         "signature_topic": "0xfaadc011c05216b2df7758319be5cfca55c59fc47f48e8291acf9766aeedc608"
-      },
-      {
-        "args": [
-          {
-            "docs": [
-              "Market id (0 = TAO, 1 = TUSDT)."
-            ],
-            "indexed": true,
-            "label": "market",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 2
-            }
-          },
-          {
-            "docs": [
-              "Borrower whose position was written off."
-            ],
-            "indexed": true,
-            "label": "user",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 0
-            }
-          },
-          {
-            "docs": [
-              "Face amount written off (9-decimal units), frozen at this value."
-            ],
-            "indexed": false,
-            "label": "amount",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when a liquidation consumes a borrower's entire collateral",
-          "position on a netuid while debt remains on the debt market. The",
-          "residual debt is removed from the ledger (so utilization and rates are",
-          "not poisoned by uncollectible debt) and frozen as an unfunded market",
-          "deficit that does not compound."
-        ],
-        "label": "DeficitReported",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0x963457d66a90cd4ba268b078ba76a6a1fda609d827d2fa6ee203cbd576ee4eff"
-      },
-      {
-        "args": [
-          {
-            "docs": [
-              "Market id (0 = TAO, 1 = TUSDT)."
-            ],
-            "indexed": true,
-            "label": "market",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 2
-            }
-          },
-          {
-            "docs": [
-              "Deficit amount covered (9-decimal units)."
-            ],
-            "indexed": false,
-            "label": "amount",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 4
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the maintainer covers part of a market's deficit from",
-          "`reserve_accrued` (the treasury's reserve claim absorbs the loss)."
-        ],
-        "label": "DeficitCovered",
-        "module_path": "tusdt_lending_pool::lending_pool",
-        "signature_topic": "0xaaaa215f89a178aad6b6d0cc6fb1177cc254fd380bb1a9abeb3f4c030a8d4a82"
       },
       {
         "args": [
@@ -1290,7 +1187,7 @@
               "displayName": [
                 "Option"
               ],
-              "type": 123
+              "type": 120
             }
           }
         ],
@@ -1831,7 +1728,7 @@
               "displayName": [
                 "PriceSubmissionMetadata"
               ],
-              "type": 124
+              "type": 121
             }
           },
           {
@@ -1960,7 +1857,7 @@
               "displayName": [
                 "Option"
               ],
-              "type": 117
+              "type": 114
             }
           }
         ],
@@ -2072,7 +1969,7 @@
         "ink",
         "LangError"
       ],
-      "type": 78
+      "type": 75
     },
     "messages": [
       {
@@ -2100,7 +1997,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x0515fac7"
       },
@@ -2129,7 +2026,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x480ea41f"
       },
@@ -2157,7 +2054,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x2158083f"
       },
@@ -2185,7 +2082,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x4bc10c7f"
       },
@@ -2218,7 +2115,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x0adb5295"
       },
@@ -2251,7 +2148,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0xf9111622"
       },
@@ -2279,7 +2176,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0xa1fa9168"
       },
@@ -2307,7 +2204,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0xb1a2684b"
       },
@@ -2333,7 +2230,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0xaaa26271"
       },
@@ -2371,7 +2268,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 82
+          "type": 79
         },
         "selector": "0x7bfb2b17"
       },
@@ -2417,7 +2314,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0xd6108f6e"
       },
@@ -2435,16 +2332,19 @@
         ],
         "default": false,
         "docs": [
-          " Liquidates an underwater position in full. The liquidator pays the",
-          " borrower's ENTIRE debt on both markets — TAO and TUSDT, with",
-          " accrued interest — and receives the borrower's full alpha",
-          " collateral across every approved netuid, minus the platform's",
-          " liquidation fee: a percentage of the collateral alpha taken by the",
-          " `platform` role account, capped at the surplus share",
-          " (`min(fee, (C − D) / C)`) so the liquidator never loses principal.",
-          " When the collateral cannot cover the debt, the liquidator pays the",
-          " collateral value (break-even) and the residual is written off as a",
-          " market deficit."
+          " Liquidates a position in full. The liquidator pays the borrower's",
+          " ENTIRE debt on both markets — TAO and TUSDT, with accrued interest",
+          " — and receives the borrower's full alpha collateral across every",
+          " approved netuid, minus the platform's liquidation fee: a",
+          " percentage of the collateral alpha taken by the `platform` role",
+          " account, capped at the surplus share (`min(fee, (C − D) / C)`) so",
+          " the liquidator never loses principal while the collateral covers",
+          " the debt. When the collateral cannot cover the debt (underwater),",
+          " the platform takes nothing and the liquidator receives the ENTIRE",
+          " collateral but still pays the full debt — the liquidator may",
+          " realize a loss if the collateral is worth less than the debt paid.",
+          " Either way the borrower's debt is always cleared in full: the pool",
+          " never books a deficit."
         ],
         "label": "liquidate",
         "mutates": true,
@@ -2454,7 +2354,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x4e3c6966"
       },
@@ -2492,7 +2392,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x1e351201"
       },
@@ -2512,8 +2412,8 @@
         "docs": [
           " Claims accumulated protocol reserve fees for a supply/borrow market.",
           " Sends the fees to the treasury. Permissionless; the claim is",
-          " clamped to reserve above the market's unfunded deficit (which",
-          " outranks the treasury claim) and to the physical cash available."
+          " capped at the physical cash available. (Liquidations always repay",
+          " the pool in full — nothing outranks the treasury's claim.)"
         ],
         "label": "claim_reserve",
         "mutates": true,
@@ -2523,79 +2423,9 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x584c0dc7"
-      },
-      {
-        "args": [
-          {
-            "label": "market_id",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 2
-            }
-          }
-        ],
-        "default": false,
-        "docs": [
-          " Covers a market's unfunded bad-debt deficit from `reserve_accrued`.",
-          "",
-          " A deficit is the frozen residual of a write-off (see `liquidate`):",
-          " debt removed from the ledger because the borrower's collateral was",
-          " exhausted. Funding it from the reserve reallocates the treasury's",
-          " reserve claim to close the balance-sheet hole the write-off opened,",
-          " so suppliers' claims stay fully cash-backed. The treasury's",
-          " permissionless `claim_reserve` can drain the reserve first — the",
-          " maintainer should cover deficits before claiming. A deficit that",
-          " exceeds the reserve stays on the books as an unfunded shortfall.",
-          " Maintainer only; a no-op when there is nothing to cover. Errors:",
-          " `Error::NotMaintainer`, `Error::MarketNotFound`,",
-          " `Error::ArithmeticError`."
-        ],
-        "label": "cover_deficit",
-        "mutates": true,
-        "payable": false,
-        "returnType": {
-          "displayName": [
-            "ink",
-            "MessageResult"
-          ],
-          "type": 79
-        },
-        "selector": "0xc93d5bb8"
-      },
-      {
-        "args": [
-          {
-            "label": "market_id",
-            "type": {
-              "displayName": [
-                "u8"
-              ],
-              "type": 2
-            }
-          }
-        ],
-        "default": false,
-        "docs": [
-          " Returns the unfunded bad-debt deficit of a market (face units of the",
-          " market's asset, frozen at write-off), or `None` for an unknown",
-          " market."
-        ],
-        "label": "get_market_deficit",
-        "mutates": false,
-        "payable": false,
-        "returnType": {
-          "displayName": [
-            "ink",
-            "MessageResult"
-          ],
-          "type": 84
-        },
-        "selector": "0x8aa57e94"
       },
       {
         "args": [
@@ -2630,7 +2460,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x16af1e00"
       },
@@ -2667,7 +2497,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x8286b23d"
       },
@@ -2695,7 +2525,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x891a2e88"
       },
@@ -2723,7 +2553,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0xbd3fdc88"
       },
@@ -2763,7 +2593,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x59499fd5"
       },
@@ -2794,7 +2624,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x6ace992a"
       },
@@ -2823,7 +2653,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0xc57d958e"
       },
@@ -2835,7 +2665,7 @@
               "displayName": [
                 "PoolGlobalParamsConfig"
               ],
-              "type": 74
+              "type": 71
             }
           }
         ],
@@ -2853,7 +2683,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x0f0976e0"
       },
@@ -2874,7 +2704,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x5c7c2987"
       },
@@ -2893,7 +2723,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x238a6656"
       },
@@ -2922,7 +2752,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0xc33c8b6a"
       },
@@ -2951,7 +2781,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0xd3412c0f"
       },
@@ -2969,7 +2799,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 86
+          "type": 81
         },
         "selector": "0xd1cba863"
       },
@@ -2998,7 +2828,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0xef6ee141"
       },
@@ -3027,7 +2857,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0xa59697ab"
       },
@@ -3056,7 +2886,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x90a92fb5"
       },
@@ -3094,7 +2924,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x94073a3f"
       },
@@ -3115,7 +2945,7 @@
               "displayName": [
                 "Vec"
               ],
-              "type": 87
+              "type": 82
             }
           }
         ],
@@ -3137,7 +2967,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x4b6f69a2"
       },
@@ -3157,7 +2987,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x81e0c604"
       },
@@ -3175,7 +3005,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x67616649"
       },
@@ -3197,11 +3027,11 @@
           " treasury. Maintainer only.",
           "",
           " \"Surplus\" is cash above every committed claim: supplier face value",
-          " (`total_supplied × exchange_rate`), the accrued reserve, and any",
-          " unfunded deficit. The amount is clamped so a sweep can never move",
-          " supplier principal, the reserve, or deficit backing. With debt",
-          " outstanding the pool is fully committed and the claimable surplus is",
-          " zero — sweeps collect only leftovers such as dust and donations.",
+          " (`total_supplied × exchange_rate`) and the accrued reserve. The",
+          " amount is clamped so a sweep can never move supplier principal or",
+          " the reserve. With debt outstanding the pool is fully committed and",
+          " the claimable surplus is zero — sweeps collect only leftovers such",
+          " as dust and donations.",
           " Errors: `Error::NotMaintainer`, `Error::MarketNotFound`,",
           " `Error::TokenContractCallFailed`."
         ],
@@ -3213,7 +3043,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x3b645db8"
       },
@@ -3222,8 +3052,8 @@
         "default": false,
         "docs": [
           " Sweeps the pool's native TAO balance to the treasury, minus the",
-          " market's committed claims (supplier face value, accrued reserve, and",
-          " unfunded deficit), the root-staking liquidity sleeve",
+          " market's committed claims (supplier face value and accrued",
+          " reserve), the root-staking liquidity sleeve",
           " (`stake_buffer`), and a 1-unit existential deposit guard. Maintainer",
           " only. Errors: `Error::NotMaintainer`, `Error::TransferFailed`."
         ],
@@ -3235,7 +3065,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x9f08997a"
       },
@@ -3307,7 +3137,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x0642dc3e"
       },
@@ -3327,7 +3157,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 79
+          "type": 76
         },
         "selector": "0x6edcf23a"
       },
@@ -3355,7 +3185,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 88
+          "type": 83
         },
         "selector": "0xc34cbbfc"
       },
@@ -3378,7 +3208,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 90
+          "type": 85
         },
         "selector": "0x2c095bc4"
       },
@@ -3416,7 +3246,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 93
+          "type": 88
         },
         "selector": "0x941d9844"
       },
@@ -3444,7 +3274,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 95
+          "type": 90
         },
         "selector": "0x1fa71131"
       },
@@ -3472,7 +3302,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 95
+          "type": 90
         },
         "selector": "0xf552dc5b"
       },
@@ -3501,9 +3331,42 @@
             "ink",
             "MessageResult"
           ],
-          "type": 95
+          "type": 90
         },
         "selector": "0x858f986c"
+      },
+      {
+        "args": [
+          {
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Returns the supplier-withdrawable face liquidity of a market",
+          " (`min(raw cash, total_supplied x exchange_rate)`, mirroring the",
+          " withdraw guard), or `None` if the market does not exist. The result",
+          " is in FACE units (rao — TAO for market 0, TUSDT for market 1), NOT",
+          " lToken units; note that `total_supplied` in `get_market_state` is",
+          " lToken-scaled, so clients must NOT display it as face."
+        ],
+        "label": "get_market_available_liquidity",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 92
+        },
+        "selector": "0x399c03dc"
       },
       {
         "args": [],
@@ -3519,7 +3382,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 97
+          "type": 94
         },
         "selector": "0x914b24d0"
       },
@@ -3537,7 +3400,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 98
+          "type": 95
         },
         "selector": "0x29202885"
       },
@@ -3565,7 +3428,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 95
+          "type": 90
         },
         "selector": "0xffc4f680"
       },
@@ -3593,7 +3456,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 95
+          "type": 90
         },
         "selector": "0x1988d6be"
       },
@@ -3632,7 +3495,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 84
+          "type": 92
         },
         "selector": "0xc4a89c1d"
       },
@@ -3670,7 +3533,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 84
+          "type": 92
         },
         "selector": "0x75715311"
       },
@@ -3713,7 +3576,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 90
+          "type": 85
         },
         "selector": "0x8771d4dc"
       },
@@ -3731,7 +3594,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 100
+          "type": 97
         },
         "selector": "0x7f442e12"
       },
@@ -3768,7 +3631,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 84
+          "type": 92
         },
         "selector": "0x00baec12"
       },
@@ -3797,7 +3660,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 84
+          "type": 92
         },
         "selector": "0x4a70f9b9"
       },
@@ -3825,7 +3688,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 103
+          "type": 100
         },
         "selector": "0x43efc996"
       },
@@ -3843,7 +3706,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 104
+          "type": 101
         },
         "selector": "0xc8ff3f8c"
       },
@@ -3880,7 +3743,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 105
+          "type": 102
         },
         "selector": "0x55b8003e"
       },
@@ -3909,7 +3772,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 108
+          "type": 105
         },
         "selector": "0x44c07acf"
       },
@@ -3937,7 +3800,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 111
+          "type": 108
         },
         "selector": "0x76ba5a01"
       },
@@ -3965,7 +3828,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 113
+          "type": 110
         },
         "selector": "0x3f13c376"
       },
@@ -3983,7 +3846,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 115
+          "type": 112
         },
         "selector": "0x9259f07d"
       },
@@ -4001,7 +3864,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 86
+          "type": 81
         },
         "selector": "0x9f90cf17"
       },
@@ -4019,7 +3882,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 86
+          "type": 81
         },
         "selector": "0xa9b78461"
       },
@@ -4037,7 +3900,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 86
+          "type": 81
         },
         "selector": "0x2b86e96a"
       },
@@ -4055,7 +3918,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 103
+          "type": 100
         },
         "selector": "0xd8fea916"
       },
@@ -4073,7 +3936,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 86
+          "type": 81
         },
         "selector": "0xdc4c0ffe"
       },
@@ -4091,7 +3954,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 86
+          "type": 81
         },
         "selector": "0x0edac3bf"
       },
@@ -4119,7 +3982,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 116
+          "type": 113
         },
         "selector": "0x59c8f9ea"
       },
@@ -4137,7 +4000,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 86
+          "type": 81
         },
         "selector": "0x0801118d"
       },
@@ -4156,7 +4019,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 118
+          "type": 115
         },
         "selector": "0xc65d30fc"
       },
@@ -4185,7 +4048,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 119
+          "type": 116
         },
         "selector": "0x6a278c15"
       },
@@ -4214,7 +4077,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 121
+          "type": 118
         },
         "selector": "0x914e8470"
       }
@@ -5116,21 +4979,6 @@
             },
             {
               "layout": {
-                "root": {
-                  "layout": {
-                    "leaf": {
-                      "key": "0xcf2fc0a6",
-                      "ty": 4
-                    }
-                  },
-                  "root_key": "0xcf2fc0a6",
-                  "ty": 63
-                }
-              },
-              "name": "market_deficit"
-            },
-            {
-              "layout": {
                 "leaf": {
                   "key": "0x00000000",
                   "ty": 0
@@ -5217,7 +5065,7 @@
         }
       },
       "root_key": "0x00000000",
-      "ty": 66
+      "ty": 63
     }
   },
   "types": [
@@ -6679,76 +6527,6 @@
       "id": 63,
       "type": {
         "def": {
-          "composite": {}
-        },
-        "params": [
-          {
-            "name": "K",
-            "type": 2
-          },
-          {
-            "name": "V",
-            "type": 4
-          },
-          {
-            "name": "KeyType",
-            "type": 64
-          }
-        ],
-        "path": [
-          "ink_storage",
-          "lazy",
-          "mapping",
-          "Mapping"
-        ]
-      }
-    },
-    {
-      "id": 64,
-      "type": {
-        "def": {
-          "composite": {}
-        },
-        "params": [
-          {
-            "name": "L",
-            "type": 10
-          },
-          {
-            "name": "R",
-            "type": 65
-          }
-        ],
-        "path": [
-          "ink_storage_traits",
-          "impls",
-          "ResolverKey"
-        ]
-      }
-    },
-    {
-      "id": 65,
-      "type": {
-        "def": {
-          "composite": {}
-        },
-        "params": [
-          {
-            "name": "ParentKey",
-            "type": 12
-          }
-        ],
-        "path": [
-          "ink_storage_traits",
-          "impls",
-          "ManualKey"
-        ]
-      }
-    },
-    {
-      "id": 66,
-      "type": {
-        "def": {
           "composite": {
             "fields": [
               {
@@ -6783,12 +6561,12 @@
               },
               {
                 "name": "oracle",
-                "type": 67,
+                "type": 64,
                 "typeName": "<TusdtOracleRef as::ink::storage::traits::AutoStorableHint<::ink\n::storage::traits::ManualKey<1545505214u32, ()>,>>::Type"
               },
               {
                 "name": "tusdt",
-                "type": 69,
+                "type": 66,
                 "typeName": "<TusdtErc20Ref as::ink::storage::traits::AutoStorableHint<::ink::\nstorage::traits::ManualKey<2228760745u32, ()>,>>::Type"
               },
               {
@@ -6848,12 +6626,12 @@
               },
               {
                 "name": "global_params",
-                "type": 71,
+                "type": 68,
                 "typeName": "<PoolGlobalParams as::ink::storage::traits::AutoStorableHint<::ink\n::storage::traits::ManualKey<635838979u32, ()>,>>::Type"
               },
               {
                 "name": "pending_global_params",
-                "type": 72,
+                "type": 69,
                 "typeName": "<Option<PendingGlobalParamsUpdate> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<175000758u32, ()\n>,>>::Type"
               },
               {
@@ -6875,11 +6653,6 @@
                 "name": "debt_principal",
                 "type": 60,
                 "typeName": "<Mapping<(u8, AccountId), Balance> as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<3135007895u32,\n()>,>>::Type"
-              },
-              {
-                "name": "market_deficit",
-                "type": 63,
-                "typeName": "<Mapping<u8, Balance> as::ink::storage::traits::AutoStorableHint<\n::ink::storage::traits::ManualKey<2797613007u32, ()>,>>::Type"
               },
               {
                 "name": "root_hotkey",
@@ -6908,7 +6681,7 @@
               },
               {
                 "name": "last_sweep_block",
-                "type": 75,
+                "type": 72,
                 "typeName": "<Option<BlockNumber> as::ink::storage::traits::AutoStorableHint<\n::ink::storage::traits::ManualKey<865365395u32, ()>,>>::Type"
               },
               {
@@ -6927,14 +6700,14 @@
       }
     },
     {
-      "id": 67,
+      "id": 64,
       "type": {
         "def": {
           "composite": {
             "fields": [
               {
                 "name": "inner",
-                "type": 68,
+                "type": 65,
                 "typeName": "<TusdtOracle as::ink::codegen::ContractCallBuilder>::Type"
               }
             ]
@@ -6948,7 +6721,7 @@
       }
     },
     {
-      "id": 68,
+      "id": 65,
       "type": {
         "def": {
           "composite": {
@@ -6969,14 +6742,14 @@
       }
     },
     {
-      "id": 69,
+      "id": 66,
       "type": {
         "def": {
           "composite": {
             "fields": [
               {
                 "name": "inner",
-                "type": 70,
+                "type": 67,
                 "typeName": "<TusdtErc20 as::ink::codegen::ContractCallBuilder>::Type"
               }
             ]
@@ -6990,7 +6763,7 @@
       }
     },
     {
-      "id": 70,
+      "id": 67,
       "type": {
         "def": {
           "composite": {
@@ -7011,7 +6784,7 @@
       }
     },
     {
-      "id": 71,
+      "id": 68,
       "type": {
         "def": {
           "composite": {
@@ -7053,7 +6826,7 @@
       }
     },
     {
-      "id": 72,
+      "id": 69,
       "type": {
         "def": {
           "variant": {
@@ -7065,7 +6838,7 @@
               {
                 "fields": [
                   {
-                    "type": 73
+                    "type": 70
                   }
                 ],
                 "index": 1,
@@ -7077,7 +6850,7 @@
         "params": [
           {
             "name": "T",
-            "type": 73
+            "type": 70
           }
         ],
         "path": [
@@ -7086,14 +6859,14 @@
       }
     },
     {
-      "id": 73,
+      "id": 70,
       "type": {
         "def": {
           "composite": {
             "fields": [
               {
                 "name": "params",
-                "type": 74,
+                "type": 71,
                 "typeName": "PoolGlobalParamsConfig"
               },
               {
@@ -7113,7 +6886,7 @@
       }
     },
     {
-      "id": 74,
+      "id": 71,
       "type": {
         "def": {
           "composite": {
@@ -7155,7 +6928,7 @@
       }
     },
     {
-      "id": 75,
+      "id": 72,
       "type": {
         "def": {
           "variant": {
@@ -7188,7 +6961,7 @@
       }
     },
     {
-      "id": 76,
+      "id": 73,
       "type": {
         "def": {
           "composite": {
@@ -7204,6 +6977,109 @@
           "ink_primitives",
           "types",
           "Hash"
+        ]
+      }
+    },
+    {
+      "id": 74,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 12
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 75
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 12
+          },
+          {
+            "name": "E",
+            "type": 75
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 75,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 1,
+                "name": "CouldNotReadInput"
+              }
+            ]
+          }
+        },
+        "path": [
+          "ink_primitives",
+          "LangError"
+        ]
+      }
+    },
+    {
+      "id": 76,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 77
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 75
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 77
+          },
+          {
+            "name": "E",
+            "type": 75
+          }
+        ],
+        "path": [
+          "Result"
         ]
       }
     },
@@ -7251,109 +7127,6 @@
     },
     {
       "id": 78,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "index": 1,
-                "name": "CouldNotReadInput"
-              }
-            ]
-          }
-        },
-        "path": [
-          "ink_primitives",
-          "LangError"
-        ]
-      }
-    },
-    {
-      "id": 79,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 80
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 78
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 80
-          },
-          {
-            "name": "E",
-            "type": 78
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 80,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 12
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 81
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 12
-          },
-          {
-            "name": "E",
-            "type": 81
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 81,
       "type": {
         "def": {
           "variant": {
@@ -7541,7 +7314,7 @@
       }
     },
     {
-      "id": 82,
+      "id": 79,
       "type": {
         "def": {
           "variant": {
@@ -7549,7 +7322,7 @@
               {
                 "fields": [
                   {
-                    "type": 83
+                    "type": 80
                   }
                 ],
                 "index": 0,
@@ -7558,7 +7331,7 @@
               {
                 "fields": [
                   {
-                    "type": 78
+                    "type": 75
                   }
                 ],
                 "index": 1,
@@ -7570,11 +7343,11 @@
         "params": [
           {
             "name": "T",
-            "type": 83
+            "type": 80
           },
           {
             "name": "E",
-            "type": 78
+            "type": 75
           }
         ],
         "path": [
@@ -7583,7 +7356,7 @@
       }
     },
     {
-      "id": 83,
+      "id": 80,
       "type": {
         "def": {
           "variant": {
@@ -7600,7 +7373,7 @@
               {
                 "fields": [
                   {
-                    "type": 81
+                    "type": 78
                   }
                 ],
                 "index": 1,
@@ -7616,48 +7389,6 @@
           },
           {
             "name": "E",
-            "type": 81
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 84,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 85
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 78
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 85
-          },
-          {
-            "name": "E",
             "type": 78
           }
         ],
@@ -7667,40 +7398,7 @@
       }
     },
     {
-      "id": 85,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "index": 0,
-                "name": "None"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 4
-                  }
-                ],
-                "index": 1,
-                "name": "Some"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 4
-          }
-        ],
-        "path": [
-          "Option"
-        ]
-      }
-    },
-    {
-      "id": 86,
+      "id": 81,
       "type": {
         "def": {
           "variant": {
@@ -7717,7 +7415,7 @@
               {
                 "fields": [
                   {
-                    "type": 78
+                    "type": 75
                   }
                 ],
                 "index": 1,
@@ -7733,7 +7431,7 @@
           },
           {
             "name": "E",
-            "type": 78
+            "type": 75
           }
         ],
         "path": [
@@ -7742,7 +7440,7 @@
       }
     },
     {
-      "id": 87,
+      "id": 82,
       "type": {
         "def": {
           "sequence": {
@@ -7752,7 +7450,7 @@
       }
     },
     {
-      "id": 88,
+      "id": 83,
       "type": {
         "def": {
           "variant": {
@@ -7760,7 +7458,7 @@
               {
                 "fields": [
                   {
-                    "type": 89
+                    "type": 84
                   }
                 ],
                 "index": 0,
@@ -7769,7 +7467,7 @@
               {
                 "fields": [
                   {
-                    "type": 78
+                    "type": 75
                   }
                 ],
                 "index": 1,
@@ -7781,11 +7479,11 @@
         "params": [
           {
             "name": "T",
-            "type": 89
+            "type": 84
           },
           {
             "name": "E",
-            "type": 78
+            "type": 75
           }
         ],
         "path": [
@@ -7794,7 +7492,7 @@
       }
     },
     {
-      "id": 89,
+      "id": 84,
       "type": {
         "def": {
           "variant": {
@@ -7827,7 +7525,7 @@
       }
     },
     {
-      "id": 90,
+      "id": 85,
       "type": {
         "def": {
           "variant": {
@@ -7835,7 +7533,7 @@
               {
                 "fields": [
                   {
-                    "type": 91
+                    "type": 86
                   }
                 ],
                 "index": 0,
@@ -7844,7 +7542,7 @@
               {
                 "fields": [
                   {
-                    "type": 78
+                    "type": 75
                   }
                 ],
                 "index": 1,
@@ -7856,11 +7554,11 @@
         "params": [
           {
             "name": "T",
-            "type": 91
+            "type": 86
           },
           {
             "name": "E",
-            "type": 78
+            "type": 75
           }
         ],
         "path": [
@@ -7869,7 +7567,7 @@
       }
     },
     {
-      "id": 91,
+      "id": 86,
       "type": {
         "def": {
           "variant": {
@@ -7881,7 +7579,7 @@
               {
                 "fields": [
                   {
-                    "type": 92
+                    "type": 87
                   }
                 ],
                 "index": 1,
@@ -7893,7 +7591,7 @@
         "params": [
           {
             "name": "T",
-            "type": 92
+            "type": 87
           }
         ],
         "path": [
@@ -7902,7 +7600,7 @@
       }
     },
     {
-      "id": 92,
+      "id": 87,
       "type": {
         "def": {
           "tuple": [
@@ -7913,7 +7611,7 @@
       }
     },
     {
-      "id": 93,
+      "id": 88,
       "type": {
         "def": {
           "variant": {
@@ -7921,7 +7619,7 @@
               {
                 "fields": [
                   {
-                    "type": 94
+                    "type": 89
                   }
                 ],
                 "index": 0,
@@ -7930,7 +7628,7 @@
               {
                 "fields": [
                   {
-                    "type": 78
+                    "type": 75
                   }
                 ],
                 "index": 1,
@@ -7942,11 +7640,11 @@
         "params": [
           {
             "name": "T",
-            "type": 94
+            "type": 89
           },
           {
             "name": "E",
-            "type": 78
+            "type": 75
           }
         ],
         "path": [
@@ -7955,7 +7653,7 @@
       }
     },
     {
-      "id": 94,
+      "id": 89,
       "type": {
         "def": {
           "variant": {
@@ -7988,7 +7686,7 @@
       }
     },
     {
-      "id": 95,
+      "id": 90,
       "type": {
         "def": {
           "variant": {
@@ -7996,7 +7694,7 @@
               {
                 "fields": [
                   {
-                    "type": 96
+                    "type": 91
                   }
                 ],
                 "index": 0,
@@ -8005,7 +7703,7 @@
               {
                 "fields": [
                   {
-                    "type": 78
+                    "type": 75
                   }
                 ],
                 "index": 1,
@@ -8017,11 +7715,11 @@
         "params": [
           {
             "name": "T",
-            "type": 96
+            "type": 91
           },
           {
             "name": "E",
-            "type": 78
+            "type": 75
           }
         ],
         "path": [
@@ -8030,7 +7728,7 @@
       }
     },
     {
-      "id": 96,
+      "id": 91,
       "type": {
         "def": {
           "variant": {
@@ -8063,7 +7761,82 @@
       }
     },
     {
-      "id": 97,
+      "id": 92,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 93
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 75
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 93
+          },
+          {
+            "name": "E",
+            "type": 75
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 93,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 4
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 4
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 94,
       "type": {
         "def": {
           "variant": {
@@ -8080,7 +7853,7 @@
               {
                 "fields": [
                   {
-                    "type": 78
+                    "type": 75
                   }
                 ],
                 "index": 1,
@@ -8096,7 +7869,7 @@
           },
           {
             "name": "E",
-            "type": 78
+            "type": 75
           }
         ],
         "path": [
@@ -8105,7 +7878,7 @@
       }
     },
     {
-      "id": 98,
+      "id": 95,
       "type": {
         "def": {
           "variant": {
@@ -8113,7 +7886,7 @@
               {
                 "fields": [
                   {
-                    "type": 99
+                    "type": 96
                   }
                 ],
                 "index": 0,
@@ -8122,7 +7895,7 @@
               {
                 "fields": [
                   {
-                    "type": 78
+                    "type": 75
                   }
                 ],
                 "index": 1,
@@ -8134,11 +7907,11 @@
         "params": [
           {
             "name": "T",
-            "type": 99
+            "type": 96
           },
           {
             "name": "E",
-            "type": 78
+            "type": 75
           }
         ],
         "path": [
@@ -8147,7 +7920,7 @@
       }
     },
     {
-      "id": 99,
+      "id": 96,
       "type": {
         "def": {
           "composite": {
@@ -8188,7 +7961,7 @@
       }
     },
     {
-      "id": 100,
+      "id": 97,
       "type": {
         "def": {
           "variant": {
@@ -8196,7 +7969,7 @@
               {
                 "fields": [
                   {
-                    "type": 101
+                    "type": 98
                   }
                 ],
                 "index": 0,
@@ -8205,7 +7978,7 @@
               {
                 "fields": [
                   {
-                    "type": 78
+                    "type": 75
                   }
                 ],
                 "index": 1,
@@ -8217,11 +7990,11 @@
         "params": [
           {
             "name": "T",
-            "type": 101
+            "type": 98
           },
           {
             "name": "E",
-            "type": 78
+            "type": 75
           }
         ],
         "path": [
@@ -8230,17 +8003,17 @@
       }
     },
     {
-      "id": 101,
+      "id": 98,
       "type": {
         "def": {
           "sequence": {
-            "type": 102
+            "type": 99
           }
         }
       }
     },
     {
-      "id": 102,
+      "id": 99,
       "type": {
         "def": {
           "tuple": [
@@ -8251,7 +8024,7 @@
       }
     },
     {
-      "id": 103,
+      "id": 100,
       "type": {
         "def": {
           "variant": {
@@ -8268,7 +8041,7 @@
               {
                 "fields": [
                   {
-                    "type": 78
+                    "type": 75
                   }
                 ],
                 "index": 1,
@@ -8284,7 +8057,7 @@
           },
           {
             "name": "E",
-            "type": 78
+            "type": 75
           }
         ],
         "path": [
@@ -8293,7 +8066,7 @@
       }
     },
     {
-      "id": 104,
+      "id": 101,
       "type": {
         "def": {
           "variant": {
@@ -8310,7 +8083,7 @@
               {
                 "fields": [
                   {
-                    "type": 78
+                    "type": 75
                   }
                 ],
                 "index": 1,
@@ -8326,12 +8099,75 @@
           },
           {
             "name": "E",
-            "type": 78
+            "type": 75
           }
         ],
         "path": [
           "Result"
         ]
+      }
+    },
+    {
+      "id": 102,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 103
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 75
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 103
+          },
+          {
+            "name": "E",
+            "type": 75
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 103,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 104
+          }
+        }
+      }
+    },
+    {
+      "id": 104,
+      "type": {
+        "def": {
+          "tuple": [
+            2,
+            52
+          ]
+        }
       }
     },
     {
@@ -8352,7 +8188,7 @@
               {
                 "fields": [
                   {
-                    "type": 78
+                    "type": 75
                   }
                 ],
                 "index": 1,
@@ -8368,7 +8204,7 @@
           },
           {
             "name": "E",
-            "type": 78
+            "type": 75
           }
         ],
         "path": [
@@ -8391,7 +8227,7 @@
       "type": {
         "def": {
           "tuple": [
-            2,
+            51,
             52
           ]
         }
@@ -8415,7 +8251,7 @@
               {
                 "fields": [
                   {
-                    "type": 78
+                    "type": 75
                   }
                 ],
                 "index": 1,
@@ -8431,7 +8267,7 @@
           },
           {
             "name": "E",
-            "type": 78
+            "type": 75
           }
         ],
         "path": [
@@ -8441,69 +8277,6 @@
     },
     {
       "id": 109,
-      "type": {
-        "def": {
-          "sequence": {
-            "type": 110
-          }
-        }
-      }
-    },
-    {
-      "id": 110,
-      "type": {
-        "def": {
-          "tuple": [
-            51,
-            52
-          ]
-        }
-      }
-    },
-    {
-      "id": 111,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 112
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 78
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 112
-          },
-          {
-            "name": "E",
-            "type": 78
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 112,
       "type": {
         "def": {
           "variant": {
@@ -8536,7 +8309,7 @@
       }
     },
     {
-      "id": 113,
+      "id": 110,
       "type": {
         "def": {
           "variant": {
@@ -8544,7 +8317,7 @@
               {
                 "fields": [
                   {
-                    "type": 114
+                    "type": 111
                   }
                 ],
                 "index": 0,
@@ -8553,7 +8326,7 @@
               {
                 "fields": [
                   {
-                    "type": 78
+                    "type": 75
                   }
                 ],
                 "index": 1,
@@ -8565,11 +8338,11 @@
         "params": [
           {
             "name": "T",
-            "type": 114
+            "type": 111
           },
           {
             "name": "E",
-            "type": 78
+            "type": 75
           }
         ],
         "path": [
@@ -8578,7 +8351,7 @@
       }
     },
     {
-      "id": 114,
+      "id": 111,
       "type": {
         "def": {
           "variant": {
@@ -8611,7 +8384,7 @@
       }
     },
     {
-      "id": 115,
+      "id": 112,
       "type": {
         "def": {
           "variant": {
@@ -8619,7 +8392,7 @@
               {
                 "fields": [
                   {
-                    "type": 72
+                    "type": 69
                   }
                 ],
                 "index": 0,
@@ -8628,7 +8401,7 @@
               {
                 "fields": [
                   {
-                    "type": 78
+                    "type": 75
                   }
                 ],
                 "index": 1,
@@ -8640,11 +8413,11 @@
         "params": [
           {
             "name": "T",
-            "type": 72
+            "type": 69
           },
           {
             "name": "E",
-            "type": 78
+            "type": 75
           }
         ],
         "path": [
@@ -8653,7 +8426,7 @@
       }
     },
     {
-      "id": 116,
+      "id": 113,
       "type": {
         "def": {
           "variant": {
@@ -8661,7 +8434,7 @@
               {
                 "fields": [
                   {
-                    "type": 117
+                    "type": 114
                   }
                 ],
                 "index": 0,
@@ -8670,7 +8443,7 @@
               {
                 "fields": [
                   {
-                    "type": 78
+                    "type": 75
                   }
                 ],
                 "index": 1,
@@ -8682,11 +8455,11 @@
         "params": [
           {
             "name": "T",
-            "type": 117
+            "type": 114
           },
           {
             "name": "E",
-            "type": 78
+            "type": 75
           }
         ],
         "path": [
@@ -8695,7 +8468,7 @@
       }
     },
     {
-      "id": 117,
+      "id": 114,
       "type": {
         "def": {
           "variant": {
@@ -8728,7 +8501,7 @@
       }
     },
     {
-      "id": 118,
+      "id": 115,
       "type": {
         "def": {
           "variant": {
@@ -8736,7 +8509,7 @@
               {
                 "fields": [
                   {
-                    "type": 74
+                    "type": 71
                   }
                 ],
                 "index": 0,
@@ -8745,7 +8518,7 @@
               {
                 "fields": [
                   {
-                    "type": 78
+                    "type": 75
                   }
                 ],
                 "index": 1,
@@ -8757,11 +8530,11 @@
         "params": [
           {
             "name": "T",
-            "type": 74
+            "type": 71
           },
           {
             "name": "E",
-            "type": 78
+            "type": 75
           }
         ],
         "path": [
@@ -8770,7 +8543,7 @@
       }
     },
     {
-      "id": 119,
+      "id": 116,
       "type": {
         "def": {
           "variant": {
@@ -8778,7 +8551,7 @@
               {
                 "fields": [
                   {
-                    "type": 120
+                    "type": 117
                   }
                 ],
                 "index": 0,
@@ -8787,7 +8560,7 @@
               {
                 "fields": [
                   {
-                    "type": 78
+                    "type": 75
                   }
                 ],
                 "index": 1,
@@ -8799,11 +8572,11 @@
         "params": [
           {
             "name": "T",
-            "type": 120
+            "type": 117
           },
           {
             "name": "E",
-            "type": 78
+            "type": 75
           }
         ],
         "path": [
@@ -8812,7 +8585,7 @@
       }
     },
     {
-      "id": 120,
+      "id": 117,
       "type": {
         "def": {
           "variant": {
@@ -8845,7 +8618,7 @@
       }
     },
     {
-      "id": 121,
+      "id": 118,
       "type": {
         "def": {
           "variant": {
@@ -8853,7 +8626,7 @@
               {
                 "fields": [
                   {
-                    "type": 122
+                    "type": 119
                   }
                 ],
                 "index": 0,
@@ -8862,7 +8635,7 @@
               {
                 "fields": [
                   {
-                    "type": 78
+                    "type": 75
                   }
                 ],
                 "index": 1,
@@ -8874,11 +8647,11 @@
         "params": [
           {
             "name": "T",
-            "type": 122
+            "type": 119
           },
           {
             "name": "E",
-            "type": 78
+            "type": 75
           }
         ],
         "path": [
@@ -8887,7 +8660,7 @@
       }
     },
     {
-      "id": 122,
+      "id": 119,
       "type": {
         "def": {
           "variant": {
@@ -8920,7 +8693,7 @@
       }
     },
     {
-      "id": 123,
+      "id": 120,
       "type": {
         "def": {
           "variant": {
@@ -8953,7 +8726,7 @@
       }
     },
     {
-      "id": 124,
+      "id": 121,
       "type": {
         "def": {
           "composite": {
@@ -8965,7 +8738,7 @@
               },
               {
                 "name": "provider",
-                "type": 125,
+                "type": 122,
                 "typeName": "Option<Vec<u8>>"
               }
             ]
@@ -8979,7 +8752,7 @@
       }
     },
     {
-      "id": 125,
+      "id": 122,
       "type": {
         "def": {
           "variant": {
@@ -8991,7 +8764,7 @@
               {
                 "fields": [
                   {
-                    "type": 126
+                    "type": 123
                   }
                 ],
                 "index": 1,
@@ -9003,7 +8776,7 @@
         "params": [
           {
             "name": "T",
-            "type": 126
+            "type": 123
           }
         ],
         "path": [
@@ -9012,7 +8785,7 @@
       }
     },
     {
-      "id": 126,
+      "id": 123,
       "type": {
         "def": {
           "sequence": {
@@ -9022,7 +8795,7 @@
       }
     },
     {
-      "id": 127,
+      "id": 124,
       "type": {
         "def": {
           "variant": {}

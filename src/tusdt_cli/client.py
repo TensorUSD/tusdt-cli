@@ -2031,12 +2031,16 @@ class TUSDTClient:
         borrower: str,
         value: int = 0,
     ) -> dict[str, Any] | DryRunResult:
-        """Liquidate an underwater borrower (full-seizure).
+        """Liquidate a borrower's full position (full-debt payment).
 
-        The borrower's full debt on both markets is repaid — TAO via the
-        attached native ``value`` and TUSDT via ``transfer_from`` — and all
-        of the borrower's alpha collateral is seized, minus the platform's
-        liquidation fee.
+        The liquidator pays the borrower's FULL debt on both markets — TAO
+        via the attached native ``value`` and TUSDT via ``transfer_from``,
+        with accrued interest — whether or not the collateral covers the
+        debt. All of the borrower's alpha collateral is seized: while the
+        collateral covers the debt the platform keeps its liquidation fee
+        (capped at the surplus share); underwater the fee is 0, the
+        liquidator receives all the alpha and may take a value loss. The
+        borrower is always fully cleared; the pool never books a deficit.
         """
         return self._exec(
             self.lending,
@@ -2335,11 +2339,6 @@ class TUSDTClient:
     def lending_get_market_state(self, keypair: Keypair, market_id: int) -> dict | None:
         """Get market state for a lending market."""
         result = self._read(self.lending, keypair, "get_market_state", args={"market_id": market_id})
-        return unwrap_option(result)
-
-    def lending_get_market_deficit(self, keypair: Keypair, market_id: int) -> int | None:
-        """Get a market's frozen bad-debt deficit (face units), or None when nothing is booked."""
-        result = self._read(self.lending, keypair, "get_market_deficit", args={"market_id": market_id})
         return unwrap_option(result)
 
     def lending_get_position(self, keypair: Keypair, market_id: int, user: str) -> dict | None:
