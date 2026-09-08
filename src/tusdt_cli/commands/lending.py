@@ -925,16 +925,25 @@ def market_state(ctx: click.Context, market_id: int, network: str | None) -> Non
     MarketState tracks supply in lToken units, so alongside the raw lToken
     count the command shows the face (underlying) supply it represents at
     the current exchange rate — raw lTAO counts are never presented as TAO.
+    For debt markets (0 or 1) the exchange rate and face rows additionally
+    include any unaccrued whole-hour interest: the rate is projected
+    off-chain by replaying the pool's accrual math (see
+    ``tusdt_cli.lending_interest``), so the shown rate is the one the next
+    supply/withdraw transaction actually applies.  The projection is
+    silently omitted when any required state read fails.
     """
     state: CLIContext = ctx.obj
     state.network = network or state.network
     cfg = state.make_config()
     kp = get_reader_keypair(cfg)
     result = state.run_read(lambda c: c.lending_get_market_state(kp, market_id))
-    state.output.detail("Market State", _market_state_details(result, market_id))
+    projection = _project_exchange_rate(state, kp, market_id, result)
+    state.output.detail("Market State", _market_state_details(result, market_id, projection))
 
 
-def _market_state_details(result: Any, market_id: int) -> dict[str, Any]:
+def _market_state_details(
+    result: Any, market_id: int, projection: dict[str, Any] | None = None
+) -> dict[str, Any]:
     """Curate a decoded MarketState for display, adding face-scaled supply.
 
     ``MarketState.total_supplied`` is denominated in lToken (scaled) units —
@@ -943,6 +952,11 @@ def _market_state_details(result: Any, market_id: int) -> dict[str, Any]:
     key-for-key except the supply/rate fields, which are re-emitted with
     explicit unit labels, and a derived face row is added so a raw lTAO
     count is never mistaken for plain TAO.
+
+    ``projection`` (from ``_project_exchange_rate``) carries the exchange
+    rate including unaccrued whole-hour interest; when it differs from the
+    stored rate the primary exchange-rate rows and the face rows use the
+    projected value and the stored rate is kept under an explicit row.
     """
     if not isinstance(result, dict):
         # Unexpected payload shape (not a decoded struct) — keep it raw.
@@ -968,11 +982,19 @@ def _market_state_details(result: Any, market_id: int) -> dict[str, Any]:
         details[f"total_supplied ({ltoken}, raw)"] = total_supplied
         details[f"total_supplied ({ltoken})"] = format_balance(total_supplied)
     if has_supply and has_rate:
-        face = lending_interest.face_from_ltao(total_supplied, exchange_rate_inner)
+        er_inner = exchange_rate_inner
+        projected_er = _dict_field(projection or {}, "projected_exchange_rate_inner")
+        if isinstance(projected_er, int) and projected_er > 0 and projected_er != exchange_rate_inner:
+            # Unaccrued whole hours exist — the primary rows show the rate a
+            # supply/withdraw tx applies; the stored rate stays visible.
+            er_inner = projected_er
+            details["exchange_rate stored (1e18 inner)"] = exchange_rate_inner
+            details["accrual pending (hours)"] = _dict_field(projection, "dt_hours", default=0)
+        face = lending_interest.face_from_ltao(total_supplied, er_inner)
         details[f"total supplied (face {asset})"] = format_balance(face)
         details[f"total supplied (face {asset}, raw)"] = face
-        details["exchange_rate (1e18 inner)"] = exchange_rate_inner
-        details[f"exchange_rate ({asset} per {ltoken})"] = format_balance(exchange_rate_inner, 18)
+        details["exchange_rate (1e18 inner)"] = er_inner
+        details[f"exchange_rate ({asset} per {ltoken})"] = format_balance(er_inner, 18)
     elif has_supply:
         details[f"total supplied (face {asset})"] = "n/a (no exchange rate in state)"
     return details
@@ -998,13 +1020,34 @@ def position(ctx: click.Context, market_id: int, user: str, network: str | None)
 @network_option
 @click.pass_context
 def exchange_rate(ctx: click.Context, market_id: int, network: str | None) -> None:
-    """Show lToken exchange rate for a market (1e18 scale)."""
+    """Show lToken exchange rate for a market (1e18 scale).
+
+    ``Result`` is the stored on-chain rate.  For debt markets (0 = TAO,
+    1 = TUSDT) the output additionally carries the rate including any
+    unaccrued whole-hour interest — projected off-chain by replaying the
+    pool's accrual math (see ``tusdt_cli.lending_interest``), i.e. the rate
+    the next supply/withdraw transaction actually applies.  The projection
+    is silently omitted when any required state read fails.
+    """
     state: CLIContext = ctx.obj
     state.network = network or state.network
     cfg = state.make_config()
     kp = get_reader_keypair(cfg)
     result = state.run_read(lambda c: c.lending_get_exchange_rate(kp, market_id))
-    state.output.detail("Exchange Rate", {"Result": result})
+    if not isinstance(result, int):
+        state.output.detail("Exchange Rate", {"Result": result})
+        return
+    details: dict[str, Any] = {"Result": result}
+    if market_id in (0, 1):
+        market_state = state.run_read(lambda c: c.lending_get_market_state(kp, market_id))
+        projection = _project_exchange_rate(state, kp, market_id, market_state)
+        if projection is not None:
+            projected_er = projection.get("projected_exchange_rate_inner")
+            if isinstance(projected_er, int) and projected_er != result:
+                details["Exchange Rate (incl. unaccrued interest, 1e18 inner)"] = projected_er
+                details["Accrual pending (hours)"] = projection.get("dt_hours", 0)
+                details["Projected to (UTC)"] = projection.get("projected_to_utc", "")
+    state.output.detail("Exchange Rate", details)
 
 
 @lending_group.command("borrow-index")
@@ -1145,6 +1188,100 @@ def _dict_field(data: Any, *names: str, default: Any = None) -> Any:
             if name in data:
                 return data[name]
     return default
+
+
+def _project_exchange_rate(
+    state: CLIContext, kp: Any, market_id: int, market_state: Any
+) -> dict[str, Any] | None:
+    """Project a market's exchange rate including unaccrued interest.
+
+    Replays the pool's supplier-side whole-hour accrual math
+    (``lending_interest.project_exchange_rate``, mirroring ``rates.rs``)
+    from on-chain state: the stored exchange rate, total debt, curve params
+    (incl. reserve factor) and last accrual time.  Pool cash — not exposed
+    as a message — is derived from the MarketState invariant ``cash =
+    total_supplied * exchange_rate - total_debt + reserve_accrued`` (same as
+    the debt projection).  Returns the projection dict (with an added
+    ``projected_to_utc`` row), or ``None`` when any read fails, a required
+    value is missing, or ``last_update == 0`` with live debt (never accrued
+    — see ``_project_user_debt``).  Never raises.
+    """
+    try:
+        if market_id not in (0, 1):
+            return None
+        exchange_rate = _dict_field(market_state, "exchange_rate", "exchangeRate")
+        total_debt = _dict_field(market_state, "total_debt", "totalDebt")
+        if not isinstance(exchange_rate, int) or exchange_rate <= 0:
+            return None
+        if not isinstance(total_debt, int) or total_debt <= 0:
+            return None
+
+        params = state.run_read(lambda c: c.lending_get_market_params(kp, market_id))
+        if not isinstance(params, dict):
+            return None
+        total_supplied = _dict_field(market_state, "total_supplied", "totalSupplied")
+        reserve_accrued = _dict_field(market_state, "reserve_accrued", "reserveAccrued")
+        if total_supplied is None or reserve_accrued is None:
+            return None
+        cash = lending_interest.derive_cash(
+            total_supplied,
+            exchange_rate,
+            total_debt,
+            reserve_accrued,
+        )
+
+        # Last accrual time: prefer the dedicated message's tuple element;
+        # fall back to the market state's last_update when it is missing/zero.
+        accrual_times = state.run_read(lambda c: c.lending_get_last_interest_accrual_times(kp))
+        last_update_ms: Any = None
+        if isinstance(accrual_times, (list, tuple)) and len(accrual_times) > market_id:
+            last_update_ms = accrual_times[market_id]
+        if not last_update_ms:
+            last_update_ms = _dict_field(market_state, "last_update", "lastUpdate")
+        if last_update_ms is None:
+            return None
+        if last_update_ms == 0:
+            # last_update == 0 means "never accrued" — impossible for a
+            # consistent market with live debt (accrue stamps the clock
+            # before any borrow).  Bail out rather than projecting from the
+            # Unix epoch.
+            return None
+
+        # Chain clock (Timestamp pallet, ms) — the same clock the contract's
+        # block_timestamp() reads; the local wall clock is only a fallback.
+        now_ms = state.run_read(lambda c: c.lending_get_chain_timestamp(kp))
+        if not now_ms:
+            now_ms = int(time.time() * 1000)
+
+        params_inner = {
+            "base": lending_interest.bps_to_ratio_inner(_dict_field(params, "base_rate", default=0)),
+            "slope1": lending_interest.bps_to_ratio_inner(_dict_field(params, "slope1", default=0)),
+            "slope2": lending_interest.bps_to_ratio_inner(_dict_field(params, "slope2", default=0)),
+            "optimal": lending_interest.bps_to_ratio_inner(
+                _dict_field(params, "optimal_utilization", default=0)
+            ),
+            "reserve_factor": lending_interest.bps_to_ratio_inner(
+                _dict_field(params, "reserve_factor", default=0)
+            ),
+        }
+        projection: dict[str, Any] = dict(
+            lending_interest.project_exchange_rate(
+                exchange_rate,
+                total_debt,
+                cash,
+                params_inner,
+                last_update_ms,
+                now_ms,
+            )
+        )
+        projection["projected_to_utc"] = datetime.fromtimestamp(now_ms / 1000, timezone.utc).strftime(
+            "%Y-%m-%d %H:%M:%S UTC"
+        )
+        return projection
+    except Exception:
+        # The projection is advisory: any failure falls back to the stored
+        # on-chain rate instead of breaking the command.
+        return None
 
 
 def _project_user_debt(state: CLIContext, kp: Any, market_id: int, user: str) -> dict[str, Any] | None:

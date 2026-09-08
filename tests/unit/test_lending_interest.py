@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 import pytest
 
 from tusdt_cli.lending_interest import (
@@ -14,6 +16,7 @@ from tusdt_cli.lending_interest import (
     face_from_ltao,
     pow_fixed,
     project_debt,
+    project_exchange_rate,
 )
 
 # Live pool exchange-rate inner observed on-chain (pinned, not approximate):
@@ -229,3 +232,106 @@ class TestDeriveCash:
 
     def test_negative_result_clamps_to_zero(self):
         assert derive_cash(10 * 10**9, RATIO_SCALE, 50 * 10**9, 0) == 0
+
+
+class TestProjectExchangeRate:
+    # Doc lifecycle params (docs/calculations/lending-pool.md): util 40%,
+    # borrow 2%/yr, supply 0.64%/yr, reserve factor 20% — all 1e18 inners.
+    PARAMS: ClassVar[dict[str, int]] = {
+        "base": 0,
+        "slope1": 4 * 10**16,
+        "slope2": 96 * 10**16,
+        "optimal": 8 * 10**17,
+        "reserve_factor": 2 * 10**17,
+    }
+
+    def test_720h_lifecycle_pin(self):
+        # 720 whole hours at util 40% (debt 800 TAO / cash 1200 TAO). The
+        # expected inner is produced by this module's own truncating pow_fixed
+        # — the same value the dApp's TypeScript mirror pins; the doc's 18-dp
+        # decimal 1.000526165581675953 is a rendering artifact (its own ΔER
+        # ...849 figure agrees with ...849).
+        result = project_exchange_rate(
+            exchange_rate_inner=RATIO_SCALE,
+            total_debt=800 * 10**9,
+            cash=1_200 * 10**9,
+            params=self.PARAMS,
+            last_update_ms=0,
+            now_ms=720 * MS_PER_HOUR,
+        )
+        assert result["dt_hours"] == 720
+        assert result["utilization_inner"] == 400_000_000_000_000_000  # 40%
+        assert result["annual_borrow_rate_inner"] == 20_000_000_000_000_000  # 2%
+        assert result["annual_supply_rate_inner"] == 6_400_000_000_000_000  # 0.64%
+        assert result["hourly_supply_rate_inner"] == 730_593_607_305  # doc :130
+        assert result["projected_exchange_rate_inner"] == 1_000_526_165_581_675_849
+
+    def test_no_debt_returns_stored_rate(self):
+        result = project_exchange_rate(
+            exchange_rate_inner=RATIO_SCALE,
+            total_debt=0,
+            cash=1_200 * 10**9,
+            params=self.PARAMS,
+            last_update_ms=0,
+            now_ms=720 * MS_PER_HOUR,
+        )
+        assert result["dt_hours"] == 720
+        assert result["projected_exchange_rate_inner"] == RATIO_SCALE
+
+    def test_sub_hour_elapsed_is_no_op(self):
+        # 30 minutes < one whole hour — the contract preserves the sub-hour
+        # remainder and accrues nothing; the projection must match.
+        result = project_exchange_rate(
+            exchange_rate_inner=RATIO_SCALE,
+            total_debt=800 * 10**9,
+            cash=1_200 * 10**9,
+            params=self.PARAMS,
+            last_update_ms=1_700_000_000_000,
+            now_ms=1_700_000_000_000 + MS_PER_HOUR // 2,
+        )
+        assert result["dt_hours"] == 0
+        assert result["projected_exchange_rate_inner"] == RATIO_SCALE
+
+    def test_zero_cash_full_utilization_grows_rate(self):
+        # No cash with live debt → 100% utilization → slope2 zone (borrow
+        # annual = 4% + 96% = 100%); the rate must grow.
+        result = project_exchange_rate(
+            exchange_rate_inner=RATIO_SCALE,
+            total_debt=800 * 10**9,
+            cash=0,
+            params=self.PARAMS,
+            last_update_ms=0,
+            now_ms=MS_PER_HOUR,
+        )
+        assert result["utilization_inner"] == RATIO_SCALE  # 100%
+        assert result["annual_borrow_rate_inner"] == RATIO_SCALE  # 100%/yr
+        assert result["dt_hours"] == 1
+        assert result["projected_exchange_rate_inner"] > RATIO_SCALE
+
+    def test_missing_reserve_factor_defaults_to_zero(self):
+        # A params dict without reserve_factor is treated as 0% reserve — the
+        # whole borrow-interest share grows the exchange rate.
+        result = project_exchange_rate(
+            exchange_rate_inner=RATIO_SCALE,
+            total_debt=800 * 10**9,
+            cash=1_200 * 10**9,
+            params={"base": 0, "slope1": 4 * 10**16, "slope2": 96 * 10**16, "optimal": 8 * 10**17},
+            last_update_ms=0,
+            now_ms=MS_PER_HOUR,
+        )
+        # supply annual = borrow 2% × util 40% = 0.8% (no rf cut) →
+        # hourly = 0.008 × 1e18 // 8760.
+        assert result["annual_supply_rate_inner"] == 8_000_000_000_000_000
+        assert result["hourly_supply_rate_inner"] == 913_242_009_132
+
+    def test_negative_clock_is_clamped_no_op(self):
+        result = project_exchange_rate(
+            exchange_rate_inner=RATIO_SCALE,
+            total_debt=800 * 10**9,
+            cash=1_200 * 10**9,
+            params=self.PARAMS,
+            last_update_ms=1_700_000_000_000,
+            now_ms=1_000_000_000_000,
+        )
+        assert result["dt_hours"] == 0
+        assert result["projected_exchange_rate_inner"] == RATIO_SCALE
