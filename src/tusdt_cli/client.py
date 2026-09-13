@@ -2459,6 +2459,37 @@ class TUSDTClient:
         result = self._read(self.lending, keypair, "get_all_positions", args={"page": page})
         return unwrap_plain(result)
 
+    def lending_get_user_positions(self, keypair: Keypair, user: str) -> list:
+        """Get a user's positions across every market in a single call.
+
+        Non-paginated: the pool returns the user's complete non-zero position
+        set in ``market_keys`` order, unlike the deprecated ``get_positions``
+        (which windows a global, first-touch-ordered key list and silently
+        returns ``[]`` for users whose keys sit past the page boundary).
+        """
+        result = self._read(self.lending, keypair, "get_user_positions", args={"user": user})
+        return unwrap_plain(result)
+
+    def lending_get_user_market_position(self, keypair: Keypair, market_id: int, user: str) -> dict | None:
+        """Get a user's supply/debt/alpha position in one market.
+
+        Returns a plain ``UserMarketPosition`` struct (never ``Option``): an
+        unknown id reports ``market_exists == false`` and an untouched market
+        ``has_position == false`` instead of ``None``.
+        """
+        result = self._read(
+            self.lending,
+            keypair,
+            "get_user_market_position",
+            args={"market_id": market_id, "user": user},
+        )
+        return unwrap_plain(result)
+
+    def lending_get_alpha_market_ids(self, keypair: Keypair) -> list:
+        """Get every approved alpha market as ``(market_id, netuid)`` pairs."""
+        result = self._read(self.lending, keypair, "get_alpha_market_ids")
+        return unwrap_plain(result)
+
     def lending_get_pending_alpha_params_update(self, keypair: Keypair, netuid: int) -> dict | None:
         """Get pending alpha params update for a netuid."""
         result = self._read(self.lending, keypair, "get_pending_alpha_params_update", args={"netuid": netuid})
