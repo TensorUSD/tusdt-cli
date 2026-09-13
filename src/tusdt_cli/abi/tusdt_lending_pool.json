@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xd30fe1c97afebca9f6f3f66e5df3e10cdd2c466ddad2c16322eba50411606ce5",
+    "hash": "0x2e3de06c53b591b117d5f958335bf990a876bf293b63aa2db1d563bff611a804",
     "language": "ink! 5.1.1",
     "compiler": "rustc 1.89.0",
     "build_info": {
@@ -188,7 +188,7 @@
         "displayName": [
           "ChainExtension"
         ],
-        "type": 124
+        "type": 132
       },
       "hash": {
         "displayName": [
@@ -216,7 +216,7 @@
               "displayName": [
                 "Option"
               ],
-              "type": 114
+              "type": 122
             }
           },
           {
@@ -227,7 +227,7 @@
               "displayName": [
                 "Option"
               ],
-              "type": 114
+              "type": 122
             }
           },
           {
@@ -1187,7 +1187,7 @@
               "displayName": [
                 "Option"
               ],
-              "type": 120
+              "type": 128
             }
           }
         ],
@@ -1728,7 +1728,7 @@
               "displayName": [
                 "PriceSubmissionMetadata"
               ],
-              "type": 121
+              "type": 129
             }
           },
           {
@@ -1857,7 +1857,7 @@
               "displayName": [
                 "Option"
               ],
-              "type": 114
+              "type": 122
             }
           }
         ],
@@ -3733,7 +3733,16 @@
         ],
         "default": false,
         "docs": [
-          " Returns up to `PAGE_SIZE` positions of a user on the given page."
+          " Returns up to `PAGE_SIZE` positions of a user on the given page.",
+          "",
+          " **Deprecated for per-user queries.** The `position_keys` list this",
+          " walks is global and ordered by first touch, so the page window is",
+          " taken over ALL users' keys and only then filtered by `user`: a user",
+          " whose keys were first touched at index `PAGE_SIZE` or later gets an",
+          " EMPTY result for page 0, and there is no count / has-more signal to",
+          " tell a caller to keep walking. Use `get_user_positions` instead,",
+          " which returns a user's complete position set in one call. Kept for",
+          " backward compatibility; newly written clients should not call it."
         ],
         "label": "get_positions",
         "mutates": false,
@@ -3779,6 +3788,151 @@
       {
         "args": [
           {
+            "label": "market_id",
+            "type": {
+              "displayName": [
+                "u8"
+              ],
+              "type": 2
+            }
+          },
+          {
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Returns `user`'s position in `market_id` — supply, debt and alpha",
+          " collateral — in ONE call, with face values resolved on-chain.",
+          "",
+          " This is the primary (address, market_id) read, for ANY `market_id`:",
+          " 0 = TAO supply+borrow, 1 = TUSDT supply+borrow, 2+ = one alpha",
+          " collateral market per approved netuid. It never reverts and never",
+          " returns `None` — an id that was never created comes back with",
+          " `market_exists == false`, and a market the user never touched (or",
+          " touched and fully closed, whose all-zero `Position` still sits in",
+          " storage) comes back with `has_position == false` and zero amounts.",
+          " So a client can render \"nothing here\" without distinguishing",
+          " undefined from zero, and a mistyped id is self-diagnosing.",
+          "",
+          " `supply_face` is `compute_redeem_amount(ltoken_balance,",
+          " exchange_rate)` and `debt_face` is `scaled_debt_to_face(scaled_debt,",
+          " borrow_index)` — the same helpers the market itself uses, so they can",
+          " never disagree with `get_underlying_balance` / `get_user_debt`, and",
+          " they are read atomically with the raw amounts. A `None` face means",
+          " the face cannot be represented (see `UserMarketPosition`); it is",
+          " never a substitute for zero.",
+          "",
+          " `alpha_netuid` carries the netuid needed to price alpha collateral",
+          " against the oracle, so no client has to join `get_alpha_markets` by",
+          " list order."
+        ],
+        "label": "get_user_market_position",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 108
+        },
+        "selector": "0x2f78eae2"
+      },
+      {
+        "args": [
+          {
+            "label": "user",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Returns `user`'s position in EVERY market where it holds something",
+          " non-zero, as `UserMarketPosition` values in `market_keys` order",
+          " (0, then 1, then alpha markets by creation order).",
+          "",
+          " Non-paginated and complete in one call: the scan is bounded by the",
+          " number of markets — which only the maintainer or governance can grow",
+          " (`set_approved_netuid`, gated by `ensure_maintainer`) — NOT by the",
+          " global `position_keys` list. That is what distinguishes it from the",
+          " deprecated `get_positions`: that read windows the first-touch-ordered",
+          " global key list, so it misses every user whose keys were first",
+          " touched after index `PAGE_SIZE - 1`, with no count / has-more signal",
+          " telling a client to keep walking. Here a user's complete position set",
+          " is always returned, regardless of how many other users or keys exist.",
+          "",
+          " Zeroed rows are filtered even though they persist in storage",
+          " (`positions` entries are never removed), so an empty vec means the",
+          " user holds nothing in any market.",
+          "",
+          " Every entry has `market_exists == true` (the ids come from",
+          " `market_keys`). An id retained in `market_keys` after its netuid was",
+          " unapproved still reports its raw `alpha_principal` with",
+          " `alpha_netuid == None` — normally that principal is zero, because",
+          " unapproval refuses while collateral remains, so it drops out of the",
+          " result entirely."
+        ],
+        "label": "get_user_positions",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 111
+        },
+        "selector": "0x5da1eab3"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [
+          " Returns every APPROVED alpha market as `(market_id, netuid)` pairs in",
+          " `market_keys` order — the id space a client must know to use",
+          " `get_user_market_position`, and the id -> netuid translation needed to",
+          " price alpha collateral against the oracle.",
+          "",
+          " `get_alpha_markets` returns `(netuid, params)` WITHOUT the market id,",
+          " so the only way to pair the two today is by list order — fragile and",
+          " silently wrong for a client that filters or sorts. This read removes",
+          " that join: both reads walk `market_keys` in the same order, but here",
+          " the pairing is data, not position.",
+          "",
+          " Ids retained in `market_keys` after their netuid was unapproved are",
+          " skipped (`market_to_netuid` is gone for them), so `len()` is the true",
+          " approved-market count — unlike `get_active_netuids_count`, which",
+          " counts every id >= 2 ever minted (unapproval never pops",
+          " `market_keys`, so re-approval of the same netuid mints a new id). An",
+          " empty vec means no alpha market is approved."
+        ],
+        "label": "get_alpha_market_ids",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 113
+        },
+        "selector": "0x0c6ab9b7"
+      },
+      {
+        "args": [
+          {
             "label": "netuid",
             "type": {
               "displayName": [
@@ -3800,7 +3954,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 108
+          "type": 116
         },
         "selector": "0x76ba5a01"
       },
@@ -3828,7 +3982,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 110
+          "type": 118
         },
         "selector": "0x3f13c376"
       },
@@ -3846,7 +4000,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 112
+          "type": 120
         },
         "selector": "0x9259f07d"
       },
@@ -3982,7 +4136,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 113
+          "type": 121
         },
         "selector": "0x59c8f9ea"
       },
@@ -4019,7 +4173,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 115
+          "type": 123
         },
         "selector": "0xc65d30fc"
       },
@@ -4048,7 +4202,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 116
+          "type": 124
         },
         "selector": "0x6a278c15"
       },
@@ -4077,7 +4231,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 118
+          "type": 126
         },
         "selector": "0x914e8470"
       }
@@ -8279,32 +8433,60 @@
       "id": 109,
       "type": {
         "def": {
-          "variant": {
-            "variants": [
+          "composite": {
+            "fields": [
               {
-                "index": 0,
-                "name": "None"
+                "name": "market_id",
+                "type": 2,
+                "typeName": "u8"
               },
               {
-                "fields": [
-                  {
-                    "type": 43
-                  }
-                ],
-                "index": 1,
-                "name": "Some"
+                "name": "market_exists",
+                "type": 3,
+                "typeName": "bool"
+              },
+              {
+                "name": "alpha_netuid",
+                "type": 110,
+                "typeName": "Option<u16>"
+              },
+              {
+                "name": "has_position",
+                "type": 3,
+                "typeName": "bool"
+              },
+              {
+                "name": "ltoken_balance",
+                "type": 4,
+                "typeName": "Balance"
+              },
+              {
+                "name": "supply_face",
+                "type": 93,
+                "typeName": "Option<Balance>"
+              },
+              {
+                "name": "scaled_debt",
+                "type": 4,
+                "typeName": "Balance"
+              },
+              {
+                "name": "debt_face",
+                "type": 93,
+                "typeName": "Option<Balance>"
+              },
+              {
+                "name": "alpha_principal",
+                "type": 4,
+                "typeName": "Balance"
               }
             ]
           }
         },
-        "params": [
-          {
-            "name": "T",
-            "type": 43
-          }
-        ],
         "path": [
-          "Option"
+          "tusdt_lending_pool",
+          "lending_pool",
+          "UserMarketPosition"
         ]
       }
     },
@@ -8315,55 +8497,13 @@
           "variant": {
             "variants": [
               {
-                "fields": [
-                  {
-                    "type": 111
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 75
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 111
-          },
-          {
-            "name": "E",
-            "type": 75
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 111,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
                 "index": 0,
                 "name": "None"
               },
               {
                 "fields": [
                   {
-                    "type": 38
+                    "type": 23
                   }
                 ],
                 "index": 1,
@@ -8375,7 +8515,7 @@
         "params": [
           {
             "name": "T",
-            "type": 38
+            "type": 23
           }
         ],
         "path": [
@@ -8384,7 +8524,7 @@
       }
     },
     {
-      "id": 112,
+      "id": 111,
       "type": {
         "def": {
           "variant": {
@@ -8392,7 +8532,7 @@
               {
                 "fields": [
                   {
-                    "type": 69
+                    "type": 112
                   }
                 ],
                 "index": 0,
@@ -8413,7 +8553,7 @@
         "params": [
           {
             "name": "T",
-            "type": 69
+            "type": 112
           },
           {
             "name": "E",
@@ -8423,6 +8563,16 @@
         "path": [
           "Result"
         ]
+      }
+    },
+    {
+      "id": 112,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 109
+          }
+        }
       }
     },
     {
@@ -8471,75 +8621,21 @@
       "id": 114,
       "type": {
         "def": {
-          "variant": {
-            "variants": [
-              {
-                "index": 0,
-                "name": "None"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 0
-                  }
-                ],
-                "index": 1,
-                "name": "Some"
-              }
-            ]
+          "sequence": {
+            "type": 115
           }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 0
-          }
-        ],
-        "path": [
-          "Option"
-        ]
+        }
       }
     },
     {
       "id": 115,
       "type": {
         "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 71
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 75
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 71
-          },
-          {
-            "name": "E",
-            "type": 75
-          }
-        ],
-        "path": [
-          "Result"
-        ]
+          "tuple": [
+            2,
+            23
+          ]
+        }
       }
     },
     {
@@ -8597,7 +8693,7 @@
               {
                 "fields": [
                   {
-                    "type": 39
+                    "type": 43
                   }
                 ],
                 "index": 1,
@@ -8609,7 +8705,7 @@
         "params": [
           {
             "name": "T",
-            "type": 39
+            "type": 43
           }
         ],
         "path": [
@@ -8672,6 +8768,315 @@
               {
                 "fields": [
                   {
+                    "type": 38
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 38
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 120,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 69
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 75
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 69
+          },
+          {
+            "name": "E",
+            "type": 75
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 121,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 122
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 75
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 122
+          },
+          {
+            "name": "E",
+            "type": 75
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 122,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 0
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 0
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 123,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 71
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 75
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 71
+          },
+          {
+            "name": "E",
+            "type": 75
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 124,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 125
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 75
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 125
+          },
+          {
+            "name": "E",
+            "type": 75
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 125,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 39
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 39
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 126,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 127
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 75
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 127
+          },
+          {
+            "name": "E",
+            "type": 75
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 127,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
                     "type": 44
                   }
                 ],
@@ -8693,7 +9098,7 @@
       }
     },
     {
-      "id": 120,
+      "id": 128,
       "type": {
         "def": {
           "variant": {
@@ -8726,7 +9131,7 @@
       }
     },
     {
-      "id": 121,
+      "id": 129,
       "type": {
         "def": {
           "composite": {
@@ -8738,7 +9143,7 @@
               },
               {
                 "name": "provider",
-                "type": 122,
+                "type": 130,
                 "typeName": "Option<Vec<u8>>"
               }
             ]
@@ -8752,7 +9157,7 @@
       }
     },
     {
-      "id": 122,
+      "id": 130,
       "type": {
         "def": {
           "variant": {
@@ -8764,7 +9169,7 @@
               {
                 "fields": [
                   {
-                    "type": 123
+                    "type": 131
                   }
                 ],
                 "index": 1,
@@ -8776,7 +9181,7 @@
         "params": [
           {
             "name": "T",
-            "type": 123
+            "type": 131
           }
         ],
         "path": [
@@ -8785,7 +9190,7 @@
       }
     },
     {
-      "id": 123,
+      "id": 131,
       "type": {
         "def": {
           "sequence": {
@@ -8795,7 +9200,7 @@
       }
     },
     {
-      "id": 124,
+      "id": 132,
       "type": {
         "def": {
           "variant": {}

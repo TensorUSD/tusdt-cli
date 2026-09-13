@@ -742,3 +742,58 @@ class TestLendingRootStakeMessages:
             result = client.lending_get_root_stake_config(mock_kp)
             assert result == fake_config
         client._read.assert_called_once_with(client.lending, mock_kp, "get_root_stake_config")
+
+
+class TestLendingPositionReaders:
+    """Tests for the non-paginated user-position lending reads."""
+
+    @patch("tusdt_cli.client.SubstrateInterface")
+    @patch("tusdt_cli.client.ContractMetadata")
+    @patch("tusdt_cli.client.ContractInstance")
+    def test_lending_get_user_positions(self, mock_ci, mock_meta, mock_sub, minimal_config):
+        """lending_get_user_positions reads with args={"user": ...} and unwraps plain."""
+        client = TUSDTClient(minimal_config)
+        client._read = MagicMock()
+        mock_kp = MagicMock()
+        user = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+        positions = [{"market_id": 0, "has_position": True}]
+        with patch("tusdt_cli.client.unwrap_plain", return_value=positions):
+            result = client.lending_get_user_positions(mock_kp, user)
+            assert result == positions
+        client._read.assert_called_once_with(
+            client.lending, mock_kp, "get_user_positions", args={"user": user}
+        )
+
+    @patch("tusdt_cli.client.SubstrateInterface")
+    @patch("tusdt_cli.client.ContractMetadata")
+    @patch("tusdt_cli.client.ContractInstance")
+    def test_lending_get_user_market_position(self, mock_ci, mock_meta, mock_sub, minimal_config):
+        """lending_get_user_market_position passes market_id + user and unwraps plain."""
+        client = TUSDTClient(minimal_config)
+        client._read = MagicMock()
+        mock_kp = MagicMock()
+        user = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+        position = {"market_id": 2, "market_exists": True, "has_position": False}
+        with patch("tusdt_cli.client.unwrap_plain", return_value=position):
+            result = client.lending_get_user_market_position(mock_kp, 2, user)
+            assert result == position
+        client._read.assert_called_once_with(
+            client.lending,
+            mock_kp,
+            "get_user_market_position",
+            args={"market_id": 2, "user": user},
+        )
+
+    @patch("tusdt_cli.client.SubstrateInterface")
+    @patch("tusdt_cli.client.ContractMetadata")
+    @patch("tusdt_cli.client.ContractInstance")
+    def test_lending_get_alpha_market_ids(self, mock_ci, mock_meta, mock_sub, minimal_config):
+        """lending_get_alpha_market_ids reads with no args and unwraps plain."""
+        client = TUSDTClient(minimal_config)
+        client._read = MagicMock()
+        mock_kp = MagicMock()
+        market_ids = [(2, 7), (3, 12)]
+        with patch("tusdt_cli.client.unwrap_plain", return_value=market_ids):
+            result = client.lending_get_alpha_market_ids(mock_kp)
+            assert result == market_ids
+        client._read.assert_called_once_with(client.lending, mock_kp, "get_alpha_market_ids")

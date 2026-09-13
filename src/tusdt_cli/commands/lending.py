@@ -1476,7 +1476,12 @@ def active_netuids_count(ctx: click.Context, network: str | None) -> None:
 
 @lending_group.command("positions")
 @click.option("--user", required=True, help="User SS58 address")
-@click.option("--page", type=int, default=0, help="Page number (10 per page)")
+@click.option(
+    "--page",
+    type=int,
+    default=0,
+    help="DEPRECATED: only used by the legacy fallback path (10 per page)",
+)
 @network_option
 @click.pass_context
 def positions(ctx: click.Context, user: str, page: int, network: str | None) -> None:
@@ -1485,8 +1490,44 @@ def positions(ctx: click.Context, user: str, page: int, network: str | None) -> 
     state.network = network or state.network
     cfg = state.make_config()
     kp = get_reader_keypair(cfg)
-    result = state.run_read(lambda c: c.lending_get_positions(kp, user, page))
+    try:
+        result = state.run_read(lambda c: c.lending_get_user_positions(kp, user))
+    except Exception as exc:
+        state.output.warning(
+            "get_user_positions is unavailable on this pool build "
+            f"({exc}); falling back to the legacy paginated get_positions read, "
+            "which can miss this user's positions entirely."
+        )
+        result = state.run_read(lambda c: c.lending_get_positions(kp, user, page))
     state.output.detail("Positions", {"Result": result})
+
+
+@lending_group.command("market-position")
+@click.option("--user", required=True, help="User SS58 address")
+@click.option("--market-id", required=True, type=int, help="Lending market id")
+@network_option
+@click.pass_context
+def market_position(ctx: click.Context, user: str, market_id: int, network: str | None) -> None:
+    """Show a user's position in one market (supply, debt, alpha collateral)."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    result = state.run_read(lambda c: c.lending_get_user_market_position(kp, market_id, user))
+    state.output.detail("Market Position", {"Result": result})
+
+
+@lending_group.command("alpha-market-ids")
+@network_option
+@click.pass_context
+def alpha_market_ids(ctx: click.Context, network: str | None) -> None:
+    """List every approved alpha market as (market_id, netuid) pairs."""
+    state: CLIContext = ctx.obj
+    state.network = network or state.network
+    cfg = state.make_config()
+    kp = get_reader_keypair(cfg)
+    result = state.run_read(lambda c: c.lending_get_alpha_market_ids(kp))
+    state.output.detail("Alpha Market IDs", {"Result": result})
 
 
 @lending_group.command("all-positions")
